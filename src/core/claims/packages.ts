@@ -1,5 +1,5 @@
-import { inCode, overlaps, type BlockContext, type Candidate, type Range } from './context.js';
-import type { PackageEcosystem } from '../model.js';
+import { inCode, overlaps, type BlockContext, type Candidate, type Range } from './context';
+import type { PackageEcosystem } from '../model';
 
 const NOT_PACKAGE_WORDS: ReadonlySet<string> = new Set(
   `version versions step steps section chapter page pages release releases since from until upto up to and or the a an v ver rev revision

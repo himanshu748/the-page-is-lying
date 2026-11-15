@@ -1,6 +1,6 @@
-import type { HttpMethod } from '../model.js';
-import { inCode, overlaps, type BlockContext, type Candidate } from './context.js';
-import { stripPrefix, tokenizeSegment } from './shell.js';
+import type { HttpMethod } from '../model';
+import { inCode, overlaps, type BlockContext, type Candidate } from './context';
+import { stripPrefix, tokenizeSegment } from './shell';
 
 const METHODS: ReadonlySet<string> = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
 const MAX_PATH_LENGTH = 300;

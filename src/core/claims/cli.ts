@@ -1,5 +1,5 @@
-import type { BlockContext, Candidate } from './context.js';
-import { stripPrefix, tokenizeSegment, type Token } from './shell.js';
+import type { BlockContext, Candidate } from './context';
+import { stripPrefix, tokenizeSegment, type Token } from './shell';
 
 /** Well-known external tools. Their commands say nothing about the repo, so they are not claims. `curl` is handled by http.ts. */
 const EXTERNAL_TOOLS: ReadonlySet<string> = new Set(

@@ -5,7 +5,7 @@
  * evaluates anything, and caps depth, node count, block count and text length.
  */
 
-import { TEXT_BLOCK_TYPES, inlineNodeText } from './blocks.js';
+import { TEXT_BLOCK_TYPES, inlineNodeText } from './blocks';
 
 export interface TextMark {
   /** Offsets into `TextBlock.text`, end exclusive. */

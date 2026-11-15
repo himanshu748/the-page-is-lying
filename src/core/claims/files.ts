@@ -1,4 +1,4 @@
-import { inCode, overlaps, urlRanges, type BlockContext, type Candidate } from './context.js';
+import { inCode, overlaps, urlRanges, type BlockContext, type Candidate } from './context';
 
 const MAX_PATH_LENGTH = 200;
 const MAX_SEGMENTS = 20;

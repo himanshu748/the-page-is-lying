@@ -1,4 +1,4 @@
-import { inCode, type BlockContext, type Candidate } from './context.js';
+import { inCode, type BlockContext, type Candidate } from './context';
 
 const NAME_RE = /[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+/g;
 const MAX_NAME_LENGTH = 64;

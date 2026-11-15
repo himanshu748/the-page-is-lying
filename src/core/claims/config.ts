@@ -1,5 +1,5 @@
-import { inCode, overlaps, urlRanges, type BlockContext, type Candidate } from './context.js';
-import { FILE_EXTENSIONS, findFilePaths } from './files.js';
+import { inCode, overlaps, urlRanges, type BlockContext, type Candidate } from './context';
+import { FILE_EXTENSIONS, findFilePaths } from './files';
 
 const CONFIG_EXTENSIONS: ReadonlySet<string> = new Set(['json', 'jsonc', 'yaml', 'yml', 'toml', 'ini', 'env', 'properties', 'conf', 'cfg', 'xml']);
 const TLDS: ReadonlySet<string> = new Set(['com', 'org', 'net', 'io', 'dev', 'app', 'ai', 'co', 'uk', 'de', 'in', 'me', 'us', 'edu', 'gov', 'local', 'internal']);

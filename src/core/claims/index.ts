@@ -1,12 +1,12 @@
-import type { Claim, ClaimType } from '../model.js';
-import { MAX_BLOCK_TEXT, walkAdf, type TextBlock } from '../adf/walk.js';
-import { extractCli } from './cli.js';
-import { extractConfig } from './config.js';
-import { buildContext, MAX_RAW_LENGTH, overlaps, type Candidate } from './context.js';
-import { extractEnv } from './env.js';
-import { extractFiles } from './files.js';
-import { extractHttp } from './http.js';
-import { extractPackages } from './packages.js';
+import type { Claim, ClaimType } from '../model';
+import { MAX_BLOCK_TEXT, walkAdf, type TextBlock } from '../adf/walk';
+import { extractCli } from './cli';
+import { extractConfig } from './config';
+import { buildContext, MAX_RAW_LENGTH, overlaps, type Candidate } from './context';
+import { extractEnv } from './env';
+import { extractFiles } from './files';
+import { extractHttp } from './http';
+import { extractPackages } from './packages';
 
 export const MAX_CLAIMS_PER_DOCUMENT = 200;
 export const MAX_CLAIMS_PER_BLOCK = 20;

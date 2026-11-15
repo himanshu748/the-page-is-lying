@@ -1,5 +1,5 @@
-import type { NormalizedClaim } from '../model.js';
-import type { TextBlock } from '../adf/walk.js';
+import type { NormalizedClaim } from '../model';
+import type { TextBlock } from '../adf/walk';
 
 export interface Range {
   start: number;

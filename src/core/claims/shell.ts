@@ -1,4 +1,4 @@
-import type { Segment } from './context.js';
+import type { Segment } from './context';
 
 /**
  * A tiny shell-like tokenizer for code spans and code block lines. It never executes
