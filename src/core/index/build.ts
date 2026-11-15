@@ -47,21 +47,36 @@ export interface IndexBuilder {
 export function createIndexBuilder(): IndexBuilder {
   const acc = newAcc([]);
   const seen: string[] = [];
-  const pending: RepoFile[] = [];
   return {
     addFile(file) {
       seen.push(file.path);
-      pending.push(file);
+      indexFile(acc, file);
     },
     finish(ctx) {
       const paths = ctx.treePaths ?? seen;
       for (const p of paths) acc.paths.add(p);
       for (const p of seen) acc.paths.add(p);
-      for (const f of pending) indexFile(acc, f);
-      pending.length = 0;
+      for (const p of acc.paths) {
+        if (UNSUPPORTED_SOURCE.has(extOf(p))) {
+          acc.partial.routes = true;
+          acc.partial.cli = true;
+          if (extOf(p) !== 'rb') acc.partial.env = true;
+        }
+      }
       return finishIndex(acc, ctx, paths);
     },
   };
+}
+
+const CONTENT_EXT = new Set([...JS_EXT, 'py', 'go', 'java', 'rb', 'yaml', 'yml', 'json']);
+const CONTENT_NAMES = new Set(['package.json', 'pyproject.toml', 'setup.py', 'setup.cfg', 'go.mod', 'pom.xml', 'build.gradle', 'build.gradle.kts', 'Makefile', 'makefile', 'GNUmakefile']);
+
+/** Whether a file's text is read by any builder. The tar reader only decodes these files. */
+export function wantsContent(path: string): boolean {
+  const base = baseName(path);
+  if (CONTENT_NAMES.has(base) || isEnvExampleFile(base)) return true;
+  if (/^requirements(?:[-_.][\w.-]*)?\.txt$/.test(base)) return true;
+  return CONTENT_EXT.has(extOf(path));
 }
 
 export function buildRepoIndex(files: Iterable<RepoFile>, ctx: IndexContext): RepoIndex {
@@ -82,12 +97,6 @@ function indexFile(acc: IndexAcc, file: RepoFile): void {
   const { path, text } = file;
   const base = baseName(path);
   const ext = extOf(path);
-
-  if (UNSUPPORTED_SOURCE.has(ext)) {
-    acc.partial.routes = true;
-    acc.partial.cli = true;
-    if (ext !== 'rb') acc.partial.env = true;
-  }
 
   if (base === 'package.json') {
     guard(acc, ['packages', 'cli'], () => {
