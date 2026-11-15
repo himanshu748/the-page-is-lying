@@ -1,6 +1,6 @@
 import type { KvsBatchResult, KvsLike, Ttl } from '../../src/storage/kvs';
 
-const KEY_RE = /^[A-Za-z0-9:._-]{1,500}$/;
+const KEY_RE = /^(?!\s+$)[a-zA-Z0-9:._\s#-]{1,500}$/;
 export const MAX_VALUE_BYTES = 240 * 1024;
 
 export interface Op {

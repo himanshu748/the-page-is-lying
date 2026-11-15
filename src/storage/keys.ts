@@ -1,6 +1,6 @@
 /**
  * KVS key helpers. Keys must match the KVS key regex and stay under 500 characters, so
- * every variable segment is escaped to [A-Za-z0-9._-] ("~" plus hex for anything else).
+ * every variable segment is escaped to [A-Za-z0-9._-] ("#" plus hex for anything else; "#" is allowed in KVS keys).
  */
 import { createHash } from 'node:crypto';
 import type { IndexKind, RepoProvider } from '../core/model';
@@ -13,9 +13,9 @@ export function escapeKeySegment(raw: string): string {
   let out = '';
   for (const byte of Buffer.from(raw, 'utf8')) {
     const ch = String.fromCharCode(byte);
-    out += /[A-Za-z0-9._-]/.test(ch) ? ch : `~${byte.toString(16).padStart(2, '0').toUpperCase()}`;
+    out += /[A-Za-z0-9._-]/.test(ch) ? ch : `#${byte.toString(16).padStart(2, '0').toUpperCase()}`;
   }
-  if (out.length > MAX_SEGMENT) return `h~${createHash('sha256').update(raw).digest('hex').slice(0, 40)}`;
+  if (out.length > MAX_SEGMENT) return `h#${createHash('sha256').update(raw).digest('hex').slice(0, 40)}`;
   return out;
 }
 
