@@ -1,0 +1,12 @@
+node_modules/
+static/ui/dist/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+.forge/
+.DS_Store
+*.log
