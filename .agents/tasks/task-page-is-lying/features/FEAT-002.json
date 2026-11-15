@@ -2,7 +2,7 @@
   "id": "FEAT-002",
   "type": "feat",
   "description": "Task A: claim extractor + fixtures. Pure TypeScript in src/core/adf and src/core/claims. Parallel with FEAT-003, FEAT-005, FEAT-006, FEAT-007 after FEAT-001. Implements PLAN.md section 6.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "src/core/adf/walk.ts: walk an ADF doc (including bodiedExtension content) into TextBlock[] { blockIndex, nodeType, text, marks: {start,end,type}[] } for paragraph, heading, listItem paragraphs, tableCell paragraphs, codeBlock, blockquote, panel; hardBreak becomes newline.",
     "src/core/claims/http.ts: METHOD /path, bare /vN/ paths in code spans, curl -X/--request + URL; normalize params ({id}, :id, <id>, <int:id>) to :param, strip trailing slash, query and fragment; keep host separately.",
@@ -25,5 +25,5 @@
     "npx vitest run test/core/claims --coverage"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "extractClaims(adf)->{claims,claimsTruncated}; extractClaimsFromText(text) same shape. 244 tests pass (all repo), 10 fast-check properties x1000 runs (seed logged, FC_SEED to replay). Coverage: core/adf 100% lines, core/claims 99.77%. Normalization notes for matcher: npm/yarn/pnpm script runs normalize to subcommands ['run', script] (npm test -> ['run','test']); make targets are subcommands, flags []; file_path keeps trailing '/' for directories; http host is hostname only (no port); package ecosystem 'runtime' uses name 'node'|'python', range like '>=20'; env raw is the name only (cue like $ excluded); file_path/config_key never overlap another claim, so paths inside a cli line are not separate claims. Demo ADF fixtures in test/fixtures/claims/."
 }
