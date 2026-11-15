@@ -111,6 +111,7 @@ export function* iterateTar(tar: Uint8Array, limits: SnapshotLimits, c: Snapshot
   let pos = 0;
   let pending: string | undefined;
   let sawEntry = false;
+  let ended = false;
   const finishTree = (): void => {
     for (const p of skipDirPaths) {
       if (c.paths.length >= limits.maxTreePaths) break;
@@ -120,7 +121,10 @@ export function* iterateTar(tar: Uint8Array, limits: SnapshotLimits, c: Snapshot
   try {
     while (pos + BLOCK <= tar.length) {
       const h = tar.subarray(pos, pos + BLOCK);
-      if (isZero(h)) break;
+      if (isZero(h)) {
+        ended = true;
+        break;
+      }
       if (!checksumOk(h)) {
         if (!sawEntry) c.problem = 'invalid_archive';
         else c.problem = c.problem ?? 'invalid_archive';
@@ -163,6 +167,7 @@ export function* iterateTar(tar: Uint8Array, limits: SnapshotLimits, c: Snapshot
       }
       pos = next;
     }
+    if (!ended && pos !== tar.length && !c.problem) c.problem = 'invalid_archive';
   } catch {
     c.problem = c.problem ?? 'invalid_archive';
   }
