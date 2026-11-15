@@ -31,7 +31,7 @@ The page is never read as the app when `asUser()` fails: the handler returns a t
 1. Open `https://one-atlas-obka.atlassian.net/wiki` and sign in.
 2. Open the page "Payments API runbook" (or any page). Note the numeric page ID in the URL (`/pages/<id>/`).
 3. Click **Ask Rovo** (top bar). In the agent selector, look for **Runbook checker**. Record: visible yes or no.
-4. Select it and click the starter "Is this page still true?". Until integration wires the real service the expected answer is an error: the action ran, read the page and returned `index_missing`, and the agent says no verdict was produced. That proves the agent calls the action.
+4. Select it and click the starter "Is this page still true?". The service is wired now, so after the repository is configured and indexed (see docs/integration-checklist.md) the answer is the cited verdicts. Before indexing the agent reports that no index is available and gives no verdict.
 5. In a terminal:
    ```
    export PATH=$HOME/.nvm/versions/node/v24.22.1/bin:/Users/himanshujha/.rote/lib/node-runtimes/node-v22.14.0-IYQPZh/bin:$PATH
@@ -39,7 +39,7 @@ The page is never read as the app when `asUser()` fails: the handler returns a t
    forge logs -e development
    ```
    Find the `page_read` line and record its `status`.
-6. Optional: ask "Can I still call POST /v1/charge?" and confirm a `check-claim` invocation in the logs (the stub answers the typed error `index_missing`).
+6. Optional: ask "Can I still call POST /v1/charge?" and confirm a `check-claim` invocation in the logs .
 7. Also note whether the developer space name "LotZero" appears anywhere an agent user or MCP client sees it: the agent card in Rovo chat, the Connected apps page, and the OAuth consent screen in section 3. Record yes or no per screen.
 
 ## 3. MCP server: URL and admin steps
@@ -69,25 +69,14 @@ PLAN.md section 11 says to check the caller's view permission, then read as the 
 
 The reader is isolated in `src/actions/pageReader.ts` (`PageReader`), so this is a single-file change.
 
-## 5. Integration: wiring the real service (Task C)
+## 5. Integration: the real service is wired (done on `feat/integration`)
 
-`src/actions/service.ts` defines the only seam:
+`getCheckService()` in `src/actions/service.ts` now returns `createAgentService(forgeCheckDeps())` (`src/service/agentService.ts`), the same pipeline the macro and byline use (`src/resolvers/defaultBackend.ts`).
 
-```ts
-interface CheckService {
-  checkDocument(input: { adf: unknown; pageId: string }): Promise<ServiceOutcome>;
-  checkClaim(input: { claimText: string; pageId?: string }): Promise<ServiceOutcome>;
-}
-type ServiceOutcome = { ok: true; report: Report } | { ok: false; reason: ReasonCode };
-```
-
-Replace the body of `getCheckService()` with a wrapper around Task C's `checkDocument` and `checkClaim`. Requirements on the wrapper:
-
-- `checkDocument`: run the extractor on `adf` and the matcher, return the `Report`; map no index to `{ ok: false, reason: 'index_missing' }`, a private or missing repo to `repo_not_found_or_private`, rate limiting to `rate_limited`.
-- `checkClaim`: parse `claimText` with `extractClaimsFromText`; zero claims must give `{ ok: false, reason: 'not_a_checkable_claim' }`. With several claims, return one result per claim. When `pageId` is given, use that page's repo override.
-- Statements must come from `src/core/wording.ts`. The action layer only strips control characters and caps length; it does not rewrite a verdict or statement.
-
-Then update the stub expectation in `test/actions/handlers.test.ts` ("with the integration stub answers index_missing") if the stub is removed.
+- `checkDocument({ adf, pageId })` runs the real extractor and matcher over the saved repository's index. `checkClaim({ claimText })` parses the text with `extractClaimsFromText`; zero claims gives `not_a_checkable_claim`.
+- No index yet, an index still building, or no repository configured all give `index_missing` (no verdict). Private or missing repo gives `repo_not_found_or_private`; rate limiting gives `rate_limited`. A stale index still answers, with `repo.stale: true` in the envelope.
+- `pageId` is accepted for compatibility but there is no per-page repository override: the repository is the one saved in settings.
+- Development version 2.2.0 was deployed with this wiring. The first browser run of section 2 is the remaining check.
 
 ## 6. Manual red-team checklist (run on the demo site after integration)
 

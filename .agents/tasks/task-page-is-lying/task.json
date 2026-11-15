@@ -12,5 +12,33 @@
     "FEAT-007"
   ],
   "parallelism": "FEAT-001 first. Then FEAT-002, FEAT-003, FEAT-005, FEAT-006, FEAT-007 in parallel; FEAT-004 can start in parallel on contracts but its golden test needs FEAT-002, FEAT-003 and FEAT-007.",
-  "blocked_reason": null
+  "blocked_reason": "Browser-only checks need the owner (docs/integration-checklist.md). Production deploy needs owner approval.",
+  "integration": {
+    "step": 3,
+    "branch": "feat/integration",
+    "state": "integrated_pending_browser_checks",
+    "merged": [
+      "feat/task-a-claim-extractor",
+      "feat/task-f-demo-fixture",
+      "feat/task-c-matcher-evidence",
+      "feat/task-e-rovo-mcp",
+      "feat/task-d-confluence-ui",
+      "feat/task-b-repo-index"
+    ],
+    "developmentDeploy": "2.2.0",
+    "done": [
+      "six branches merged without conflicts",
+      "8 interface mismatches fixed with tests",
+      "real golden and full-flow tests pass",
+      "typecheck, lint, test, build:ui, test:e2e, forge lint pass",
+      "deployed to development, installation up to date",
+      "README, demo script, Devpost draft, bonus assessment, developer-space notes, integration checklist"
+    ],
+    "remaining": [
+      "browser checklist docs/integration-checklist.md (settings save, Index now, page colours, Rovo, MCP, fix to green)",
+      "production deploy and judge install link (needs owner approval)",
+      "demo video",
+      "Devpost submission"
+    ]
+  }
 }

@@ -25,7 +25,8 @@ export default tseslint.config(
           patterns: [
             { group: ['@forge/*'], message: 'src/core must stay pure: no @forge/* imports.' },
             { group: ['**/resolvers/**', '**/actions/**', '**/consumers/**', '**/storage/**', '**/repo/**', '**/service/**'], message: 'src/core must not depend on outer layers.' },
-            { group: networkModules.flatMap((m) => [m, `node:${m}`]), message: 'src/core must not use network or process modules.' },
+            // A regex, not a group: the group form also matches a relative './http' (the claim extractor's own http.ts).
+            { regex: `^(node:)?(${networkModules.join('|')})$`, message: 'src/core must not use network or process modules.' },
           ],
         },
       ],
