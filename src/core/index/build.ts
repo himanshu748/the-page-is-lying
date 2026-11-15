@@ -5,6 +5,7 @@
 import type { CliEntry, Coverage, IndexKind, IndexStats, RepoIndex, RepoRef } from '../model';
 import { indexConfigTree, isConfigCandidate } from './config';
 import {
+  attachFlagLines,
   finalizeCli,
   indexArgparse,
   indexClick,
@@ -189,6 +190,7 @@ function indexFile(acc: IndexAcc, file: RepoFile): void {
   const code = JS_EXT.has(ext) || ext === 'py' || ext === 'go' || ext === 'java' || ext === 'kt' || ext === 'rb';
   if (!code) return;
   if (/\.d\.[mc]?ts$/.test(path)) return;
+  const cliBefore = acc.cli.length;
   guard(acc, ['routes', 'env', 'cli'], () => {
     const masked = ext === 'rb' ? text : maskFor(path, text);
     if (ext !== 'rb') {
@@ -210,6 +212,7 @@ function indexFile(acc: IndexAcc, file: RepoFile): void {
       indexPicocli(acc, path, text, masked);
     }
   });
+  attachFlagLines(acc.cli, cliBefore, text);
 }
 
 function cap<T>(arr: T[], acc: IndexAcc, kind: IndexKind): T[] {

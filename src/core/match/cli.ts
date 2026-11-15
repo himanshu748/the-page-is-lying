@@ -5,7 +5,7 @@
  * subcommand path; `script` entries (package.json scripts) and `make_target` entries are matched by the last
  * element of `subcommands`, or by `program` when `subcommands` is empty.
  */
-import type { Claim, ClaimResult, CliClaim, CliEntry } from '../model';
+import type { Claim, ClaimResult, CliClaim, CliEntry, Evidence, RepoIndex } from '../model';
 import {
   alternativesDetail,
   contradictedCliFlagStatement,
@@ -157,6 +157,14 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       file: target.file,
       line: target.line,
     }),
-    [makeEvidence(index, 'nearest', target), absenceEvidence(ctx, 'cli')],
+    [makeEvidence(index, 'nearest', target), ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
   );
+}
+
+/** Where the command's real flags are declared (up to two), so the citation shows what the code does define. */
+function declaredFlagEvidence(index: RepoIndex, target: CliEntry): Evidence[] {
+  const lines = Object.values(target.flagLines ?? {})
+    .filter((line) => line !== target.line)
+    .sort((a, b) => a - b);
+  return [...new Set(lines)].slice(0, 2).map((line) => makeEvidence(index, 'nearest', { file: target.file, line }));
 }

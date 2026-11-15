@@ -234,6 +234,11 @@ export interface CliEntry extends SourceLocation {
   /** Flags defined for this command, e.g. "--confirm". */
   flags: string[];
   kind: 'bin' | 'command' | 'script' | 'make_target';
+  /**
+   * Line of each flag's declaration in the same file, found by scanning the command's source lines for the quoted
+   * flag. Best effort: a flag without an entry has no known line. Help and version flags are never listed.
+   */
+  flagLines?: Record<string, number>;
 }
 
 export interface ConfigEntry extends SourceLocation {

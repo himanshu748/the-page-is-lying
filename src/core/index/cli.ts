@@ -686,3 +686,39 @@ export function indexPicocli(acc: IndexAcc, file: string, original: string, text
   const line = lineAt(starts, m.index ?? 0);
   pushEntry(acc, { file, line, snippet: snippetOf(splitLines(original), line), program: nm?.[1] ?? '', subcommands: [], flags: [...flags], kind: 'command' }, !nm);
 }
+
+const FLAG_LINE_WINDOW = 40;
+const IMPLICIT_FLAGS = new Set(['--help', '-h', '--version', '-V']);
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Finds the declaration line of each flag of the `command` entries added from `from` on (one file), so the
+ * matcher can cite where a command's real flags are declared. The scan looks for the flag as a quoted option
+ * string (`'--confirm'`, `'-c, --confirm'`, `"--reason <text>"`) between the command line and the next command
+ * (at most 40 lines). Prose that merely mentions a flag is not quoted at its start, so it is not matched.
+ */
+export function attachFlagLines(entries: CliEntry[], from: number, text: string): void {
+  const added = entries.slice(from).filter((e) => e.kind === 'command');
+  if (added.length === 0) return;
+  const lines = splitLines(text);
+  const starts = [...new Set(added.map((e) => e.line))].sort((a, b) => a - b);
+  for (const entry of added) {
+    const next = starts.find((l) => l > entry.line) ?? lines.length + 1;
+    const last = Math.min(next - 1, entry.line + FLAG_LINE_WINDOW, lines.length);
+    const found: Record<string, number> = {};
+    for (const flag of entry.flags) {
+      if (IMPLICIT_FLAGS.has(flag)) continue;
+      const quoted = new RegExp(`['"\`](?:-[A-Za-z0-9],?\\s*)?${escapeRegex(flag)}(?![\\w-])`);
+      for (let n = entry.line; n <= last; n++) {
+        if (quoted.test(lines[n - 1] ?? '')) {
+          found[flag] = n;
+          break;
+        }
+      }
+    }
+    if (Object.keys(found).length > 0) entry.flagLines = found;
+  }
+}

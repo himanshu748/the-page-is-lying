@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  // The UI renderer imports the shared core through this alias (static/ui/vite.config.ts has the same one).
+  resolve: { alias: { '@core': fileURLToPath(new URL('./src/core', import.meta.url)) } },
   test: {
     include: ['test/**/*.test.ts'],
     environment: 'node',
