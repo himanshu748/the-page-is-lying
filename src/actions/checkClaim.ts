@@ -1,17 +1,46 @@
 import type { AgentError } from '../core/model';
+import type { ActionEnvelope } from './envelope';
+import { buildEnvelope, buildError, errorFromReason } from './envelope';
+import type { ActionContext } from './input';
+import { resolvePageId, validateClaim } from './input';
+import type { CheckService } from './service';
+import { getCheckService } from './service';
 
 /**
- * Rovo action and MCP tool `check-claim` (Task E owns this file). Read-only.
- * Task 0 stub: returns a typed placeholder that never claims a verdict.
+ * Rovo action and MCP tool `check-claim` (actionVerb GET, read-only).
+ * The page is optional and only selects a per-page repository; the page body is not read.
  */
 export interface CheckClaimPayload {
-  claim: string;
-  page?: string;
-  context?: { confluence?: { contentId?: string } };
+  claim?: unknown;
+  page?: unknown;
+  context?: ActionContext;
 }
 
-export const handler = async (_payload: CheckClaimPayload): Promise<AgentError> => ({
-  schema: 'pil.agent.error.v1',
-  error: 'index_missing',
-  message: 'No repository index is available yet. This is a scaffold placeholder, not a check result.',
-});
+export interface CheckClaimDeps {
+  service: () => CheckService;
+}
+
+export type CheckClaimResult = ActionEnvelope | (AgentError & { detail?: string });
+
+export function createCheckClaimHandler(deps: CheckClaimDeps) {
+  return async (payload: CheckClaimPayload): Promise<CheckClaimResult> => {
+    const payloadObject = typeof payload === 'object' && payload !== null ? payload : {};
+    const claim = validateClaim(payloadObject.claim);
+    if (!claim.ok) return buildError(claim.error, claim.detail);
+
+    const page = resolvePageId(payloadObject.page, payloadObject.context, { required: false });
+    if (!page.ok) return buildError(page.error, page.detail);
+
+    try {
+      const outcome = await deps
+        .service()
+        .checkClaim(page.id === null ? { claimText: claim.claim } : { claimText: claim.claim, pageId: page.id });
+      if (!outcome.ok) return errorFromReason(outcome.reason);
+      return buildEnvelope(outcome.report);
+    } catch {
+      return buildError('internal_error');
+    }
+  };
+}
+
+export const handler = createCheckClaimHandler({ service: getCheckService });
