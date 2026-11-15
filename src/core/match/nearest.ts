@@ -46,7 +46,7 @@ function stripVersion(segments: string[]): { version?: string; rest: string[] } 
 }
 
 function routeScore(claim: HttpEndpointClaim, route: RouteEntry): { sameMethod: boolean; score: number } {
-  const sameMethod = methodMatches(claim.method, route.method);
+  const sameMethod = claim.method === 'ANY' || claim.method === route.method;
   const claimParts = stripVersion(pathSegments(claim.path));
   const routeParts = stripVersion(pathSegments(route.path));
   const versionSwap =
