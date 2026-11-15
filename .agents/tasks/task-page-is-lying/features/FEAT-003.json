@@ -1,0 +1,32 @@
+{
+  "id": "FEAT-003",
+  "type": "feat",
+  "description": "Task B: repo index adapter. GitHub RepoSource (tarball via codeload, SHA via one REST call), tar reader, index builders with coverage, KVS sharded index store, freshness, async queue consumer. Implements PLAN.md sections 5.1 and 8. Parallel with FEAT-002, FEAT-005, FEAT-006, FEAT-007 after FEAT-001. Bitbucket adapter is a stretch behind the same interface and must not add egress without orchestrator approval.",
+  "status": "pending",
+  "steps": [
+    "src/repo/source.ts: RepoSource interface and SnapshotLimits (25 MB compressed, 5,000 files, 1 MB per file, skip dirs node_modules/vendor/dist/build/.git/coverage, skip *.min.*, skip NUL-byte files) with skip counters.",
+    "src/repo/github.ts: parse and validate https://github.com/<owner>/<repo> (owner ^[A-Za-z0-9-]{1,39}$, repo ^[A-Za-z0-9._-]{1,100}$); resolveRef via GET api.github.com/repos/{o}/{r}/commits/{ref} with Accept application/vnd.github.sha; snapshot via codeload.github.com/{o}/{r}/tar.gz/{sha}; optional token header; map 404, 403/429 rate limits (x-ratelimit-remaining, x-ratelimit-reset, retry-after) and oversize to typed reasons; permalink builder with per-segment encoding.",
+    "src/repo/tar.ts: streaming gunzip (node:zlib) + ustar reader (or tar-stream) yielding { path, text }; strip the top-level archive folder.",
+    "src/core/index/*.ts (pure): builders from (path, text) to entries with file and line: routes (Express, Fastify, Hono, Koa router, FastAPI, Flask, OpenAPI paths), env reads (process.env, os.environ, os.getenv, .env.example, Compose environment, k8s env), CLI definitions (package.json bin and scripts, commander, yargs, argparse, click, Makefile targets), config keys (YAML via yaml package with LineCounter, JSON with line scanner), file tree, packages (package.json deps and engines, requirements.txt, pyproject.toml). Each builder reports coverage complete/partial/none per PLAN.md 7.3.",
+    "src/core/index/build.ts: buildRepoIndex(files) -> RepoIndex with stats and coverage.",
+    "src/storage/indexStore.ts: write shards idx:{repoKey}:{sha}:{kind}:{n} under 200 KiB using @forge/kvs batch set, flip idx:{repoKey}:current last, TTL 7 days on old shards; read pointer + only the requested kinds; in-memory warm cache. Escape repoKey to the KVS key regex.",
+    "src/storage/settings.ts: site settings (kvs.set) and token (kvs.setSecret / getSecret), never returned to callers that serve the frontend.",
+    "src/service/freshness.ts: head:{repoKey} cache (10 min), stale detection, enqueue via @forge/events Queue 'repo-index'.",
+    "src/consumers/indexRepo.ts: queue handler (timeoutSeconds 300) that resolves, downloads, builds and stores; writes index status for the settings page.",
+    "Tests with fetch and KVS fakes: tarball built at test time from demo/payments-api (or a temporary fixture until FEAT-007 lands); framework fixture files with expected entries and line numbers; coverage partial on dynamic registration; limits and skip counts; rate-limit and 404 mapping; shard round-trip and pointer ordering; fast-check: tar reader never throws on random bytes.",
+    "Record in findings whether codeload responses carry x-ratelimit-* headers (only if network access is available; otherwise note it as untested)."
+  ],
+  "acceptance_criteria": [
+    "npm test passes for test/core/index, test/repo and test/storage",
+    "Index built from demo/payments-api contains POST /v2/payments at src/routes.ts:88, PAYMENTS_API_KEY read in src/config.ts, payments refund with --confirm and --reason, package.json script db:migrate",
+    "No shard exceeds 200 KiB in tests with a synthetic 5,000-file repo",
+    "Every adapter failure maps to a typed reason, never to a verified result"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run lint",
+    "npx vitest run test/core/index test/repo test/storage --coverage"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

@@ -1,0 +1,31 @@
+{
+  "id": "FEAT-005",
+  "type": "feat",
+  "description": "Task D: Confluence UI (Custom UI, React + Vite, strict TS) and UI resolvers. Macro view with own ADF subset renderer and claim highlights, evidence hover/focus cards, byline popup and dynamicProperties, settings page, Jira draft modal with no write before click. Implements PLAN.md 5.2, 5.3, 5.5 and 9.1. Parallel after FEAT-001 using fixture Report JSON; wires to the real service once FEAT-004 lands.",
+  "status": "pending",
+  "steps": [
+    "static/ui/src/render/: ADF subset renderer (doc, paragraph, heading, bulletList, orderedList, listItem, codeBlock, blockquote, panel, table, rule, hardBreak; text marks code/strong/em/link/strike); unsupported nodes as plain text with a note. Claim spans placed by blockIndex/start/end from the Report.",
+    "static/ui/src/claims/: ClaimMark component (button with icon + text label + distinct underline + token background; Verified solid, Contradicted wavy, Unknown dotted) and EvidenceCard (statement, file:line permalink via router.open, snippet as code, SHA and index time, coverage note for Unknown, Draft Jira task for Contradicted). Opens on hover and focus, closes on Escape/blur, aria-describedby, flips placement near iframe bottom.",
+    "static/ui/src/views/MacroView.tsx: header bar with counts, repo, short SHA, stale warning, Ask Runbook checker (rovo.isEnabled then rovo.open with type forge, agentKey runbook-checker, agentName Runbook checker, prompt 'Is this page still true?'); states loading, indexing (poll 3 s up to 60 s), stale, rate-limited, repo not found, no claims, error. view.theme.enable() for light/dark tokens.",
+    "static/ui/src/views/BylinePopup.tsx and SettingsPage.tsx (repo URL, branch, write-only token field, service hosts, optional Jira project and issue type ids, Index now, status table).",
+    "static/ui/src/views/JiraDraftModal.tsx: deterministic summary and description from ClaimResult, Copy text, Open Jira create screen (router.open) when project and issue type are configured; no write API call.",
+    "src/resolvers/ui.ts (@forge/resolver): checkBody (ADF cap 400 KB), checkPage (asUser requestConfluence GET /wiki/api/v2/pages/{id}?body-format=atlas_doc_format), getSettings (no token), saveSettings (validate URL, reject non-settings module and non-admin callers, enqueue index), getIndexStatus. src/resolvers/byline.ts dynamicProperties reading counts:{contentId}:{version}.",
+    "Playwright tests in static/ui/e2e with bridge mock serving fixture Reports: six demo claims show icon, label and underline; hover and keyboard focus show card with src/routes.ts:88; Escape closes; keyboard-only path; @axe-core/playwright has no violations in light and dark; indexing, stale, rate-limited, error states; Jira modal shows exact text and the mock records zero write calls before and after open/copy/cancel.",
+    "Vitest tests for resolvers with mocked @forge/api and the service."
+  ],
+  "acceptance_criteria": [
+    "npm run build:ui succeeds and npm run test:e2e passes in Chromium",
+    "No status is conveyed by colour alone (each ClaimMark has an icon and a visible text label; axe passes)",
+    "No dangerouslySetInnerHTML anywhere in static/ui/src",
+    "Resolver tests pass and saveSettings rejects invalid URLs and non-settings callers"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run lint",
+    "npm run build:ui",
+    "npm run test:e2e",
+    "npx vitest run test/resolvers"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

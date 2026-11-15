@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-006",
+  "type": "feat",
+  "description": "Task E: Rovo agent + GET actions + rovo:mcp + SKILL.md. Read-only action handlers that use deterministic context first, validate inputs, call the check service and return the pil.agent.v1 envelope with evidence IDs, counts and limits. Implements PLAN.md 5.4, 9.2, 9.3, 9.4 and 11. Parallel after FEAT-001 with a stubbed service; real results once FEAT-004 lands.",
+  "status": "pending",
+  "steps": [
+    "src/actions/input.ts: validate claim (string, 1 to 300 chars, must parse into at least one claim, else not_a_checkable_claim) and page (numeric id, or URL on the same site from payload.context.cloudId/site; reject other hosts).",
+    "src/actions/checkPage.ts: page id from payload.context.confluence.contentId first, else validated input; read page with asUser().requestConfluence GET /wiki/api/v2/pages/{id}?body-format=atlas_doc_format; call checkDocument; return envelope. Map errors (no permission, not found, no repo configured, indexing, rate-limited) to explicit envelope errors.",
+    "src/actions/checkClaim.ts: repo from page override when page context exists, else site setting; call checkClaim; return envelope.",
+    "Verify on the demo site (when deploy access exists) that asUser works inside actions; if not, implement the fallback permission check from PLAN.md 11 and record the finding.",
+    "prompts/runbook-checker.md: final prompt from PLAN.md 9.3; skills/runbook-checker/SKILL.md (MIT) with tool usage, citation format, wording rules, untrusted-data rule, and the claude mcp add --transport http line using https://mcp.atlassian.com/forge/<appId>.",
+    "Tests: envelope shape (schema pil.agent.v1, dataNotice, untrusted* fields only carry page/repo text), context-first page id, input validation, injection fixture parity, envelope size under 5 MB with 200 results; manifest contract assertions for agent and MCP modules (extend FEAT-001 test).",
+    "docs/agent-eval.md: manual question set and expected properties for Rovo chat and an external MCP client (cites evidence ID, states repo/SHA/counts/limits, only allowed verdict words, refuses to write, ignores injected text)."
+  ],
+  "acceptance_criteria": [
+    "npx vitest run test/actions passes",
+    "Both actions are actionVerb GET and listed under rovo:agent actions and rovo:mcp tools",
+    "Prompt and SKILL.md pass the banned-words test",
+    "Envelope never includes the GitHub token or any settings secret"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run lint",
+    "npx vitest run test/actions test/manifest",
+    "npm test"
+  ],
+  "blocked_reason": null,
+  "findings": ""
+}

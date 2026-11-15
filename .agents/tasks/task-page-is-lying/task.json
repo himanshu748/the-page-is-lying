@@ -1,0 +1,16 @@
+{
+  "task_id": "task-page-is-lying",
+  "task_description": "Build 'The Page Is Lying', a Forge app for Confluence (Codegeist 2026, Apps for Software Teams, Rovo agent + rovo:mcp bonuses) that extracts checkable claims from runbook pages, checks them deterministically against a public GitHub repo, and marks each Verified / Contradicted by code / No evidence found with file:line evidence, plus a read-only Rovo agent, GET actions exposed via rovo:mcp, and an optional click-to-confirm Jira draft. Process step 1 (docs research + PLAN.md) is done; step 2 features below wait for the user's review of PLAN.md.",
+  "status": "in_progress",
+  "feature_order": [
+    "FEAT-001",
+    "FEAT-002",
+    "FEAT-003",
+    "FEAT-004",
+    "FEAT-005",
+    "FEAT-006",
+    "FEAT-007"
+  ],
+  "parallelism": "FEAT-001 first. Then FEAT-002, FEAT-003, FEAT-005, FEAT-006, FEAT-007 in parallel; FEAT-004 can start in parallel on contracts but its golden test needs FEAT-002, FEAT-003 and FEAT-007.",
+  "blocked_reason": null
+}
