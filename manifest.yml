@@ -1,0 +1,139 @@
+app:
+  id: ari:cloud:ecosystem::app/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0
+  runtime:
+    name: nodejs24.x
+    memoryMB: 512
+    architecture: arm64
+
+permissions:
+  scopes:
+    - storage:app
+    - read:page:confluence
+  external:
+    fetch:
+      backend:
+        - address: api.github.com
+        - address: codeload.github.com
+        - address: api.bitbucket.org
+        - address: bitbucket.org
+
+modules:
+  macro:
+    - key: runbook-check
+      title: Runbook check
+      description: Checks claims in this section against code and cites file and line.
+      category: structure
+      layout: bodied
+      resource: ui
+      resolver:
+        function: ui-resolver
+      config:
+        resource: ui
+        viewportSize: medium
+        parameters:
+          - identifier: repoUrl
+            type: string
+          - identifier: ref
+            type: string
+
+  confluence:contentBylineItem:
+    - key: runbook-byline
+      title: Runbook check
+      tooltip: Check this page's claims against code
+      resource: ui
+      resolver:
+        function: ui-resolver
+      viewportSize: large
+      dynamicProperties:
+        function: byline-props
+
+  confluence:globalSettings:
+    - key: runbook-settings
+      title: The Page Is Lying
+      resource: ui
+      resolver:
+        function: ui-resolver
+      useAsConfig: true
+
+  rovo:agent:
+    - key: runbook-checker
+      name: Runbook checker
+      description: Answers "is this page still true?" from read-only code checks,
+        citing file and line.
+      prompt: resource:agent-prompts;runbook-checker.md
+      conversationStarters:
+        - Is this page still true?
+        - Can I still call POST /v1/charge?
+        - Which claims on this page are contradicted by code?
+      actions:
+        - check-page
+        - check-claim
+
+  action:
+    - key: check-page
+      name: Check page against code
+      function: check-page-fn
+      actionVerb: GET
+      description: >
+        Read-only. Extracts claims (endpoints, env vars, CLI commands, config keys, paths, package versions)
+        from a Confluence page and checks each against the code repository. Returns verdicts with evidence
+        IDs, file and line. Never writes.
+      inputs:
+        page:
+          title: Page ID or URL
+          type: string
+          required: false
+          description: Confluence page ID or URL. Leave empty to use the page the user is
+            viewing.
+    - key: check-claim
+      name: Check one claim against code
+      function: check-claim-fn
+      actionVerb: GET
+      description: >
+        Read-only. Checks a single claim such as "POST /v1/charge", "STRIPE_KEY"
+        or "payments refund --force" against the configured repository and
+        returns a verdict with evidence IDs, file and line. Never writes
+        anything.
+      inputs:
+        claim:
+          title: Claim
+          type: string
+          required: true
+          description: One endpoint, env var, CLI command or flag, config key, file path
+            or package version.
+        page:
+          title: Page ID or URL
+          type: string
+          required: false
+          description: Optional page whose repository setting should be used.
+
+  rovo:mcp:
+    - key: runbook-checker-mcp
+      name: Runbook checker
+      tools:
+        - check-page
+        - check-claim
+
+  consumer:
+    - key: repo-index-consumer
+      queue: repo-index
+      function: index-repo-fn
+
+  function:
+    - key: ui-resolver
+      handler: resolvers/ui.handler
+    - key: byline-props
+      handler: resolvers/byline.dynamicProperties
+    - key: check-page-fn
+      handler: actions/checkPage.handler
+    - key: check-claim-fn
+      handler: actions/checkClaim.handler
+    - key: index-repo-fn
+      handler: consumers/indexRepo.handler
+      timeoutSeconds: 300
+
+resources:
+  - key: ui
+    path: static/ui/dist
+  - key: agent-prompts
+    path: prompts
