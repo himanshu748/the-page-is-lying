@@ -135,7 +135,13 @@ resolver.define('saveSettings', async ({ payload, context }): Promise<SaveSettin
     jiraProjectId: project.value,
     jiraIssueTypeId: issueType.value,
   };
-  await backend.saveSettings(settings, token);
+  try {
+    await backend.saveSettings(settings, token);
+  } catch (error) {
+    // RepoError and StorageError messages are fixed texts written to be shown; anything else gets a generic one.
+    const safe = error instanceof Error && (error.name === 'RepoError' || error.name === 'StorageError');
+    return { ok: false, error: 'invalid', message: safe ? error.message : 'The settings could not be saved.' };
+  }
   await backend.enqueueIndex();
   return { ok: true, settings: toView(settings, await backend.hasToken()) };
 });

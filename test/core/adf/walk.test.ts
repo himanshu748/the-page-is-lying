@@ -35,12 +35,12 @@ describe('walkAdf', () => {
     expect(walkAdf(adf).map((b) => b.text)).toEqual(['li', 'oi', 'th', 'td', 'bq', 'pn', 'be', 'ne']);
   });
 
-  it('turns hardBreak into a newline and ignores unknown inline nodes', () => {
+  it('turns hardBreak into a newline and keeps the visible text of mentions and emoji, as the renderer does', () => {
     const adf = doc({
       type: 'paragraph',
       content: [text('a'), { type: 'hardBreak' }, { type: 'mention', attrs: { text: '@x' } }, text('b'), { type: 'emoji', attrs: { shortName: ':x:' } }],
     });
-    expect(walkAdf(adf)[0]?.text).toBe('a\nb');
+    expect(walkAdf(adf)[0]?.text).toBe('a\n@xb:x:');
   });
 
   it('keeps every mark type with its own range', () => {

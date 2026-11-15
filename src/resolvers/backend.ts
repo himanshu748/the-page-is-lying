@@ -1,7 +1,7 @@
 /**
  * Adapter between the UI resolvers and the rest of the app (Task C's check service, Task B's storage).
- * Resolvers only talk to this interface. Integration replaces `defaultBackend` with the real wiring
- * through `setBackend()` or by editing `defaultBackend.ts`.
+ * Resolvers only talk to this interface. `defaultBackend.ts` is the real wiring (`storageBackend.ts` has the
+ * logic); tests swap it with `setBackend()`.
  */
 import type { ReportCounts } from '../core/model';
 import type { CheckResponse, IndexStatus, PageInfo } from './contract';
@@ -38,7 +38,7 @@ export interface UiBackend {
   saveSettings(settings: StoredSettings, token: { set?: string; clear?: boolean }): Promise<void>;
   hasToken(): Promise<boolean>;
   getIndexStatus(): Promise<IndexStatus>;
-  /** Push `{repoKey}` to queue repo-index (Task B). */
+  /** Push `{repoKey, reason: 'manual'}` for the saved repository to queue repo-index (Task B). */
   enqueueIndex(): Promise<void>;
   saveCounts(contentId: string, version: number, counts: ReportCounts): Promise<void>;
   /** `version` undefined means the latest stored counts for the page. */

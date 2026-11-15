@@ -5,6 +5,8 @@
  * evaluates anything, and caps depth, node count, block count and text length.
  */
 
+import { TEXT_BLOCK_TYPES, inlineNodeText } from './blocks.js';
+
 export interface TextMark {
   /** Offsets into `TextBlock.text`, end exclusive. */
   start: number;
@@ -25,8 +27,6 @@ export const MAX_DEPTH = 64;
 export const MAX_NODES = 50_000;
 export const MAX_BLOCKS = 5_000;
 export const MAX_BLOCK_TEXT = 20_000;
-
-const TEXT_BLOCK_TYPES = new Set(['paragraph', 'heading', 'codeBlock']);
 
 type Json = Record<string, unknown>;
 
@@ -55,42 +55,36 @@ function appendText(builder: Builder, value: string, markTypes: string[]): void 
   }
 }
 
-function collectInline(node: unknown, builder: Builder, depth: number, budget: { nodes: number }): void {
-  if (!isObject(node) || depth > MAX_DEPTH || budget.nodes-- <= 0) return;
-  const type = node['type'];
-  if (type === 'text') {
-    const text = node['text'];
-    if (typeof text !== 'string') return;
-    const marks = node['marks'];
-    const markTypes: string[] = [];
-    if (Array.isArray(marks)) {
-      for (const mark of marks) {
-        if (isObject(mark) && typeof mark['type'] === 'string') markTypes.push(mark['type']);
-      }
+function collectInline(node: unknown, builder: Builder, budget: { nodes: number }): void {
+  if (!isObject(node) || budget.nodes-- <= 0) return;
+  const text = inlineNodeText(node);
+  if (text === '') return;
+  const markTypes: string[] = [];
+  const marks = node['marks'];
+  if (node['type'] === 'text' && Array.isArray(marks)) {
+    for (const mark of marks) {
+      if (isObject(mark) && typeof mark['type'] === 'string') markTypes.push(mark['type']);
     }
-    appendText(builder, text, markTypes);
-    return;
   }
-  if (type === 'hardBreak') {
-    appendText(builder, '\n', []);
-    return;
-  }
-  for (const child of childrenOf(node)) collectInline(child, builder, depth + 1, budget);
+  appendText(builder, text, markTypes);
 }
 
 /** Walks an ADF document into text blocks. Returns [] for anything that is not ADF. */
 export function walkAdf(doc: unknown): TextBlock[] {
   const blocks: TextBlock[] = [];
+  /** Counts every text block node, blank ones too, so indexes match the renderer (see blocks.ts). */
+  let seen = 0;
   const budget = { nodes: MAX_NODES };
 
   const visit = (node: unknown, depth: number): void => {
-    if (!isObject(node) || depth > MAX_DEPTH || budget.nodes-- <= 0 || blocks.length >= MAX_BLOCKS) return;
+    if (!isObject(node) || depth > MAX_DEPTH || budget.nodes-- <= 0 || seen >= MAX_BLOCKS) return;
     const type = node['type'];
     if (typeof type === 'string' && TEXT_BLOCK_TYPES.has(type)) {
       const builder: Builder = { text: '', marks: [] };
-      for (const child of childrenOf(node)) collectInline(child, builder, depth + 1, budget);
+      for (const child of childrenOf(node)) collectInline(child, builder, budget);
+      const blockIndex = seen++;
       if (builder.text.trim() !== '') {
-        blocks.push({ blockIndex: blocks.length, nodeType: type, text: builder.text, marks: builder.marks });
+        blocks.push({ blockIndex, nodeType: type, text: builder.text, marks: builder.marks });
       }
       return;
     }

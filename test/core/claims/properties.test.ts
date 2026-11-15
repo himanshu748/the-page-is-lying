@@ -40,7 +40,7 @@ const adfNode: fc.Arbitrary<unknown> = fc.letrec((tie) => ({
 function checkClaims(blocks: { blockIndex: number; text: string }[], claims: ReturnType<typeof extractClaims>['claims']): void {
   const ids = new Set<string>();
   for (const claim of claims) {
-    const block = blocks[claim.location.blockIndex];
+    const block = blocks.find((b) => b.blockIndex === claim.location.blockIndex);
     expect(block).toBeDefined();
     expect(block?.text.slice(claim.location.start, claim.location.end)).toBe(claim.raw);
     expect(claim.raw.length).toBeGreaterThan(0);

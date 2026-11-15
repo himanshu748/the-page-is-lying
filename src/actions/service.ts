@@ -1,14 +1,14 @@
-import type { ReasonCode, Report } from '../core/model';
+import type { AgentError, Report } from '../core/model';
+import { createAgentService } from '../service/agentService';
+import { forgeCheckDeps } from '../service/forge';
 
 /**
  * Service adapter between the Rovo actions and the check service (Task C, `src/service`).
  *
- * The handlers only know this interface. Integration replaces `getCheckService()` with a thin
- * wrapper around the real `checkDocument` / `checkClaim` (see docs/agent-eval.md, "Integration").
- * Until then the stub answers `index_missing`, which the handlers turn into a typed error and
- * never into a verdict.
+ * The handlers only know this interface. `getCheckService()` wraps the real pipeline. The stub
+ * answers `index_missing`, which the handlers turn into a typed error and never into a verdict.
  */
-export type ServiceOutcome = { ok: true; report: Report } | { ok: false; reason: ReasonCode };
+export type ServiceOutcome = { ok: true; report: Report } | { ok: false; reason: AgentError['error'] };
 
 export interface CheckService {
   /** Check every claim in a Confluence page body (Atlassian Document Format, already parsed from JSON). */
@@ -26,7 +26,10 @@ export const stubCheckService: CheckService = {
   checkClaim: () => Promise.resolve({ ok: false, reason: 'index_missing' }),
 };
 
-/** Integration point: return the real Task C service here. */
+let shared: CheckService | undefined;
+
+/** The real service, shared with the macro and byline (see src/service/forge.ts). Built once per function instance. */
 export function getCheckService(): CheckService {
-  return stubCheckService;
+  shared ??= createAgentService(forgeCheckDeps());
+  return shared;
 }

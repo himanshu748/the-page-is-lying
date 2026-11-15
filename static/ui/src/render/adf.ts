@@ -1,3 +1,4 @@
+import { TEXT_BLOCK_TYPES, inlineNodeText } from '@core/adf/blocks';
 import type { ClaimResult } from '@core/model';
 
 export interface AdfMark {
@@ -14,7 +15,7 @@ export interface AdfNode {
 }
 
 /** Nodes whose inline children form one text block. Block indexes count these in document order. */
-export const TEXT_BLOCKS = new Set(['paragraph', 'heading', 'codeBlock']);
+export const TEXT_BLOCKS = TEXT_BLOCK_TYPES;
 
 export function isAdfNode(value: unknown): value is AdfNode {
   return typeof value === 'object' && value !== null && typeof (value as { type?: unknown }).type === 'string';
@@ -34,14 +35,7 @@ export function asDoc(value: unknown): AdfNode | null {
 
 /** Text an inline node contributes to its block. */
 export function inlineText(node: AdfNode): string {
-  if (node.type === 'text') return node.text ?? '';
-  if (node.type === 'hardBreak') return '\n';
-  const attrs = node.attrs ?? {};
-  for (const key of ['text', 'shortName', 'url']) {
-    const value = attrs[key];
-    if (typeof value === 'string') return value;
-  }
-  return '';
+  return inlineNodeText(node);
 }
 
 export function blockText(block: AdfNode): string {

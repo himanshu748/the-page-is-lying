@@ -5,7 +5,6 @@ import type {
   AgentResult,
   ClaimResult,
   Evidence,
-  ReasonCode,
   Report,
   ReportCounts,
   ReportLimits,
@@ -159,6 +158,6 @@ export function buildError(error: AgentError['error'], detail?: string): AgentEr
 }
 
 /** Failure reasons the service may return that do not describe a verdict. */
-export function errorFromReason(reason: ReasonCode): AgentError {
+export function errorFromReason(reason: AgentError['error']): AgentError {
   return buildError(reason);
 }

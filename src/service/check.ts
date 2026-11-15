@@ -17,9 +17,18 @@ export interface RepoSelector {
   ref?: string;
 }
 
+/** Why no index could be loaded. `indexing` and `no_repo` are not matcher reasons; callers map them to their own state. */
+export type IndexLoadFailure = 'index_missing' | 'repo_not_found_or_private' | 'rate_limited' | 'tarball_too_large' | 'indexing' | 'no_repo';
+
 export type IndexLoadResult =
-  | { ok: true; index: RepoIndex; stale: boolean }
-  | { ok: false; reason: 'index_missing' | 'repo_not_found_or_private' | 'rate_limited' | 'tarball_too_large'; message?: string };
+  | {
+      ok: true;
+      index: RepoIndex;
+      stale: boolean;
+      /** Set when the index is old because the freshness check failed, for example `rate_limited`. */
+      staleReason?: ReasonCode;
+    }
+  | { ok: false; reason: IndexLoadFailure; message?: string };
 
 export interface IndexLoader {
   loadIndex(repo: RepoSelector): Promise<IndexLoadResult>;
@@ -79,12 +88,12 @@ export interface CheckDeps {
 
 export type CheckError = {
   ok: false;
-  error: ReasonCode | 'invalid_input' | 'page_not_found' | 'forbidden' | 'internal_error';
+  error: ReasonCode | 'invalid_input' | 'page_not_found' | 'forbidden' | 'internal_error' | 'indexing' | 'no_repo';
   /** Fixed text from wording.ts or this file, never quoted data. */
   message: string;
 };
 
-export type CheckOutcome = { ok: true; report: Report } | CheckError;
+export type CheckOutcome = { ok: true; report: Report; staleReason?: ReasonCode } | CheckError;
 
 export type PageCheckOutcome = { ok: true; report: Report; envelope: AgentEnvelope; page: PageContent } | CheckError;
 
@@ -102,13 +111,24 @@ function isIndexReason(reason: string): reason is UnknownReasonKey {
   return ['index_missing', 'repo_not_found_or_private', 'rate_limited', 'tarball_too_large'].includes(reason);
 }
 
+const NOT_READY_TEXT: Record<'indexing' | 'no_repo', string> = {
+  indexing: 'the repository index is still being built',
+  no_repo: 'no repository is configured in the app settings',
+};
+
 function sha256(text: string): string {
   return createHash('sha256').update(text).digest('hex');
 }
 
-async function loadIndex(deps: CheckDeps, repoRef: RepoSelector): Promise<{ ok: true; index: RepoIndex; stale: boolean } | CheckError> {
+async function loadIndex(
+  deps: CheckDeps,
+  repoRef: RepoSelector,
+): Promise<{ ok: true; index: RepoIndex; stale: boolean; staleReason?: ReasonCode } | CheckError> {
   const loaded = await deps.indexLoader.loadIndex(repoRef);
   if (loaded.ok) return loaded;
+  if (loaded.reason === 'indexing' || loaded.reason === 'no_repo') {
+    return failure(loaded.reason, unknownStatement({ reason: NOT_READY_TEXT[loaded.reason] }));
+  }
   const text = isIndexReason(loaded.reason) ? unknownReasonText(loaded.reason) : 'the repository could not be indexed';
   return failure(loaded.reason, unknownStatement({ reason: text }));
 }
@@ -132,7 +152,7 @@ export async function checkDocument(deps: CheckDeps, input: { adf: unknown; repo
   const repoRef = input.repoRef ?? {};
   const loaded = await loadIndex(deps, repoRef);
   if (!loaded.ok) return loaded;
-  const { index, stale } = loaded;
+  const { index, stale, staleReason } = loaded;
 
   const cacheKey = `report:${sha256(
     [serialized, index.repo.sha, index.repo.indexedAt, deps.extractor.version ?? '', String(stale), JSON.stringify(deps.matchOptions ?? {})].join('\u0000'),
@@ -144,7 +164,7 @@ export async function checkDocument(deps: CheckDeps, input: { adf: unknown; repo
     if (deps.reportCache) await deps.reportCache.set(cacheKey, report);
   }
   await recordCounts(deps, report, input.contentId, input.version);
-  return { ok: true, report };
+  return { ok: true, report, ...(staleReason !== undefined ? { staleReason } : {}) };
 }
 
 /** Checks one claim, or the few claims found in a short piece of text. */
@@ -161,7 +181,11 @@ export async function checkClaim(deps: CheckDeps, input: { text: string; repoRef
   }
   const loaded = await loadIndex(deps, input.repoRef ?? {});
   if (!loaded.ok) return loaded;
-  return { ok: true, report: runMatch(deps, loaded.index, loaded.stale, extracted.claims, extracted.truncated) };
+  return {
+    ok: true,
+    report: runMatch(deps, loaded.index, loaded.stale, extracted.claims, extracted.truncated),
+    ...(loaded.staleReason !== undefined ? { staleReason: loaded.staleReason } : {}),
+  };
 }
 
 /** Reads a page with the injected reader (the caller's permissions), then runs `checkDocument` on it. */
