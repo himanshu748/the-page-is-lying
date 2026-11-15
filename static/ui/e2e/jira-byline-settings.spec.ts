@@ -4,7 +4,6 @@ import type { Page } from '@playwright/test';
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
-const SHA = '3f2c1a9d5e7b8c0a1f2e3d4c5b6a79881234abcd';
 const EXPECTED_SUMMARY = 'Update runbook: POST /v1/charge is contradicted by code';
 const EXPECTED_DESCRIPTION = [
   'The runbook "this page" contains a claim that the code contradicts.',

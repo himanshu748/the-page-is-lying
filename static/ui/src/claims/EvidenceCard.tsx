@@ -29,10 +29,10 @@ export function EvidenceDetails({ result, showHeading = true }: { result: ClaimR
               <button
                 type="button"
                 className="ev-link"
-                aria-label={`Open ${evidence.file} line ${evidence.line} on GitHub`}
                 onClick={() => openLink(evidence.permalink as string)}
               >
                 {evidence.file}:{evidence.line}
+                <span className="sr-only"> (opens on GitHub)</span>
               </button>
             ) : (
               <span className="ev-loc">

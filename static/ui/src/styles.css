@@ -289,6 +289,9 @@ textarea:focus-visible,
   text-decoration: underline;
   cursor: pointer;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
 }
 .ev-loc {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

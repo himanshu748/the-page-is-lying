@@ -37,7 +37,7 @@ test.describe('macro view', () => {
     await expect(counts).toContainText('2 Verified');
     await expect(counts).toContainText('3 Contradicted');
     await expect(counts).toContainText('1 No evidence');
-    await expect(page.getByText('himanshu748/payments-api@3f2c1a9')).toBeVisible();
+    await expect(page.locator('.bar .repo')).toHaveText('himanshu748/payments-api@3f2c1a9');
     await expect(page.getByRole('button', { name: 'Ask Runbook checker' })).toHaveCount(0);
   });
 
@@ -66,7 +66,7 @@ test.describe('macro view', () => {
   test('card stays reachable by pointer and opens the permalink with router.open', async ({ page }) => {
     await open(page);
     await page.getByTestId('claim').first().hover();
-    await page.getByRole('button', { name: 'Open src/routes.ts line 88 on GitHub' }).click();
+    await page.getByRole('button', { name: /^src\/routes\.ts:88/ }).click();
     const opened = await page.evaluate(() => window.__pilRouter);
     expect(opened).toEqual(['https://github.com/himanshu748/payments-api/blob/3f2c1a9d5e7b8c0a1f2e3d4c5b6a79881234abcd/src/routes.ts#L88']);
   });
@@ -107,16 +107,25 @@ test.describe('macro view', () => {
     await expect(card.getByRole('button', { name: 'Draft Jira task' })).toHaveCount(0);
   });
 
-  test('card flips above when the claim is near the bottom of a short frame', async ({ page }) => {
-    await page.setViewportSize({ width: 700, height: 330 });
+  test('card flips above when it would overflow the bottom of a short frame', async ({ page }) => {
     await open(page);
+    const claim = page.getByTestId('claim').nth(5);
+    const card = page.getByTestId('evidence-card').nth(5);
+    await claim.focus();
+    const claimBox = await claim.boundingBox();
+    const cardBox = await card.boundingBox();
+    if (!claimBox || !cardBox) throw new Error('boxes missing');
+    expect(cardBox.y).toBeGreaterThan(claimBox.y); // below when there is room
+    // Shrink the frame so the card no longer fits below but still fits above.
+    const height = Math.floor(claimBox.y + claimBox.height + cardBox.height - 20);
+    expect(claimBox.y - cardBox.height).toBeGreaterThan(8);
+    await page.setViewportSize({ width: 700, height });
     await page.getByTestId('claim').nth(4).focus();
-    const card = page.getByTestId('evidence-card').nth(4);
-    await expect(card).toBeVisible();
-    const box = await card.boundingBox();
-    expect(box).not.toBeNull();
-    expect((box?.y ?? -1) >= 0).toBe(true);
-    expect((box?.y ?? 0) + (box?.height ?? 0) <= 330).toBe(true);
+    await claim.focus();
+    await expect(card).toHaveClass(/card-above/);
+    const flipped = await card.boundingBox();
+    expect(flipped?.y ?? -1).toBeGreaterThanOrEqual(0);
+    expect((flipped?.y ?? 0) + (flipped?.height ?? 0)).toBeLessThanOrEqual(height);
   });
 
   for (const theme of ['light', 'dark'] as const) {
@@ -136,7 +145,7 @@ test.describe('macro view', () => {
     await page.keyboard.press('Tab');
     await expect(page.getByTestId('claim').first()).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Open src/routes.ts line 88 on GitHub' })).toBeFocused();
+    await expect(page.getByRole('button', { name: /^src\/routes\.ts:88/ })).toBeFocused();
     await page.keyboard.press('Tab');
     const draft = page.getByTestId('evidence-card').first().getByRole('button', { name: 'Draft Jira task' });
     await expect(draft).toBeFocused();
