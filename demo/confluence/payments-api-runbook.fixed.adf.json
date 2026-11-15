@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Operational notes for the payments service. The section below is checked against the code repository."
+        }
+      ]
+    },
+    {
+      "type": "bodiedExtension",
+      "attrs": {
+        "extensionType": "com.atlassian.ecosystem",
+        "extensionKey": "49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0/0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd/static/runbook-check",
+        "text": "Runbook check",
+        "layout": "default",
+        "parameters": {
+          "localId": "7c1f3a52-2d4b-4c8e-9a10-5b6e0d1f2a01",
+          "extensionId": "ari:cloud:ecosystem::extension/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0/0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd/static/runbook-check",
+          "extensionTitle": "Runbook check",
+          "guestParams": {}
+        },
+        "localId": "7c1f3a52-2d4b-4c8e-9a10-5b6e0d1f2a01"
+      },
+      "content": [
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To take a payment, call "
+            },
+            {
+              "type": "text",
+              "text": "POST /v2/payments",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " with the amount in cents."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To look up a payment, call "
+            },
+            {
+              "type": "text",
+              "text": "GET /v2/payments/{id}",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Set "
+            },
+            {
+              "type": "text",
+              "text": "STRIPE_KEY",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " before starting the service."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Run "
+            },
+            {
+              "type": "text",
+              "text": "npm run db:migrate",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": " before each deploy."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "To force a refund, run "
+            },
+            {
+              "type": "text",
+              "text": "payments refund <paymentId> --force",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "content": [
+            {
+              "type": "text",
+              "text": "Reconcile with "
+            },
+            {
+              "type": "text",
+              "text": "ledgerctl reconcile --since 24h",
+              "marks": [
+                {
+                  "type": "code"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "text": "."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
