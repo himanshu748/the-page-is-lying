@@ -31,6 +31,7 @@ export function createCheckPageHandler(deps: CheckPageDeps) {
     if (!resolved.ok) return buildError(resolved.error, resolved.detail);
     if (resolved.id === null || resolved.source === null) return buildError('invalid_input', 'page_missing');
 
+    console.log(JSON.stringify({ evt: 'check-page', pageId: resolved.id, source: resolved.source }));
     const read = await deps.readPage(resolved.id);
     if (!read.ok) return buildError(read.error);
 

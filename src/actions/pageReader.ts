@@ -18,6 +18,11 @@ export type PageReader = (pageId: string) => Promise<PageReadResult>;
 /** Bound on the page body we are willing to parse, to protect function memory. */
 const MAX_BODY_CHARS = 2_000_000;
 
+/** Structured log line. Ids, statuses and names only: never page text, titles or tokens. */
+function log(fields: Record<string, string | number>): void {
+  console.log(JSON.stringify(fields));
+}
+
 interface PageResponse {
   id?: unknown;
   title?: unknown;
@@ -38,9 +43,11 @@ export const readPageAsUser: PageReader = async (pageId) => {
       .requestConfluence(route`/wiki/api/v2/pages/${pageId}?body-format=atlas_doc_format`, {
         headers: { Accept: 'application/json' },
       });
-  } catch {
+  } catch (error) {
+    log({ evt: 'page_read_threw', pageId, name: error instanceof Error ? error.name : 'unknown' });
     return { ok: false, error: 'internal_error' };
   }
+  log({ evt: 'page_read', pageId, status: response.status });
   if (response.status === 404) return { ok: false, error: 'page_not_found' };
   if (response.status === 401 || response.status === 403) return { ok: false, error: 'forbidden' };
   if (response.status === 429) return { ok: false, error: 'rate_limited' };
