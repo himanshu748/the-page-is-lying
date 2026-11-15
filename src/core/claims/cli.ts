@@ -21,7 +21,7 @@ const YARN_BUILTINS: ReadonlySet<string> = new Set(
 );
 
 const PROGRAM_RE = /^[a-z][a-z0-9_-]{0,39}$/;
-const SUBCOMMAND_RE = /^[a-z][A-Za-z0-9:_.-]{0,59}$/;
+const SUBCOMMAND_RE = /^[a-z][A-Za-z0-9:.-]{0,59}$/;
 const FLAG_RE = /^-{1,2}[A-Za-z][A-Za-z0-9-]{0,39}$/;
 const SCRIPT_RE = /^[A-Za-z0-9][A-Za-z0-9:_.@/-]{0,79}$/;
 const MAX_SUBCOMMANDS = 4;

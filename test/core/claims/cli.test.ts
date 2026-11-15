@@ -60,9 +60,9 @@ describe('cli extraction', () => {
     ]);
   });
 
-  it('caps tokens per line without throwing', () => {
+  it('oversized commands are dropped without throwing (raw is capped at 300 chars)', () => {
     const flags = Array.from({ length: 500 }, (_v, i) => `--f${String(i)}`).join(' ');
     const claims = fromText(`\`tool run ${flags}\``, 'cli');
-    expect(claims).toHaveLength(1);
+    expect(claims).toEqual([]);
   });
 });

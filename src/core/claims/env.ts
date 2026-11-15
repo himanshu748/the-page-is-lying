@@ -47,7 +47,7 @@ function explicitCue(text: string, start: number, end: number, code: boolean): b
   if (/(?:\$\{?|\bexport\s+|process\.env\.|\bprocess\.env\[\s*['"]|\bos\.environ\[\s*['"]|\bos\.environ\.get\(\s*['"]|\bos\.getenv\(\s*['"]|\bimport\.meta\.env\.|\bENV\[\s*['"])$/.test(before)) {
     return true;
   }
-  return code && after.startsWith('=') && !after.startsWith('==') && /(?:^|\s)$/.test(before);
+  return code && after.startsWith('=') && !after.startsWith('==') && /(?:^|[\s`])$/.test(before);
 }
 
 export function extractEnv(ctx: BlockContext): Candidate[] {
