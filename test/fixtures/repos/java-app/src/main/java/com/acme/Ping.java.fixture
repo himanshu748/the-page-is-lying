@@ -1,0 +1,10 @@
+package com.acme;
+
+import javax.ws.rs.*;
+
+@Path("/ping")
+public class Ping {
+    @GET
+    @Path("/{n}")
+    public String ping() { return ""; }
+}

@@ -2,7 +2,7 @@
   "id": "FEAT-003",
   "type": "feat",
   "description": "Task B: repo index adapter. GitHub RepoSource (tarball via codeload, SHA via one REST call), tar reader, index builders with coverage, KVS sharded index store, freshness, async queue consumer. Implements PLAN.md sections 5.1 and 8. Parallel with FEAT-002, FEAT-005, FEAT-006, FEAT-007 after FEAT-001. Bitbucket adapter is a stretch behind the same interface and must not add egress without orchestrator approval.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "src/repo/source.ts: RepoSource interface and SnapshotLimits (25 MB compressed, 5,000 files, 1 MB per file, skip dirs node_modules/vendor/dist/build/.git/coverage, skip *.min.*, skip NUL-byte files) with skip counters.",
     "src/repo/github.ts: parse and validate https://github.com/<owner>/<repo> (owner ^[A-Za-z0-9-]{1,39}$, repo ^[A-Za-z0-9._-]{1,100}$); resolveRef via GET api.github.com/repos/{o}/{r}/commits/{ref} with Accept application/vnd.github.sha; snapshot via codeload.github.com/{o}/{r}/tar.gz/{sha}; optional token header; map 404, 403/429 rate limits (x-ratelimit-remaining, x-ratelimit-reset, retry-after) and oversize to typed reasons; permalink builder with per-segment encoding.",
@@ -28,5 +28,5 @@
     "npx vitest run test/core/index test/repo test/storage --coverage"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Implemented on branch feat/task-b-repo-index.\n\nLIVE CHECKS (curl, public repos, Nov 15, 2026):\n(1) codeload.github.com tarball responses (GET and HEAD, sindresorhus/is) carry NO x-ratelimit-* and no retry-after headers: only etag, content-disposition, x-github-request-id and security headers. api.github.com/repos/{o}/{r}/commits/{ref} with Accept application/vnd.github.sha returns the 40-hex sha as text and does carry x-ratelimit-limit/remaining/used/resource/reset (60/hour unauthenticated). A missing ref gives 422, a missing repo 404 (also on codeload). So rate-limit handling keys on the REST call; codeload 403/429 are mapped when they appear.\n(2) https://bitbucket.org/{ws}/{repo}/get/{sha}.tar.gz answers 200 directly (0 redirects, content-type application/x-tar-gz, top folder {ws}-{repo}-{sha12}). No redirect host, so no manifest or egress change. api.bitbucket.org refs/branches/{name} returns target.hash; missing branch 404.\n\nDelivered: RepoSource (src/repo/source.ts), GitHubSource, BitbucketSource, tar.gz reader, index builders (TS/JS routes/env/CLI, Python, Go, Java, OpenAPI, YAML/JSON config, Compose, k8s, Makefile, packages), KVS sharded store, settings and secrets, freshness, index job and consumer. Details and conventions in src/core/index/README.md.\nDeviations: freshness lives in src/storage/freshness.ts (src/service/** belongs to Task C). Old shards are deleted after the pointer flip (previous index kept) instead of a 7 day TTL, because KVS TTL can only be set by rewriting the value. yaml moved from devDependencies to dependencies (runtime use). KVS keys escape with '#' (the documented key regex allows # but not ~)."
 }

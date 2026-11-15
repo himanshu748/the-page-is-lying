@@ -1,0 +1,1 @@
+{ "name": "ledger", "bin": "cli.js", "scripts": { "test": "node --test" } }

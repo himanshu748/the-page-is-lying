@@ -1,0 +1,11 @@
+services:
+  api:
+    image: shop
+    environment:
+      DATABASE_URL: postgres://db
+      REDIS_URL: redis://cache
+  worker:
+    image: shop
+    environment:
+      - QUEUE_NAME=jobs
+      - LOG_LEVEL

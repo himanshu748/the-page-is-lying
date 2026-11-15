@@ -1,0 +1,14 @@
+package cmd
+
+import "github.com/spf13/cobra"
+
+var shipCmd = &cobra.Command{
+	Use:   "ship [id]",
+	Short: "ship an order",
+}
+
+func init() {
+	shipCmd.Flags().BoolP("express", "e", false, "express")
+	shipCmd.Flags().StringVar(&carrier, "carrier", "", "carrier")
+	rootCmd.AddCommand(shipCmd)
+}

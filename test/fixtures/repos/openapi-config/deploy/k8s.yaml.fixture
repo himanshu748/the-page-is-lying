@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          image: shop
+          env:
+            - name: PAYMENT_PROVIDER_URL
+              value: http://x
+            - name: SECRET_TOKEN
+              valueFrom:
+                secretKeyRef: { name: s, key: t }

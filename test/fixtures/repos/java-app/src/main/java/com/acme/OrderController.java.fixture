@@ -1,0 +1,20 @@
+package com.acme;
+
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    // @GetMapping("/commented")
+
+    @GetMapping("/{id}")
+    public Order get(@PathVariable String id) { return null; }
+
+    @PostMapping
+    public Order create() { return null; }
+
+    @RequestMapping(value = "/bulk", method = RequestMethod.PUT)
+    public void bulk() {}
+
+    String url = System.getenv("ORDERS_URL");
+}
