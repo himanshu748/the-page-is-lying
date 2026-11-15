@@ -6,7 +6,18 @@
 const MAX_PATH_LENGTH = 512;
 
 export function normalizeRoutePath(input: string): string {
-  let p = input.length > MAX_PATH_LENGTH ? input.slice(0, MAX_PATH_LENGTH) : input;
+  // Replacements can expose new matches ("{{a}}"), so repeat until stable. Idempotent by construction.
+  let prev = input.length > MAX_PATH_LENGTH ? input.slice(0, MAX_PATH_LENGTH) : input;
+  for (let i = 0; i < 6; i++) {
+    const next = normalizeOnce(prev);
+    if (next === prev) break;
+    prev = next;
+  }
+  return prev;
+}
+
+function normalizeOnce(input: string): string {
+  let p = input;
   p = p.replace(/[?#].*$/s, '');
   // Express style ":id", ":id?", ":id(\\d+)"
   p = p.replace(/:[A-Za-z_][\w-]*(?:\([^)]*\))?\??/g, ':param');
