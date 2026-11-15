@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const yargs = require('yargs/yargs');
+const { hideBin } = require('yargs/helpers');
+
+yargs(hideBin(process.argv))
+  .scriptName('ledger')
+  .command('sync <account>', 'sync an account', (y) => y.option('full', { type: 'boolean', alias: 'f' }).option('since', { type: 'string' }))
+  .command({ command: 'purge', describe: 'purge', builder: { force: { type: 'boolean' } } })
+  .option('verbose', { alias: 'v', type: 'boolean' })
+  .parse();

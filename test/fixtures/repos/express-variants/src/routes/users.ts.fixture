@@ -1,0 +1,10 @@
+import { Router } from 'express';
+const router = Router();
+router.get('/', list);
+router.delete(
+  '/:id',
+  requireAdmin,
+  remove,
+);
+router.get(['/me', '/profile'], me);
+export default router;

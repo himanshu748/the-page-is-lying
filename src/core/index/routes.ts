@@ -14,6 +14,7 @@ import {
   dirName,
   extOf,
   findClose,
+  insideSpan,
   lineAt,
   lineStarts,
   maskCStyleComments,
@@ -23,6 +24,7 @@ import {
   splitArgs,
   splitLines,
   stringLiteral,
+  stringSpans,
   toHttpMethod,
 } from './text';
 import type { IndexAcc, Mount, Receiver, ReceiverKind, RouteDef } from './types';
@@ -36,10 +38,11 @@ interface Ctx {
   text: string;
   starts: number[];
   lines: string[];
+  spans: Array<[number, number]>;
 }
 
 function makeCtx(acc: IndexAcc, file: string, masked: string, original: string): Ctx {
-  return { acc, file, text: masked, starts: lineStarts(masked), lines: splitLines(original) };
+  return { acc, file, text: masked, starts: lineStarts(masked), lines: splitLines(original), spans: stringSpans(masked, { backtickStrings: !file.endsWith('.java') }) };
 }
 
 function addReceiver(ctx: Ctx, name: string, kind: ReceiverKind, framework: string, ownPrefix = ''): void {
@@ -119,11 +122,12 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
   const routerFramework = usesKoa ? 'koa' : 'express';
 
   // Receivers created in this file.
-  for (const m of text.matchAll(/\b(?:const|let|var)\s+([\w$]+)\s*(?::\s*[^=;\n]+)?=\s*(?:await\s+)?(express\s*\(\s*\)|(?:express\s*\.\s*)?Router\s*\(|new\s+(?:Koa)?Router\s*\(|[Ff]astify\s*\(|new\s+Hono\b)/g)) {
+  for (const m of text.matchAll(/\b(?:const|let|var)\s+([\w$]+)\s*(?::\s*[^=;\n]+)?=\s*(?:await\s+)?(express\s*\(\s*\)|new\s+Koa\s*\(|(?:express\s*\.\s*)?Router\s*\(|new\s+(?:Koa)?Router\s*\(|[Ff]astify\s*\(|new\s+Hono\b)/g)) {
     const name = m[1] as string;
     const ctor = m[2] as string;
     const after = m.index + m[0].length;
     if (/^express\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express');
+    else if (/^new\s+Koa\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'koa');
     else if (/^new\s+Hono/.test(ctor)) {
       const tail = /^\s*(?:<[^>]*>)?\s*\(\s*[^)]*\)\s*(?:\.\s*basePath\s*\(\s*(['"])([^'"]*)\1\s*\))?/.exec(text.slice(after, after + 300));
       addReceiver(ctx, name, 'plugin', 'hono', tail?.[2] ?? '');
@@ -161,6 +165,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
   // Simple route calls: recv.get('/x', ...)
   const callRe = new RegExp(`\\b([\\w$]+)\\s*\\.\\s*(${METHOD_NAMES})\\s*\\(`, 'g');
   for (const m of text.matchAll(callRe)) {
+    if (insideSpan(ctx.spans, m.index)) continue;
     const recv = recvByName(m[1] as string);
     if (!recv) continue;
     const open = m.index + m[0].length - 1;
@@ -178,11 +183,11 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
       const arrClose = findClose(text, first.offset);
       const items = arrClose === -1 ? [] : splitArgs(text.slice(first.offset + 1, arrClose), first.offset + 1);
       if (items.length === 0 || items.some((i) => i.literal === undefined)) acc.partial.routes = true;
-      for (const it of items) if (it.literal !== undefined) addRoute(ctx, it.offset, recv.name, recv.framework, method, it.literal);
+      for (const it of items) if (it.literal !== undefined) addRoute(ctx, m.index, recv.name, recv.framework, method, it.literal);
       continue;
     }
     if (first.literal !== undefined) {
-      if (first.literal.startsWith('/') || first.literal === '*') addRoute(ctx, first.offset, recv.name, recv.framework, method, first.literal);
+      if (first.literal.startsWith('/') || first.literal === '*') addRoute(ctx, m.index, recv.name, recv.framework, method, first.literal);
       // app.get('setting') style getters are not routes.
       continue;
     }
@@ -199,6 +204,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
 
   // Express chain: router.route('/x').get(...).post(...)
   for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*route\s*\(\s*(['"`])([^'"`\n]*)\2\s*\)/g)) {
+    if (insideSpan(ctx.spans, m.index)) continue;
     const recv = recvByName(m[1] as string);
     if (!recv) continue;
     let pos = m.index + m[0].length;
@@ -216,6 +222,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
 
   // Fastify: app.route({ method, url })
   for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*route\s*\(\s*\{/g)) {
+    if (insideSpan(ctx.spans, m.index)) continue;
     const recv = recvByName(m[1] as string);
     if (!recv) continue;
     const open = m.index + m[0].length - 1;
@@ -239,6 +246,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
 
   // Mounts: parent.use('/p', child), parent.route('/p', child) (Hono), parent.register(plugin, { prefix })
   for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*(use|route|register)\s*\(/g)) {
+    if (insideSpan(ctx.spans, m.index)) continue;
     const parent = recvByName(m[1] as string);
     if (!parent) continue;
     const open = m.index + m[0].length - 1;
@@ -474,6 +482,7 @@ export function indexGoRoutes(acc: IndexAcc, file: string, original: string, mas
   }
   const verbs = 'GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|Get|Post|Put|Patch|Delete|Head|Options|Any|All|Handle|HandleFunc';
   for (const m of text.matchAll(new RegExp(`\\b(\\w+)\\s*\\.\\s*(${verbs})\\s*\\(`, 'g'))) {
+    if (insideSpan(ctx.spans, m.index)) continue;
     const recv = m[1] as string;
     if (!recvNames.has(recv)) continue;
     const verb = m[2] as string;
@@ -507,14 +516,14 @@ export function indexGoRoutes(acc: IndexAcc, file: string, original: string, mas
         if (tail) {
           for (const mm of (tail[1] as string).matchAll(/"(\w+)"/g)) {
             const hm = toHttpMethod(mm[1] as string);
-            if (hm) addRoute(ctx, pathArg.offset, recv, 'go', hm, route);
+            if (hm) addRoute(ctx, m.index, recv, 'go', hm, route);
           }
           continue;
         }
       }
     }
     if (method === undefined) continue;
-    addRoute(ctx, pathArg.offset, recv, 'go', method, route.replace(/\{([^}/]*?)\.\.\.\}/g, '{$1}'));
+    addRoute(ctx, m.index, recv, 'go', method, route.replace(/\{([^}/]*?)\.\.\.\}/g, '{$1}'));
   }
 }
 
@@ -572,8 +581,17 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
   for (const m of text.matchAll(/@(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\b(?!\w)/g)) {
     const idx = m.index;
     const before = Math.max(text.lastIndexOf(';', idx), text.lastIndexOf('{', idx), text.lastIndexOf('}', idx));
-    let endSig = text.slice(idx).search(/[{;]/);
-    endSig = endSig === -1 ? text.length : idx + endSig;
+    let endSig = idx;
+    while (endSig < text.length) {
+      const ch = text[endSig];
+      if (ch === '{' || ch === ';') break;
+      if (ch === '(') {
+        const c = findClose(text, endSig);
+        if (c === -1) break;
+        endSig = c;
+      }
+      endSig++;
+    }
     const window = text.slice(before + 1, endSig);
     const pm = /@Path\s*\(\s*"([^"]*)"\s*\)/.exec(window);
     const method = toHttpMethod(m[1] as string);

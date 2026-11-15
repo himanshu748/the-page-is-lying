@@ -1,0 +1,8 @@
+.PHONY: build seed
+VERSION := 1
+build:
+	go build ./...
+seed: build
+	./seed.sh
+%.o: %.c
+	cc $<

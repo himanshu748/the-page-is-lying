@@ -1,0 +1,20 @@
+"""Example service.
+
+Docs only: @app.get("/in-docstring")
+"""
+import os
+from fastapi import FastAPI
+from .routers import items
+
+app = FastAPI()
+app.include_router(items.router, prefix="/v1")
+
+
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+
+DB = os.environ["DATABASE_URL"]
+KEY = os.getenv("API_KEY", "")
+MODE = os.environ.get("APP_MODE")

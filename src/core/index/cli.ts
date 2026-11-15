@@ -128,15 +128,15 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
     const idx = text.search(/\bprogram\b/);
     vars.set('program', mk([], idx === -1 ? 0 : idx, true));
   }
-  type Ev = { idx: number; kind: 'new' | 'call'; assign?: string; recv?: string; method?: string; open: number };
+  type Ev = { idx: number; at: number; kind: 'new' | 'call'; assign?: string; recv?: string; method?: string; open: number };
   const events: Ev[] = [];
   for (const m of text.matchAll(/(?:\b(?:const|let|var)\s+([\w$]+)\s*(?::[^=\n]+)?=\s*)?new\s+(?:commander\s*\.\s*)?Command\s*\(/g)) {
-    const ev: Ev = { idx: m.index, kind: 'new', open: m.index + m[0].length - 1 };
+    const ev: Ev = { idx: m.index, at: m.index, kind: 'new', open: m.index + m[0].length - 1 };
     if (m[1]) ev.assign = m[1];
     events.push(ev);
   }
   for (const m of text.matchAll(/(?:\b(?:const|let|var)\s+([\w$]+)\s*(?::[^=\n]+)?=\s*)?([\w$]+)?\s*\.\s*(command|option|requiredOption|addOption|name|alias|version|addCommand|executableDir)\s*\(/g)) {
-    const ev: Ev = { idx: m.index, kind: 'call', method: m[3] as string, open: m.index + m[0].length - 1 };
+    const ev: Ev = { idx: m.index, at: m.index + m[0].lastIndexOf(m[3] as string, m[0].length - 1), kind: 'call', method: m[3] as string, open: m.index + m[0].length - 1 };
     if (m[1]) ev.assign = m[1];
     if (m[2]) ev.recv = m[2];
     events.push(ev);
@@ -147,7 +147,7 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
     const close = findClose(text, ev.open);
     const args: Arg[] = close === -1 ? [] : splitArgs(text.slice(ev.open + 1, close), ev.open + 1);
     if (ev.kind === 'new') {
-      const c = mk([], ev.idx, true);
+      const c = mk([], ev.at, true);
       const nm = args[0]?.literal;
       if (nm !== undefined) c.name = nm;
       if (ev.assign) vars.set(ev.assign, c);
@@ -170,7 +170,7 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
         }
         const name = a0.literal.trim().split(/\s+/)[0] ?? '';
         if (name === '') break;
-        const child = mk([...base.path, name], ev.idx, false);
+        const child = mk([...base.path, name], ev.at, false);
         if (ev.assign) vars.set(ev.assign, child);
         // `.command(name, description)` declares an executable subcommand and returns the parent.
         const executable = args[1]?.literal !== undefined;
@@ -262,6 +262,12 @@ function valueBody(src: string, from: number): string {
     const close = findClose(src, open);
     return close === -1 ? '' : src.slice(open, close + 1);
   }
+  const q = src[open];
+  if (q === '"' || q === "'" || q === '`') {
+    let j = open + 1;
+    while (j < src.length && src[j] !== q) j += src[j] === '\\' ? 2 : 1;
+    return src.slice(open, j + 1);
+  }
   return src.slice(open, open + 80);
 }
 
@@ -297,6 +303,16 @@ export function indexYargs(acc: IndexAcc, file: string, original: string, text: 
       continue;
     }
     const c = newCmd([first], lineAt(starts, m.index), false);
+    if (a0?.src.startsWith('{')) {
+      const b = topLevelKeys(a0.src).find((x) => x.key === 'builder');
+      if (b?.body.startsWith('{')) {
+        for (const k of topLevelKeys(b.body)) {
+          c.flags.add(k.key.length === 1 ? `-${k.key}` : `--${k.key}`);
+          const am = /\balias\s*:\s*(\[[^\]]*\]|(['"])[^'"]*\2)/.exec(k.body);
+          if (am) for (const x of (am[1] as string).matchAll(/(['"])([^'"]*)\1/g)) c.flags.add((x[2] as string).length === 1 ? `-${x[2]}` : `--${x[2]}`);
+        }
+      }
+    }
     c.aliases = names.slice(1).map((n) => n.trim().split(/\s+/)[0] ?? '').filter((n) => n !== '');
     cmds.push(c);
     regions.push({ cmd: c, from: open, to: close });

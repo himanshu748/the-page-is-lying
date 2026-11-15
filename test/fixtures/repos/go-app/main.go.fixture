@@ -1,0 +1,24 @@
+package main
+
+import (
+	"net/http"
+	"os"
+
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	r := gin.Default()
+	r.GET("/health", health)
+	v1 := r.Group("/v1")
+	v1.POST("/orders", createOrder)
+	v1.GET("/orders/:id", getOrder)
+	// r.GET("/commented", nope)
+	http.HandleFunc("/legacy", legacy)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /items/{id}", item)
+	_ = os.Getenv("ORDERS_DB_URL")
+	if v, ok := os.LookupEnv("ORDERS_MODE"); ok {
+		_ = v
+	}
+}

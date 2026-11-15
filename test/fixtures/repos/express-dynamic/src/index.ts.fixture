@@ -1,0 +1,8 @@
+import express from 'express';
+const app = express();
+const base = process.env.BASE_PATH;
+app.get('/static', ok);
+app.get(base + '/dynamic', ok);
+for (const m of ['get', 'post']) app[m]('/loop', ok);
+const key = process.argv[2];
+console.log(process.env[key]);

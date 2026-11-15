@@ -89,6 +89,53 @@ export function maskCStyleComments(text: string, opts: { backtickStrings?: boole
   return chars.join('');
 }
 
+/** Sorted [start, end) spans of string literals in C-like source (comments are skipped). */
+export function stringSpans(text: string, opts: { backtickStrings?: boolean } = {}): Array<[number, number]> {
+  const backtick = opts.backtickStrings ?? true;
+  const spans: Array<[number, number]> = [];
+  const n = text.length;
+  let i = 0;
+  while (i < n) {
+    const c = text[i];
+    const d = text[i + 1];
+    if (c === '/' && d === '/') {
+      while (i < n && text[i] !== '\n') i++;
+    } else if (c === '/' && d === '*') {
+      const end = text.indexOf('*/', i + 2);
+      i = end === -1 ? n : end + 2;
+    } else if (c === '"' || c === "'" || (backtick && c === '`')) {
+      let j = i + 1;
+      while (j < n) {
+        const e = text[j];
+        if (e === '\\') {
+          j += 2;
+          continue;
+        }
+        if (e === c) break;
+        if (e === '\n' && c !== '`') break;
+        j++;
+      }
+      spans.push([i, Math.min(j + 1, n)]);
+      i = j + 1;
+    } else i++;
+  }
+  return spans;
+}
+
+/** True when `offset` lies strictly inside one of the spans. */
+export function insideSpan(spans: Array<[number, number]>, offset: number): boolean {
+  let lo = 0;
+  let hi = spans.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    const [a, b] = spans[mid] as [number, number];
+    if (offset <= a) hi = mid - 1;
+    else if (offset >= b) lo = mid + 1;
+    else return true;
+  }
+  return false;
+}
+
 /**
  * Mask `#` comments and the content of triple-quoted strings (docstrings) in Python
  * so examples inside docstrings are not indexed. Offsets are preserved.
