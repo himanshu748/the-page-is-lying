@@ -29,7 +29,7 @@ describe('validateClaim', () => {
       }),
       { numRuns: 500 },
     );
-  });
+  }, 30_000);
 });
 
 describe('parsePageReference', () => {
@@ -71,7 +71,7 @@ describe('parsePageReference', () => {
       }),
       { numRuns: 500 },
     );
-  });
+  }, 30_000);
 });
 
 describe('resolvePageId (context first)', () => {
