@@ -64,6 +64,59 @@ export function unknownStatement(args: { reason: string }): string {
   return `No evidence found: ${args.reason}. ${UNKNOWN_DISCLAIMER}`;
 }
 
+/** Verified claims that point at a file but no line (file paths). */
+export function verifiedFileStatement(args: { claim: string; file: string }): string {
+  return `Verified in code: ${args.claim} exists in the repository at ${args.file}.`;
+}
+
+/** Detail sentence for contradicted results that cite alternatives, used with contradictedGenericStatement. */
+export function alternativesDetail(args: { label: string; items: string[]; file?: string; line?: number }): string {
+  const list = args.items.length > 0 ? args.items.join(', ') : 'nothing similar';
+  const where = args.file === undefined ? '' : args.line === undefined ? ` at ${args.file}` : ` at ${args.file}:${args.line}`;
+  return `${args.label} ${list}${where}.`;
+}
+
+export type UnknownReasonKey =
+  | 'coverage_partial'
+  | 'coverage_none'
+  | 'external_host'
+  | 'program_not_in_repo'
+  | 'dynamic_definition'
+  | 'config_file_not_in_repo'
+  | 'no_config_files'
+  | 'tree_truncated'
+  | 'package_not_direct_dependency'
+  | 'manifest_missing'
+  | 'index_missing'
+  | 'repo_not_found_or_private'
+  | 'rate_limited'
+  | 'tarball_too_large'
+  | 'not_a_checkable_claim';
+
+const UNKNOWN_REASON_TEXT: Record<UnknownReasonKey, string> = {
+  coverage_partial: 'the code index for this kind of claim is only partly complete',
+  coverage_none: 'the code index found nothing of this kind in the repository',
+  external_host: 'the claim names a host that is not one of the configured service hosts',
+  program_not_in_repo: 'the program is not defined in this repository',
+  dynamic_definition: 'the definition in code is built dynamically or could not be parsed',
+  config_file_not_in_repo: 'the named configuration file is not in the repository',
+  no_config_files: 'no configuration files were parsed in the repository',
+  tree_truncated: 'the repository file tree was cut short while indexing',
+  package_not_direct_dependency: 'the package is not a direct dependency in a parsed manifest',
+  manifest_missing: 'no parsed manifest lists this kind of dependency',
+  index_missing: 'no repository index is available yet',
+  repo_not_found_or_private: 'the repository was not found or is private',
+  rate_limited: 'the repository host rate limit was reached',
+  tarball_too_large: 'the repository is larger than the indexing limit',
+  not_a_checkable_claim: 'the text does not contain a claim that can be checked against code',
+};
+
+/** Reason sentence for `unknownStatement`. `claim` is optional context (already sanitized by the caller). */
+export function unknownReasonText(reason: UnknownReasonKey, claim?: string): string {
+  const base = UNKNOWN_REASON_TEXT[reason];
+  return claim === undefined || claim === '' ? base : `${base} (${claim})`;
+}
+
 export function jiraDraftSummary(args: { claim: string }): string {
   return `Update runbook: ${args.claim} is contradicted by code`;
 }
