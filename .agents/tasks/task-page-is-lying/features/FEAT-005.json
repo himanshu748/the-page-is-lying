@@ -2,7 +2,7 @@
   "id": "FEAT-005",
   "type": "feat",
   "description": "Task D: Confluence UI (Custom UI, React + Vite, strict TS) and UI resolvers. Macro view with own ADF subset renderer and claim highlights, evidence hover/focus cards, byline popup and dynamicProperties, settings page, Jira draft modal with no write before click. Implements PLAN.md 5.2, 5.3, 5.5 and 9.1. Parallel after FEAT-001 using fixture Report JSON; wires to the real service once FEAT-004 lands.",
-  "status": "pending",
+  "status": "completed",
   "steps": [
     "static/ui/src/render/: ADF subset renderer (doc, paragraph, heading, bulletList, orderedList, listItem, codeBlock, blockquote, panel, table, rule, hardBreak; text marks code/strong/em/link/strike); unsupported nodes as plain text with a note. Claim spans placed by blockIndex/start/end from the Report.",
     "static/ui/src/claims/: ClaimMark component (button with icon + text label + distinct underline + token background; Verified solid, Contradicted wavy, Unknown dotted) and EvidenceCard (statement, file:line permalink via router.open, snippet as code, SHA and index time, coverage note for Unknown, Draft Jira task for Contradicted). Opens on hover and focus, closes on Escape/blur, aria-describedby, flips placement near iframe bottom.",
@@ -27,5 +27,5 @@
     "npx vitest run test/resolvers"
   ],
   "blocked_reason": null,
-  "findings": ""
+  "findings": "Done. Vitest 77 passed (45 resolver tests, 3 UI source rules). Playwright 48 passed in Chromium; WebKit not installed, not run. axe (wcag2a/aa/21/22aa) clean in light and dark for macro (card open), states, Jira modal, byline, settings. Resolvers call a UiBackend adapter (src/resolvers/backend.ts); integration wires checkDocument and getIndexStatus in defaultBackend.ts to Task C and Task B. Block index convention: text blocks are paragraph, heading, codeBlock in document order; renderer falls back to indexOf(raw) if offsets do not select raw. Added devDependency @axe-core/playwright. Jira modal is an in-iframe overlay; could be clipped if the macro iframe is very short. isAdmin uses GET /wiki/rest/api/user/current?expand=operations (unverified on live site)."
 }
