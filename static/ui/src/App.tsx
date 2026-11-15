@@ -1,38 +1,25 @@
 import { useEffect, useState } from 'react';
 import { view } from './bridge';
+import { BylinePopup } from './views/BylinePopup';
+import { MacroView } from './views/MacroView';
+import { SettingsPage } from './views/SettingsPage';
 
-type ModuleKey = 'runbook-check' | 'runbook-byline' | 'runbook-settings';
-
-const TITLES: Record<ModuleKey, string> = {
-  'runbook-check': 'Runbook check',
-  'runbook-byline': 'Runbook check (page)',
-  'runbook-settings': 'The Page Is Lying settings',
-};
-
-function isModuleKey(value: string): value is ModuleKey {
-  return value in TITLES;
-}
-
-/**
- * Routes by context.extension.moduleKey. Task D replaces each placeholder view.
- * Placeholder copy only; no verdicts are shown by the scaffold.
- */
+/** Routes by context.extension.moduleKey. The theme is enabled first so Atlassian design tokens resolve. */
 export function App() {
   const [moduleKey, setModuleKey] = useState<string | null>(null);
 
   useEffect(() => {
+    void Promise.resolve(view.theme.enable()).catch(() => undefined);
     void view.getContext().then((context) => {
-      setModuleKey(String((context as { moduleKey?: string }).moduleKey ?? ''));
+      const typed = context as { moduleKey?: unknown; extension?: { moduleKey?: unknown } };
+      setModuleKey(String(typed.moduleKey ?? typed.extension?.moduleKey ?? ''));
     });
   }, []);
 
-  if (moduleKey === null) return <p role="status">Loading...</p>;
-  if (!isModuleKey(moduleKey)) return <p role="alert">Unknown module: {moduleKey}</p>;
-
-  return (
-    <main data-testid={`view-${moduleKey}`}>
-      <h1>{TITLES[moduleKey]}</h1>
-      <p>Scaffold placeholder. No checks have run.</p>
-    </main>
-  );
+  if (moduleKey === null) return <p role="status" className="notice">Loading…</p>;
+  // Forge module keys can be suffixed with the app and environment, so match on the end.
+  if (moduleKey.endsWith('runbook-check')) return <MacroView />;
+  if (moduleKey.endsWith('runbook-byline')) return <BylinePopup />;
+  if (moduleKey.endsWith('runbook-settings')) return <SettingsPage />;
+  return <p role="alert" className="notice notice-error">Unknown module: {moduleKey}</p>;
 }

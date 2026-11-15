@@ -91,7 +91,7 @@ export const defaultBackend: UiBackend = {
   async enqueueIndex(): Promise<void> {
     // INTEGRATION: Task B's consumer defines the payload; plan section 5.1 sends `{ repoKey }`.
     const settings = await defaultBackend.loadSettings();
-    await new Queue({ key: 'repo-index' }).push({ repoUrl: settings.repoUrl, ref: settings.ref });
+    await new Queue({ key: 'repo-index' }).push({ body: { repoUrl: settings.repoUrl, ref: settings.ref } });
   },
 
   async saveCounts(contentId: string, version: number, counts: ReportCounts): Promise<void> {
