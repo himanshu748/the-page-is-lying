@@ -3,6 +3,7 @@ import { matchClaim } from '../../../src/core/match';
 import type { ClaimResult, NormalizedClaim, RepoIndex } from '../../../src/core/model';
 import { makeClaim, makeIndex } from '../../fixtures/match/builders';
 
+const hasControl = (text: string): boolean => Array.from(text).some((ch) => ch.charCodeAt(0) < 32);
 const loc = (file: string, line: number, snippet = 'x') => ({ file, line, snippet });
 
 function check(normalized: NormalizedClaim, index: RepoIndex, options = {}): ClaimResult {
@@ -296,13 +297,13 @@ describe('results are bounded', () => {
     const raw = `POST /v1/charge\n${'x'.repeat(400)}\u0007`;
     const r = matchClaim(makeClaim({ type: 'http_endpoint', method: 'POST', path: '/v1/charge' }, raw), makeIndex(), {});
     expect(r.claim.raw.length).toBeLessThanOrEqual(160);
-    expect(r.claim.raw).not.toMatch(/[\u0000-\u001f]/);
+    expect(hasControl(r.claim.raw)).toBe(false);
   });
   it('truncates repo snippets in evidence', () => {
     const idx = makeIndex({ routes: [{ ...loc('a.ts', 1, `router.get('/x') // ${'y'.repeat(300)}\n\t\u0000`), method: 'GET', path: '/x', framework: 'express' }] });
     const e = check({ type: 'http_endpoint', method: 'GET', path: '/x' }, idx).evidence[0];
     expect(e?.snippet?.length).toBeLessThanOrEqual(160);
-    expect(e?.snippet).not.toMatch(/[\u0000-\u001f]/);
+    expect(hasControl(e?.snippet ?? '')).toBe(false);
   });
   it('builds a bitbucket permalink', () => {
     const idx = makeIndex({ repo: { provider: 'bitbucket', fullName: 'ws/app', ref: 'main', sha: 'abc1234', indexedAt: '2026-12-01T00:00:00.000Z' }, routes: [route('GET', '/x', 7)] });

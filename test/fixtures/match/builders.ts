@@ -21,7 +21,7 @@ const completeAll: Record<IndexKind, Coverage> = {
 };
 
 /** Empty complete index. Tests override only what they need. */
-export function makeIndex(overrides: Partial<RepoIndex> & { coverage?: Partial<Record<IndexKind, Coverage>> } = {}): RepoIndex {
+export function makeIndex(overrides: Partial<Omit<RepoIndex, 'coverage'>> & { coverage?: Partial<Record<IndexKind, Coverage>> } = {}): RepoIndex {
   const { coverage, ...rest } = overrides;
   return {
     schema: 'pil.index.v1',
