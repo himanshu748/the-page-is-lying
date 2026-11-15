@@ -52,7 +52,7 @@ export const view = {
 
 let checks = 0;
 
-function checkResponse(): CheckResponse {
+function checkResponse(name: string): CheckResponse {
   const report = demoReport();
   switch (scenario) {
     case 'indexing':
@@ -77,7 +77,9 @@ function checkResponse(): CheckResponse {
         report: { ...report, counts: { claims: 0, verified: 0, contradicted: 0, unknown: 0 }, results: [] },
       };
     default:
-      return { state: 'ready', report, page: { id: '123456', title: 'Payments API runbook', version: 7 } };
+      return name === 'checkPage'
+        ? { state: 'ready', report, page: { id: '123456', title: 'Payments API runbook', version: 7 } }
+        : { state: 'ready', report };
   }
 }
 
@@ -115,7 +117,7 @@ export const invoke = async <T = unknown>(name: string, payload?: unknown): Prom
   switch (name) {
     case 'checkBody':
     case 'checkPage':
-      return checkResponse() as T;
+      return checkResponse(name) as T;
     case 'getJiraTarget':
       return (settings.jiraProjectId ? { projectId: settings.jiraProjectId, issueTypeId: settings.jiraIssueTypeId } : null) as T;
     case 'getSettings':

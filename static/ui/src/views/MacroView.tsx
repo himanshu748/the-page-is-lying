@@ -14,18 +14,20 @@ import { ReportHeader, StateNotice, useCheck } from './common';
 interface MacroContext {
   body: unknown;
   contentId: string | undefined;
+  title: string | undefined;
   config: { repoUrl?: string; ref?: string };
 }
 
 function readContext(raw: unknown): MacroContext {
   const extension = ((raw as { extension?: Record<string, unknown> }).extension ?? {}) as {
     macro?: { body?: unknown; config?: Record<string, unknown> };
-    content?: { id?: unknown };
+    content?: { id?: unknown; title?: unknown };
   };
   const config = extension.macro?.config ?? {};
   return {
     body: extension.macro?.body,
     contentId: extension.content?.id === undefined ? undefined : String(extension.content.id),
+    title: typeof extension.content?.title === 'string' ? extension.content.title : undefined,
     config: {
       ...(typeof config['repoUrl'] === 'string' && config['repoUrl'] !== '' ? { repoUrl: config['repoUrl'] } : {}),
       ...(typeof config['ref'] === 'string' && config['ref'] !== '' ? { ref: config['ref'] } : {}),
@@ -68,16 +70,16 @@ export function MacroView() {
           Checking against code…
         </p>
       ) : (
-        <MacroResult response={loaded.response} pollingStopped={loaded.pollingStopped} doc={doc} />
+        <MacroResult response={loaded.response} pollingStopped={loaded.pollingStopped} doc={doc} title={context?.title} />
       )}
       {loaded.phase === 'loading' && doc && <AdfRenderer doc={doc} placements={{ byBlock: new Map(), unplaced: [] }} />}
     </section>
   );
 }
 
-function MacroResult({ response, pollingStopped, doc }: { response: CheckResponse; pollingStopped: boolean; doc: AdfNode | null }) {
+function MacroResult({ response, pollingStopped, doc, title }: { response: CheckResponse; pollingStopped: boolean; doc: AdfNode | null; title: string | undefined }) {
   const report: Report | undefined = 'report' in response ? response.report : undefined;
-  const pageTitle = response.state === 'ready' && response.page ? response.page.title : 'this page';
+  const pageTitle = response.state === 'ready' && response.page ? response.page.title : (title ?? 'this page');
   const { draftJira, modal } = useJiraDraft(report, pageTitle);
   const placements = useMemo(() => (doc && report ? placeClaims(doc, report.results) : { byBlock: new Map(), unplaced: [] }), [doc, report]);
   const actions = useMemo(
