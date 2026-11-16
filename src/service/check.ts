@@ -167,12 +167,24 @@ export async function checkDocument(deps: CheckDeps, input: { adf: unknown; repo
   return { ok: true, report, ...(staleReason !== undefined ? { staleReason } : {}) };
 }
 
+function looksLikeCommand(text: string): boolean {
+  return text.split(/\s+/).some((token) => token.startsWith('-') || /[0-9_./:-]/.test(token));
+}
+
 /** Checks one claim, or the few claims found in a short piece of text. */
 export async function checkClaim(deps: CheckDeps, input: { text: string; repoRef?: RepoSelector }): Promise<CheckOutcome> {
   const text = typeof input.text === 'string' ? input.text.trim() : '';
   if (text === '' || text.length > MAX_CLAIM_TEXT_LENGTH) return failure('invalid_input', INVALID_INPUT_MESSAGE);
 
-  const extracted = deps.extractor.extractClaimsFromText(text);
+  let extracted = deps.extractor.extractClaimsFromText(text);
+  if (extracted.claims.length === 0 && !/[`\r\n]/.test(text)) {
+    // A bare command or route pasted without backticks: retry once, treating the whole input as inline code.
+    // The input stays data; only the code span marker is added. Length was capped above.
+    // Plain prose becomes a "cli" claim when wrapped, so a cli claim is kept only when it looks like a command:
+    // a flag, or a token with a digit or one of - _ . / : in it. Other claim types (route, env, file) are kept.
+    const retried = deps.extractor.extractClaimsFromText(`\`${text}\``);
+    extracted = { ...retried, claims: retried.claims.filter((claim) => claim.normalized.type !== 'cli' || looksLikeCommand(text)) };
+  }
   if (extracted.claims.length === 0) {
     return failure(
       'not_a_checkable_claim',

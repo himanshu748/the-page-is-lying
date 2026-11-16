@@ -153,6 +153,23 @@ describe('claim text as the Rovo action receives it', () => {
     const service = createAgentService(deps);
     expect(await service.checkClaim({ claimText: 'please be nice to the readers' })).toEqual({ ok: false, reason: 'not_a_checkable_claim' });
   });
+
+  it('a bare command pasted without backticks is retried as inline code and gives no evidence found', async () => {
+    const out = await checkClaim(deps, { text: 'ledgerctl reconcile --since 24h' });
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.report.results).toHaveLength(1);
+    expect(out.report.results[0]).toMatchObject({ verdict: 'unknown' });
+    expect(out.report.counts).toMatchObject({ verified: 0, contradicted: 0 });
+  });
+
+  it('the bare route is still contradicted at src/routes.ts:88 and prose such as "create a Jira task" is not a claim', async () => {
+    const bare = await checkClaim(deps, { text: 'POST /v1/charge' });
+    expect(bare.ok && bare.report.results[0]).toMatchObject({ verdict: 'contradicted' });
+    for (const prose of ['create a Jira task', 'please be nice to the readers']) {
+      expect(await checkClaim(deps, { text: prose })).toMatchObject({ ok: false, error: 'not_a_checkable_claim' });
+    }
+  });
 });
 
 describe('one service behind the UI mapping and the agent adapter', () => {
