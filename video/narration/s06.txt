@@ -1,0 +1,1 @@
+The app also exposes two read-only tools through a Forge MCP server. Here is MCP Inspector, signed in over OAuth. It lists check-page and check-claim, and returns the same verdicts, the same file and line, and the same evidence ids. Same tool, same evidence, any MCP client.

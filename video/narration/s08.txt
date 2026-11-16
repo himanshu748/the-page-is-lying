@@ -1,0 +1,1 @@
+For a contradicted claim you can draft a Jira task. The app shows the exact issue text first, and nothing is written until you click confirm.
