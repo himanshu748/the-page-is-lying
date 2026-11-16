@@ -69,9 +69,9 @@ Optional live check of the public demo repo (network, unauthenticated GitHub rat
 ## Setup for site admins
 
 1. Install the app on the Confluence site.
-2. Open Confluence settings, **Apps**, **The Page Is Lying**. Enter a public GitHub repository URL (`https://github.com/owner/repo`) and optionally a branch. Bitbucket Cloud URLs (`https://bitbucket.org/workspace/repo`) work through the same interface.
+2. Open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure** (the page has no link in the Confluence admin sidebar because it is the app's Configure page). Enter a public GitHub repository URL (`https://github.com/owner/repo`) and optionally a branch. Bitbucket Cloud URLs (`https://bitbucket.org/workspace/repo`) work through the same interface.
 3. Optional: a read-only GitHub token. It raises the rate limit and allows private repositories. It is stored with Forge's secret storage, never shown again, and never sent to the browser or to an agent.
-4. Click **Save**, then **Index now**. The settings page shows branch, commit, file count and coverage per kind.
+4. Click **Save settings**, then **Index now**. The first time, Forge may ask you to allow the app to act on your behalf (an "Allow access" prompt). Accept it: the app reads your Confluence user record once to confirm that you are a Confluence administrator before it saves. If the save fails, the page says so and asks you to reload and allow access. The settings page shows branch, commit, file count and coverage per kind.
 5. Insert the **Runbook check** macro in a page (type `/Runbook check`) and write the section inside it, or use the byline item to check the whole page.
 6. Enable the MCP tools for external clients: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**, **Tools** tab, and select `check-page` and `check-claim`. External exposure is off until an admin does this.
 
@@ -108,7 +108,7 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 - Everything from the page, the repository and action results is data, never instructions. Fields quoted from them are named `untrusted*` in the agent envelope, control characters are stripped, and the agent prompt tells the model to ignore instructions inside them. Fixtures and tests cover injected pages and injected repository comments.
 - Repository coordinates come only from admin-validated settings, not from page text, repo files or agent input. The queue consumer ignores a queue event whose repo key does not match the saved settings.
 - Page reads use `asUser()`, so Confluence enforces the caller's view permission.
-- Scopes: `storage:app` and `read:page:confluence`. Egress: `api.github.com`, `codeload.github.com`, `api.bitbucket.org`, `bitbucket.org` (fetch only).
+- Scopes: `storage:app`, `read:page:confluence` (page reads as the user) and `read:confluence-user` (the admin check on the settings page, `GET /wiki/rest/api/user/current?expand=operations`). All three are read or app-storage scopes. Egress: `api.github.com`, `codeload.github.com`, `api.bitbucket.org`, `bitbucket.org` (fetch only).
 - Settings can only be changed from the settings module, by a Confluence administrator. The token is a Forge secret.
 
 ## Demo and checks

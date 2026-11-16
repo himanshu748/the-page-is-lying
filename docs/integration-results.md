@@ -1,6 +1,6 @@
 # Live verification results (demo site)
 
-Date: 2026-11-16. Branch `feat/integration`. Development version 2.2.0 on `https://one-atlas-obka.atlassian.net`.
+Date: 2026-11-16. Branch `feat/integration`. Development version 2.2.0 on `https://one-atlas-obka.atlassian.net` for attempts 1 and 2; 3.0.0 from attempt 3 (see the end of this file).
 
 Attempt 1 (commit ff34b51) could not run any browser step: the preview browser was not signed in. Attempt 2 (this file) runs with the user signed in to the preview browser's default profile.
 
@@ -52,3 +52,51 @@ There is no CLI or REST path to write the app's Forge storage, and adding a back
 ## Tabs and processes
 
 All tabs this run opened were closed. One unclaimed tab (`tab_7`, the settings page, opened by Confluence's "Configure" link as a new window) could not be closed by the agent: "Only the agent session that opened this tab can close it." The MCP Inspector process was stopped.
+
+## Attempt 3: settings save bug fixed (version 3.0.0)
+
+### The bug
+
+The user entered the repository on the settings page and clicked Save settings and Index now; nothing was saved. `forge logs -e development --since 3h` showed one error per click and nothing else:
+
+```
+ERROR 2026-11-16T16:36:50.416Z 9541f650-35df-45d7-8617-12d77afad958 [NEEDS_AUTHENTICATION_ERR: Authentication Required] { status: 401, serviceKey: 'atlassian-token-service-key', options: undefined }
+```
+
+The same error appears at 16:37:19 (747a23b2), 16:37:28 (d1c489f6) and 16:37:58 (0d6aa3e2).
+
+### Root cause
+
+`saveSettings` and `indexNow` both call `backend.isAdmin()` before anything else, and that is the only user-token call in those resolvers. `isAdmin` (`src/resolvers/defaultBackend.ts`) calls `asUser().requestConfluence('/wiki/rest/api/user/current?expand=operations')`. The Confluence v1 REST reference lists the OAuth scope for "Get current user" as `read:confluence-user` (https://developer.atlassian.com/cloud/confluence/rest/v1/api-group-users/, field `x-atlassian-oauth2-scopes`). The manifest had only `storage:app` and `read:page:confluence`, so the Forge token service could not issue a user token for the call, and `@forge/api` threw `NeedsAuthenticationError` (in `fetch.js` the proxy header `forge-proxy-error: NEEDS_AUTHENTICATION_ERR` becomes `new NeedsAuthenticationError('Authentication Required', 'atlassian-token-service-key')`). Page reads as the user kept working (C16, MCP) because `read:page:confluence` covers them. The error was not swallowed in the resolver (there is no try/catch around `isAdmin`); the UI's generic catch showed "Settings could not be saved. Try again."
+
+### Fix (commit 91144c7)
+
+- `manifest.yml`: add `read:confluence-user` (read-only; no write scope, no egress change). Major version 3.0.0.
+- `static/ui/src/views/SettingsPage.tsx`: when the Save or Index now call fails outright, the page now says what failed and the usual reason ("... The app could not confirm that you are a Confluence administrator. This usually means access has not been allowed yet: reload this page, choose Allow access if asked, and try again. ...") instead of "Try again".
+- The admin rule is unchanged: only from the settings module, only a user whose `operations` include `administer` on `application`.
+- Tests: `test/resolvers/defaultBackend.test.ts` (admin true; non-admin, refused response and missing account id false; `NeedsAuthenticationError` propagates), `test/resolvers/ui.test.ts` (a failing admin check rejects `saveSettings` and `indexNow` so Forge sees the error), e2e scenario `settings=auth-error` (the message is shown for Save and Index now), manifest contract test updated to the three scopes.
+
+### Gates and deploy
+
+| Gate | Exit |
+|---|---|
+| `npm run typecheck`, `npm run lint`, `npm test` (673 passed, 1 skipped), `npm run build:ui`, `npm run test:e2e` (49 passed) | 0 |
+| `forge lint` | 0 (0 errors, 1 approval: MAJOR_VERSION_RULE, scope change) |
+| `forge deploy -e development --non-interactive` | 1 without `--approve MAJOR_VERSION_RULE`; 0 with it. Deployed 3.0.0 |
+| `forge install --upgrade -e development -p Confluence --site one-atlas-obka.atlassian.net --non-interactive --confirm-scopes` | 0. "Your app will be upgraded with the following additional scopes: - read:confluence-user ... Upgrade complete!" `forge install list`: version 3, Up-to-date |
+
+The CLI upgrade with `--confirm-scopes` accepted the new scope for the site, so no separate "update needs approval" step was left for the site admin. Whether a per-user "Allow access" prompt appears on the first Save has not been observed yet (see below). `forge eligibility`: not eligible for Runs on Atlassian because "App is egressing data" (GitHub egress, not changed by this fix).
+
+### Step 2 (save settings in the preview) and step 3
+
+| Step | Result | Evidence |
+|---|---|---|
+| A2 settings page opens (3.0.0) | pass | Fresh tab, profile default: title "The Page Is Lying (Development)", the Forge iframe loads. `preview_snapshot` timed out (15 s) three times; the preview reported `visible: false` |
+| A3 save settings | not run (blocked) | A click on `#repo-url` inside the iframe succeeded. `type` timed out after 15 s; `press` failed with "keyboard.press: Protocol error (Input.dispatchKeyEvent): The page's focus is inside a cross-site frame, which takes typed input only while the preview has focus. Click the field first." Stopped as instructed. Paste was not tried because it is also a key event |
+| A4 to F28 | not run | need A3 |
+
+No consent prompt was seen because Save was never clicked with a repository entered. The fix is covered by unit and e2e tests and is deployed, but it is not yet verified live. Page 6815745 was not edited (still the broken version). The tab this run opened was closed. No screenshots were taken in this attempt.
+
+### What the user has to do
+
+Either keep the T3 preview panel visible and focused while the agent runs Step 2, or do it by hand (about 1 minute): open the settings URL above, Repository URL `https://github.com/himanshu748/payments-api`, branch `main`, no token, **Save settings**. If an "Allow access" prompt appears, accept it and note its wording. Then **Index now** and wait for commit, file count and coverage. `forge logs -e development --since 10m` should then show no `NEEDS_AUTHENTICATION_ERR`.

@@ -25,7 +25,7 @@
       "feat/task-d-confluence-ui",
       "feat/task-b-repo-index"
     ],
-    "developmentDeploy": "2.2.0",
+    "developmentDeploy": "3.0.0",
     "done": [
       "six branches merged without conflicts",
       "8 interface mismatches fixed with tests",
@@ -35,13 +35,13 @@
       "README, demo script, Devpost draft, bonus assessment, developer-space notes, integration checklist"
     ],
     "remaining": [
-      "browser checklist docs/integration-checklist.md (settings save, Index now, page colours, Rovo, MCP, fix to green)",
+      "browser checklist docs/integration-checklist.md from A3 (settings save on 3.0.0, Index now, page colours, Rovo, MCP, fix to green)",
       "production deploy and judge install link (needs owner approval)",
       "demo video",
       "Devpost submission"
     ],
     "liveVerification": {
-      "state": "partial_blocked_on_settings_input",
+      "state": "settings_fix_deployed_save_not_yet_live_verified",
       "date": "2026-11-16",
       "passed": [
         "A1 signed in",
@@ -56,14 +56,24 @@
         "row 17 invalid_input page_host_not_allowed via MCP",
         "MCP asUser page_read 200, source input"
       ],
-      "blocked": "Preview automation cannot type into the cross-site Forge iframe of the settings page while the preview is unfocused; repository not saved, so A3 onward not run",
-      "userAction": "Save repo https://github.com/himanshu748/payments-api branch main and click Index now on the settings page, then re-run",
+      "blocked": "Preview automation cannot type into the cross-site Forge iframe of the settings page while the preview is unfocused (re-confirmed on 3.0.0); A3 onward not run",
+      "userAction": "Keep the preview focused for the agent, or save repo https://github.com/himanshu748/payments-api branch main by hand, accept any Allow access prompt (record its wording), click Index now, then re-run the checklist from A4",
       "notes": [
         "LotZero-Judge app is installed on the same site",
         "MCP consent says Read, Write, and Search (gateway scopes, not the app's)"
       ],
       "pageRestored": "page 6815745 not edited, still version 1",
-      "results": "docs/integration-results.md"
+      "results": "docs/integration-results.md",
+      "settingsFix": {
+        "rootCause": "isAdmin calls asUser GET /wiki/rest/api/user/current?expand=operations, which needs read:confluence-user; the manifest lacked it, so Forge threw NEEDS_AUTHENTICATION_ERR (401) on every Save and Index now",
+        "commit": "91144c7",
+        "scopesAdded": [
+          "read:confluence-user"
+        ],
+        "deployed": "3.0.0 (major, --approve MAJOR_VERSION_RULE)",
+        "install": "upgraded with --confirm-scopes, version 3, Up-to-date",
+        "liveSave": "not run: preview typing into the cross-site iframe still blocked"
+      }
     }
   }
 }
