@@ -202,3 +202,19 @@ Not run (fail to interact): a hover on the POST /v1/charge claim (preview tab, p
 ### Final state
 
 Page 6815745 is at version 3, broken body restored, macro shows 2 Verified, 3 Contradicted, 1 No evidence. Temporary page 7471105 deleted (in trash). No code changes, no redeploy. All preview tabs this run opened were closed; the Inspector was stopped.
+
+## Release steps (2026-11-16)
+
+### Step 1: bare commands in `check-claim`
+
+`checkClaim` in `src/service/check.ts` now retries once, when the input yields no claim, with the whole input wrapped as inline code. Length caps and validation run first. Inputs containing a backtick or newline are not retried. A retried `cli` claim is kept only if the text looks like a command (a flag, or a token with a digit or one of `- _ . / :`), because any plain prose becomes a `cli` claim once wrapped. Consequence: a bare two-word command with no flag, such as `kubectl get pods`, is still `not_a_checkable_claim`; backticks still work.
+
+Tests (`test/service/golden.real.test.ts`, real extractor and demo index): bare `ledgerctl reconcile --since 24h` gives `unknown` (no evidence found); bare `POST /v1/charge` is contradicted at `src/routes.ts:88`; "create a Jira task" and "please be nice to the readers" stay `not_a_checkable_claim`.
+
+Gates: `typecheck` 0, `lint` 0, `build:ui` 0, `forge lint` 0 ("No issues found"). `npm test` and `npm run test:e2e` hit timeouts because the machine load average was 100 to 220 from other processes. With `--maxWorkers=2 --testTimeout=60000` the unit run had one failure, a wall-clock budget test (`robustness.test.ts`, "pathological repetition", 5000 ms limit). That file passed alone (8/8, 3.1 s). e2e passed 49/49 with `--workers=2 --timeout=60000`. A clean `npm test` at default settings was not obtained.
+
+Deployed to development: **3.1.0**. Install `a3b0e75c-f080-4961-a81f-eb286ec6761d` (development, one-atlas-obka.atlassian.net: Confluence) at version 3, Up-to-date. This is the "before" state for the transfer: environments production `93224146-874e-48f0-8ede-e340391e5ad8`, staging `f2123584-9c80-4b61-a766-f1790135b012`, development `0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd`.
+
+### Steps 2 to 4: blocked
+
+The T3 preview browser (profile `default`) opened the Developer Console and was redirected to `id.atlassian.com/login`. It is not signed in, and credentials are not typed by the agent. The tab was closed. No transfer, production deploy, sharing or install-link check was done, and the README, Devpost draft and demo script were not changed.
