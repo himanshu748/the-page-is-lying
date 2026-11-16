@@ -55,9 +55,14 @@ describe('builders are total and fast on hostile input', () => {
       ['i.ts', `process.env[${"'".repeat(20000)}`],
       ['j.py', '"""' + 'x'.repeat(100000)],
     ];
-    const t0 = Date.now();
-    for (const [path, text] of cases) build([{ path, text }]);
-    expect(Date.now() - t0).toBeLessThan(5000);
+    // Per-input bound, not a total. Linear builders take well under 1 s per input on an idle machine; a
+    // quadratic or catastrophic-backtracking regression on these 20k to 100k character inputs takes minutes.
+    // 15 s per input leaves room for a loaded CI or laptop without hiding such a regression.
+    for (const [path, text] of cases) {
+      const t0 = Date.now();
+      build([{ path, text }]);
+      expect(Date.now() - t0, `${path} took too long`).toBeLessThan(15000);
+    }
   });
 });
 
