@@ -1,34 +1,20 @@
 # Live verification results (demo site)
 
-Date: 2026-11-16. Branch `feat/integration` at 8c0173c. Development version 2.2.0.
+Date: 2026-11-16. Branch `feat/integration`. Development version 2.2.0 on `https://one-atlas-obka.atlassian.net`.
 
-**Status: blocked. The preview browser was never signed in to Atlassian.**
-A tab opened at `https://one-atlas-obka.atlassian.net/wiki/spaces/EO/pages/6815745` was redirected to `id.atlassian.com/login`. I re-checked about every 2 to 5 minutes for 30 minutes and it stayed on the login page. I did not type or request credentials. The tab is closed. No code was changed and nothing was deployed.
+Attempt 1 (commit ff34b51) could not run any browser step: the preview browser was not signed in. Attempt 2 (this file) runs with the user signed in to the preview browser's default profile.
 
-## Checks that did not need a browser
+## Evidence so far (attempt 2)
 
-| Check | Result | Evidence |
+| Step | Result | Evidence |
 |---|---|---|
-| Demo page exists | pass | REST `GET /wiki/api/v2/pages/6815745`: title "Payments API runbook", version 1, status current |
-| REST token works for the demo site | pass | `GET /wiki/rest/api/search` 200 |
-| `user/current?expand=operations` with the API token | 200 | This is a user-token call, so it does not answer the A3 risk (app-scoped call) |
-| `forge logs -e development` | empty | No invocations since the 2.2.0 deploy, so no `page_read` status yet |
-| Disk | 26 GiB free | `df -h /System/Volumes/Data` |
-
-## Checklist steps
-
-| Step | Result | Notes |
-|---|---|---|
-| A1 to A5 settings, Index now, logs | not run | needs signed-in browser |
-| B6 to B12 macro, cards, byline, keyboard, Jira draft | not run | same |
-| C13 to C18 Rovo, `page_read` status, red-team, LotZero | not run | same. `asUser()` finding still open |
-| D19 to D22 MCP enable, client, off-host URL | not run | needs admin sign-in and OAuth |
-| E23 to E26 fix page, green, restore | not run | page left at version 1 (broken), unchanged |
-| F27, F28 stale index, token field | not run | |
-
-Screenshots: none. The page was not modified, so it is still the broken version 1.
-
-## What the user has to do
-
-1. Sign in as jhahimanshu653@gmail.com in the T3 preview browser (default profile) and tell the orchestrator, then re-run this task.
-2. Alternatively follow `docs/integration-checklist.md` by hand. For MCP with Claude Code: `claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`, then `/mcp` and approve. For Cursor, add `{"mcpServers":{"runbook-checker":{"url":"https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0"}}}` to `~/.cursor/mcp.json`.
+| A1 signed in | pass | Page 6815745 opened without a login redirect |
+| A2 settings page opens | pass, path differs | The app has no link in the Confluence admin sidebar (expected: `useAsConfig: true` hides it). The page is reached from admin.atlassian.com > Apps > Sites > one-atlas-obka > Connected apps > The Page Is Lying > "..." > Configure, which opens `https://one-atlas-obka.atlassian.net/wiki/admin/forge/apps/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0/0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd/runbook-settings`. Title "The Page Is Lying (Development)", form with Repository URL, Branch or tag, GitHub token ("No token saved. The token is write-only: it is never shown again."), Service hosts, Jira ids, Save settings, Index now (disabled), Index status "No index yet. Save a repository, then choose Index now." Screenshot: `docs/screenshots/settings-page.png` |
+| A3 save settings | pending | First try: the preview automation refused to type into the settings form because it sits in a cross-site Forge iframe and the preview did not have focus ("The page's focus is inside a cross-site frame, which takes typed input only while the preview has focus"). Clicks inside the iframe work |
+| B6 macro renders | pass (no-repo state) | Page 6815745 shows the "Runbook check (Development)" byline item and the bodied macro with the six claim paragraphs and the notice "No repository is configured. A Confluence administrator can set one in the app settings." |
+| C13 agent visible | pass | Rovo agent picker search "Runbook" lists "Runbook checker". Agent card: "Answers "is this page still true?" from read-only code checks, citing file and line." Conversation starters shown: "Can I still call POST /v1/charge?", "Is this page still true?", "Which claims on this page are contradicted by code?" |
+| C15 (no repo yet) | pass for honesty | Asked "Is this page still true?" with no repository saved. Answer: "The check failed because no repository index is available yet. You need to configure a repository in the app settings and wait for indexing to complete. No verdict was produced." No guess, no verdict words. Screenshot: `docs/screenshots/rovo-no-repo-answer.png` |
+| C16 `page_read` status | **pass: 200** | `forge logs -e development`: `{"evt":"check-page","pageId":"6815745","source":"context"}` then `{"evt":"page_read","pageId":"6815745","status":200}` (2026-11-16T07:00:34Z). `asUser()` works inside Rovo actions; the fallback in `docs/agent-eval.md` section 4 is not needed |
+| C18 LotZero on agent card | pass (not shown) | Agent card shows only name, icon and description |
+| D19 enable MCP tools | pass | Connected apps > The Page Is Lying > Details: "TOOLS: Expose tools to MCP-compatible apps: Disabled" > Enable tools > confirm dialog "Enabling this will allow MCP-compatible apps to use this app's tools" > Enable. Now "Enabled". The control is a single on/off switch for all tools, not per-tool checkboxes |
+| C18 LotZero on Connected apps | note | The Page Is Lying row shows "DEV", installed by Admin, Vendor "Not available" (sharing disabled), no developer space name. A separate app "LotZero-Judge" (Admin) is installed on this same site |
