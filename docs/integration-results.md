@@ -218,3 +218,15 @@ Deployed to development: **3.1.0**. Install `a3b0e75c-f080-4961-a81f-eb286ec6761
 ### Steps 2 to 4: blocked
 
 The T3 preview browser (profile `default`) opened the Developer Console and was redirected to `id.atlassian.com/login`. It is not signed in, and credentials are not typed by the agent. The tab was closed. No transfer, production deploy, sharing or install-link check was done, and the README, Devpost draft and demo script were not changed.
+
+### Step 2: transfer (2026-11-16, second run)
+
+Done in the Developer Console (own tab, profile `default`): LotZero space home, row "The Page Is Lying", More actions, Transfer app, destination `The Page Is Lying - 718977a5-b87e-4268-b75a-8ba3a329d31d`, Transfer app. The dialog closed within 30 s and the LotZero list went from 3 apps to 2.
+
+After: `forge developer-spaces list` shows both spaces; app id in `manifest.yml` and console unchanged (`49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`); environments unchanged (production `93224146-...`, staging `f2123584-...`, development `0c74f1a8-...`); install `a3b0e75c-f080-4961-a81f-eb286ec6761d` still development, version 3, Up-to-date. Console overview: role Admin, Not sharing, 1 installation. `forge deploy -e development --non-interactive` worked afterwards (3.2.0).
+
+Not confirmed: the macro on page 6815745 (2/3/1 at 0383355) after the transfer. The preview browser disconnected twice while loading the page, so settings and index survival is still unverified.
+
+### Test timeouts
+
+`robustness.test.ts` now bounds each input at 15 s; `vitest.config.ts` sets `testTimeout: 30000`. With load average 100 to 180, `npm test` at default settings still failed on `indexStore.test.ts` (5,000-file synthetic repo, 30 s timeout). With `--maxWorkers=2 --testTimeout=60000`: 675 passed, 0 failed, exit 0.
