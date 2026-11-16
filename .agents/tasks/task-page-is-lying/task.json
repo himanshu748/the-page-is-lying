@@ -39,6 +39,12 @@
       "production deploy and judge install link (needs owner approval)",
       "demo video",
       "Devpost submission"
-    ]
+    ],
+    "liveVerification": {
+      "state": "blocked_waiting_for_signed_in_browser",
+      "date": "2026-11-16",
+      "detail": "Preview browser stayed on the Atlassian login page for 30 minutes; no step needing a signed-in session was run. REST and logs only.",
+      "results": "docs/integration-results.md"
+    }
   }
 }
