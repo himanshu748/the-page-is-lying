@@ -41,9 +41,28 @@
       "Devpost submission"
     ],
     "liveVerification": {
-      "state": "blocked_waiting_for_signed_in_browser",
+      "state": "partial_blocked_on_settings_input",
       "date": "2026-11-16",
-      "detail": "Preview browser stayed on the Atlassian login page for 30 minutes; no step needing a signed-in session was run. REST and logs only.",
+      "passed": [
+        "A1 signed in",
+        "A2 settings page opens (via Connected apps > Configure)",
+        "B6 macro renders (no-repo state)",
+        "C13 agent visible",
+        "C16 page_read 200 in Rovo action (asUser works)",
+        "C18 no LotZero on agent card, Connected apps, OAuth consent",
+        "D19 MCP tools enabled",
+        "D20 MCP Inspector connected over OAuth, 2 read-only tools",
+        "row 14 page_not_found via MCP",
+        "row 17 invalid_input page_host_not_allowed via MCP",
+        "MCP asUser page_read 200, source input"
+      ],
+      "blocked": "Preview automation cannot type into the cross-site Forge iframe of the settings page while the preview is unfocused; repository not saved, so A3 onward not run",
+      "userAction": "Save repo https://github.com/himanshu748/payments-api branch main and click Index now on the settings page, then re-run",
+      "notes": [
+        "LotZero-Judge app is installed on the same site",
+        "MCP consent says Read, Write, and Search (gateway scopes, not the app's)"
+      ],
+      "pageRestored": "page 6815745 not edited, still version 1",
       "results": "docs/integration-results.md"
     }
   }

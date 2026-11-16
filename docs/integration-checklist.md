@@ -15,7 +15,7 @@ cd /Users/himanshujha/.t3/projects/atlassian   # or your checkout of feat/integr
 ## A. Configure the repository (about 3 minutes)
 
 1. [ ] Sign in at `https://one-atlas-obka.atlassian.net/wiki` as the site admin (jhahimanshu653@gmail.com).
-2. [ ] Open Confluence settings, then **Apps**, then **The Page Is Lying** (module `runbook-settings`). Record: page opens yes or no.
+2. [ ] Open the settings page. Because the module uses `useAsConfig: true`, it has no link in the Confluence admin sidebar. Use admin.atlassian.com > Apps > Sites > one-atlas-obka > **Connected apps** > The Page Is Lying > "..." > **Configure**, or go straight to `https://one-atlas-obka.atlassian.net/wiki/admin/forge/apps/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0/0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd/runbook-settings`. Record: page opens yes or no.
 3. [ ] Enter repository URL `https://github.com/himanshu748/payments-api`, branch `main`. Leave the GitHub token empty (the repo is public; 60 unauthenticated requests per hour are enough). Leave service hosts and Jira ids empty for now. Click **Save**.
    - Expected: "saved" and the status line changes to indexing, then ready.
    - **Known risk (not verifiable without a browser):** if Save answers "Only a Confluence administrator can change these settings" while you are an admin, the admin lookup `GET /wiki/rest/api/user/current?expand=operations` was refused for the app. Fix: add the scope `read:confluence-user` to `manifest.yml`, bump the major version, `forge deploy -e development`, `forge install --upgrade -e development -s one-atlas-obka.atlassian.net -p Confluence --confirm-scopes --non-interactive`, and tell the agent. Record what you saw.
@@ -55,7 +55,7 @@ cd /Users/himanshujha/.t3/projects/atlassian   # or your checkout of feat/integr
 
 ## D. MCP tools (about 5 minutes)
 
-19. [ ] Go to `https://admin.atlassian.com`, select the organisation, then **Apps**, **Sites**, `one-atlas-obka.atlassian.net`, **Connected apps**. Open "The Page Is Lying", **View app details**, **Tools** tab, tick `check-page` and `check-claim`. Record what the tab shows.
+19. [ ] Go to `https://admin.atlassian.com`, select the organisation, then **Apps**, **Sites**, `one-atlas-obka.atlassian.net`, **Connected apps**. Open "The Page Is Lying" (**View app details**). Under **TOOLS** ("Expose tools to MCP-compatible apps") click **Enable tools** and confirm. It is one switch for all tools, not per-tool checkboxes. MCP clients then list the tools as `check-page_development` and `check-claim_development`.
 20. [ ] Connect a client:
     - Claude Code: `claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`, start Claude Code, run `/mcp`, authenticate, choose the site, approve the consent screen.
     - Cursor: add to `~/.cursor/mcp.json` the server `{"mcpServers": {"runbook-checker": {"url": "https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0"}}}`, then connect it in Cursor's MCP settings and finish the same OAuth consent.
