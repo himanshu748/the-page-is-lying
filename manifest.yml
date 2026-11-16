@@ -9,6 +9,7 @@ permissions:
   scopes:
     - storage:app
     - read:page:confluence
+    - read:confluence-user
   external:
     fetch:
       backend:

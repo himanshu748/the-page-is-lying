@@ -65,7 +65,7 @@ describe('manifest.yml contract', () => {
   });
 
   it('requests exactly the declared scopes', () => {
-    expect([...manifest.permissions.scopes].sort()).toEqual(['read:page:confluence', 'storage:app']);
+    expect([...manifest.permissions.scopes].sort()).toEqual(['read:confluence-user', 'read:page:confluence', 'storage:app']);
   });
 
   it('declares exactly the declared egress hosts (changing egress forces a major version upgrade)', () => {

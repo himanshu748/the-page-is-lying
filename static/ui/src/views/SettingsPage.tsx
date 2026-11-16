@@ -14,6 +14,10 @@ import { POLL_MS } from './common';
 
 const KINDS: IndexKind[] = ['routes', 'env', 'cli', 'config', 'files', 'packages'];
 
+/** Shown when a resolver call fails outright. The usual cause on a new install is that the admin has not yet allowed the app's access. */
+export const ACCESS_HELP = (what: string): string =>
+  `${what}. The app could not confirm that you are a Confluence administrator. This usually means access has not been allowed yet: reload this page, choose Allow access if asked, and try again. If it keeps failing, check the app's permissions under Manage apps.`;
+
 type Message = { kind: 'ok' | 'error'; text: string } | null;
 
 export function SettingsPage() {
@@ -87,7 +91,7 @@ export function SettingsPage() {
         setMessage({ kind: 'error', text: response.message });
       }
     } catch {
-      setMessage({ kind: 'error', text: 'Settings could not be saved. Try again.' });
+      setMessage({ kind: 'error', text: ACCESS_HELP('Settings could not be saved') });
     } finally {
       setBusy(false);
     }
@@ -103,7 +107,7 @@ export function SettingsPage() {
         setStatus({ state: 'indexing' });
       } else setMessage({ kind: 'error', text: response.message });
     } catch {
-      setMessage({ kind: 'error', text: 'Indexing could not be started. Try again.' });
+      setMessage({ kind: 'error', text: ACCESS_HELP('Indexing could not be started') });
     } finally {
       setBusy(false);
     }

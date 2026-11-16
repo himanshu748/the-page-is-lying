@@ -141,6 +141,13 @@ describe('saveSettings', () => {
     expect(backend.enqueued).toBe(0);
   });
 
+  it('lets a failing admin check (for example NEEDS_AUTHENTICATION_ERR) reach Forge instead of swallowing it', async () => {
+    const needsAuth = Object.assign(new Error('Authentication Required'), { name: 'NeedsAuthenticationError' });
+    setBackend((backend = { ...makeBackend(), isAdmin: () => Promise.reject(needsAuth) }));
+    await expect(call('saveSettings', validSave, settingsCtx)).rejects.toBe(needsAuth);
+    await expect(call('indexNow', undefined, settingsCtx)).rejects.toBe(needsAuth);
+  });
+
   it('rejects non-admins', async () => {
     setBackend((backend = makeBackend({ admin: false })));
     const result = await call('saveSettings', validSave, settingsCtx);

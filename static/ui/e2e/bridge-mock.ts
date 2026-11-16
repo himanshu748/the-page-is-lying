@@ -6,6 +6,7 @@
  *   scenario=ready (default) | indexing | indexing-then-ready | stale | rate_limited | rate_limited_stale
  *            | repo_not_found | no_repo | no_claims | error
  *   theme=light (default) | dark      rovo=1 enables Rovo      jira=1 configures the Jira target
+ *   settings=auth-error makes saveSettings and indexNow reject, as when the admin has not allowed access yet
  *   settings=forbidden makes saveSettings and indexNow answer as a non-admin
  *   status=none (default) | indexing | ready | error      the index status shown on the settings page
  *
@@ -125,10 +126,12 @@ export const invoke = async <T = unknown>(name: string, payload?: unknown): Prom
     case 'getIndexStatus':
       return indexStatus() as T;
     case 'indexNow':
+      if (params.get('settings') === 'auth-error') throw new Error('Authentication Required');
       return (params.get('settings') === 'forbidden'
         ? { ok: false, error: 'forbidden', message: 'Only a Confluence administrator can start indexing.' }
         : { ok: true }) as T;
     case 'saveSettings': {
+      if (params.get('settings') === 'auth-error') throw new Error('Authentication Required');
       if (params.get('settings') === 'forbidden') {
         return { ok: false, error: 'forbidden', message: 'Only a Confluence administrator can change these settings.' } as T;
       }

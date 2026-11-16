@@ -153,6 +153,15 @@ test.describe('settings page', () => {
     await expect(page.getByText('Only a Confluence administrator can start indexing.')).toBeVisible();
   });
 
+  test('a failed save or Index now explains the access problem instead of failing silently', async ({ page }) => {
+    await page.goto('/?module=runbook-settings&settings=auth-error');
+    await page.getByRole('button', { name: 'Save settings' }).click();
+    await expect(page.getByRole('status')).toContainText('Settings could not be saved. The app could not confirm that you are a Confluence administrator');
+    await expect(page.getByRole('status')).toContainText('choose Allow access');
+    await page.getByRole('button', { name: 'Index now' }).click();
+    await expect(page.getByRole('status')).toContainText('Indexing could not be started. The app could not confirm');
+  });
+
   test('Index now starts indexing and the status polls', async ({ page }) => {
     await page.goto('/?module=runbook-settings');
     await expect(page.getByText('No index yet.')).toBeVisible();
