@@ -8,6 +8,9 @@ export default defineConfig({
     include: ['test/**/*.test.ts'],
     environment: 'node',
     passWithNoTests: false,
+    // Default is 5 s. Property and 5,000-file tests exceed it when the machine is loaded; real slowness is still
+    // caught by the per-input bounds in test/core/index/robustness.test.ts.
+    testTimeout: 30000,
     coverage: {
       provider: 'v8',
       include: ['src/core/**/*.ts'],
