@@ -1,0 +1,278 @@
+1
+00:00:00,660 --> 00:00:05,260
+Runbooks drift from the code, and
+nobody notices until an incident.
+
+2
+00:00:05,300 --> 00:00:09,740
+In the Q1 2025 SlashData
+developer survey, 31% of
+
+3
+00:00:09,780 --> 00:00:15,075
+developers named insufficient or
+outdated documentation a top challenge.
+
+4
+00:00:15,115 --> 00:00:17,635
+In organisations with
+over a thousand employees
+
+5
+00:00:17,675 --> 00:00:21,715
+involved in software projects, it was 46%.
+
+6
+00:00:21,755 --> 00:00:25,395
+And Atlassian's State of
+Teams 2024 found that 55%
+
+7
+00:00:25,435 --> 00:00:28,195
+of knowledge workers find it
+hard to track down information.
+
+8
+00:00:28,235 --> 00:00:32,323
+A runbook you cannot
+trust makes that worse.
+
+9
+00:00:33,660 --> 00:00:37,590
+This is The Page Is Lying,
+a Forge app for Confluence.
+
+10
+00:00:37,660 --> 00:00:40,900
+An admin points it at a
+public GitHub repository,
+
+11
+00:00:40,940 --> 00:00:44,310
+here the payments API,
+and it indexes the code.
+
+12
+00:00:44,711 --> 00:00:48,431
+The check is read-only, it
+runs on the Forge free tier,
+
+13
+00:00:48,471 --> 00:00:51,041
+and there is no language
+model in the check.
+
+14
+00:00:51,111 --> 00:00:53,921
+It is regular expressions
+and a code index.
+
+15
+00:00:55,100 --> 00:00:56,820
+Here is a real runbook.
+
+16
+00:00:56,860 --> 00:00:59,060
+The macro reads the claims
+in this section and
+
+17
+00:00:59,100 --> 00:01:01,860
+compares each one with the
+code at a pinned commit.
+
+18
+00:01:01,900 --> 00:01:03,860
+Two claims are verified in code,
+
+19
+00:01:03,900 --> 00:01:07,845
+three are contradicted by code,
+and one has no evidence found.
+
+20
+00:01:07,885 --> 00:01:11,765
+The first paragraph tells
+readers to call POST /v1/charge.
+
+21
+00:01:11,805 --> 00:01:16,885
+It is contradicted by code: no route
+matches, and the repository has
+
+22
+00:01:16,925 --> 00:01:21,765
+POST /v2/payments at
+src/routes.ts, line 88.
+
+23
+00:01:21,805 --> 00:01:25,910
+The environment variable
+STRIPE_KEY is contradicted too.
+
+24
+00:01:25,950 --> 00:01:32,710
+The code reads PAYMENTS_API_KEY
+at src/config.ts, line 8.
+
+25
+00:01:32,750 --> 00:01:35,670
+The refund command with the
+force flag is contradicted:
+
+26
+00:01:35,710 --> 00:01:38,645
+refund defines confirm and reason instead.
+
+27
+00:01:38,685 --> 00:01:42,565
+Two claims are verified in code,
+with the file and line cited.
+
+28
+00:01:42,605 --> 00:01:46,405
+The last one, ledgerctl
+reconcile, is grey.
+
+29
+00:01:46,445 --> 00:01:47,765
+No evidence found.
+
+30
+00:01:47,805 --> 00:01:49,205
+That is not a confirmation.
+
+31
+00:01:49,245 --> 00:01:53,861
+Every state has an icon and
+a label, not just a colour.
+
+32
+00:01:55,180 --> 00:01:58,580
+Hover or tab to a claim and
+a card shows the evidence,
+
+33
+00:01:58,620 --> 00:02:01,860
+with a permalink to the
+exact line on GitHub.
+
+34
+00:02:01,900 --> 00:02:03,350
+Escape closes it.
+
+35
+00:02:05,260 --> 00:02:08,100
+The same check is available in Rovo.
+
+36
+00:02:08,140 --> 00:02:12,980
+The Runbook checker agent can only report
+what its read-only action returned.
+
+37
+00:02:13,020 --> 00:02:17,350
+I ask, can I still call POST /v1/charge?
+
+38
+00:02:17,695 --> 00:02:21,095
+The answer: no, contradicted by code.
+
+39
+00:02:21,135 --> 00:02:23,015
+No route matches.
+
+40
+00:02:23,055 --> 00:02:29,981
+The repository has POST /v2/payments
+at src/routes.ts, line 88,
+
+41
+00:02:30,021 --> 00:02:36,351
+with an evidence id, the repository, the
+commit, the counts and the coverage limits.
+
+42
+00:02:37,500 --> 00:02:42,660
+The app also exposes two read-only
+tools through a Forge MCP server.
+
+43
+00:02:42,700 --> 00:02:46,260
+Here is MCP Inspector,
+signed in over OAuth.
+
+44
+00:02:46,300 --> 00:02:50,593
+It lists check-page and check-claim,
+and returns the same verdicts,
+
+45
+00:02:50,633 --> 00:02:54,353
+the same file and line,
+and the same evidence ids.
+
+46
+00:02:54,393 --> 00:02:58,003
+Same tool, same evidence, any MCP client.
+
+47
+00:02:59,300 --> 00:03:01,340
+Now we fix the page.
+
+48
+00:03:01,380 --> 00:03:06,620
+Change the first claim to POST
+/v2/payments, publish, and reload.
+
+49
+00:03:06,660 --> 00:03:14,380
+That paragraph is verified in code,
+citing src/routes.ts, line 88.
+
+50
+00:03:14,420 --> 00:03:17,309
+The counts are now three verified,
+
+51
+00:03:17,349 --> 00:03:21,279
+two contradicted by code, and
+one with no evidence found.
+
+52
+00:03:22,500 --> 00:03:25,870
+For a contradicted claim
+you can draft a Jira task.
+
+53
+00:03:26,020 --> 00:03:28,780
+The app shows the exact issue text first.
+
+54
+00:03:28,820 --> 00:03:33,740
+It writes nothing itself: Open
+Jira create screen only opens
+
+55
+00:03:33,780 --> 00:03:37,390
+Jira with that text filled in,
+and you create the issue there.
+
+56
+00:03:38,820 --> 00:03:43,100
+Deterministic, cites file
+and line, read-only,
+
+57
+00:03:43,140 --> 00:03:46,380
+and it works on any
+public GitHub repository.
+
+58
+00:03:46,420 --> 00:03:48,270
+The Page Is Lying.
+
+59
+00:03:48,420 --> 00:03:50,980
+Documentation that checks
+itself against the code.
