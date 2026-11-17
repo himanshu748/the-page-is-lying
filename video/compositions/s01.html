@@ -1,0 +1,75 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, #17223d 0%, var(--bg) 70%); overflow: hidden; }
+    .wrap { position: absolute; inset: 0; }
+    .kicker { position: absolute; left: 96px; top: 64px; font: 700 26px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); }
+    .badge { position: absolute; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 999px; font: 600 28px/1 var(--sans); background: rgba(11, 17, 32, 0.88); color: var(--ink); border: 1.5px solid var(--line); white-space: nowrap; z-index: 20; }
+    .badge .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); }
+    .badge.test { background: var(--amber); color: #1f1a05; border-color: #c9a227; }
+    .badge.test .dot { background: #1f1a05; border-radius: 2px; }
+    .badge.rec .dot { background: var(--blue); }
+    .chip { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 8px 12px; border-radius: 10px; font: 700 26px/1 var(--sans); white-space: nowrap; }
+    .chip svg { width: 26px; height: 26px; flex: none; }
+    .chip.v { background: var(--green); color: var(--green-ink); }
+    .chip.c { background: var(--red); color: var(--red-ink); }
+    .chip.u { background: var(--grey); color: var(--grey-ink); }
+    .ann { position: absolute; left: 260px; width: 1400px; top: 724px; padding: 28px 36px; border-radius: 20px; background: rgba(15, 22, 40, 0.96); border: 1.5px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); z-index: 15; }
+    .ann .row { display: flex; align-items: flex-start; gap: 22px; }
+    .ann .row + .row { margin-top: 18px; }
+    .ann p { font: 500 31px/1.35 var(--sans); color: var(--ink); }
+    .ann code, .mono { font-family: var(--mono); font-weight: 500; }
+    .ann code { color: #cfe1ff; }
+    .ann .ev { font: 500 24px/1 var(--mono); color: var(--muted); margin-left: 8px; }
+    .ring { position: absolute; border: 3px solid var(--amber); border-radius: 10px; box-shadow: 0 0 0 4px rgba(245, 205, 71, 0.22); opacity: 0; }
+    .cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    .viewport { position: absolute; inset: 0; overflow: hidden; background: #fff; }
+    .key { display: inline-block; padding: 10px 22px; border-radius: 12px; background: var(--panel-2); border: 2px solid #3b4a6e; border-bottom-width: 6px; font: 700 30px/1 var(--sans); color: var(--ink); }
+    #s01-head { position: absolute; left: 96px; right: 96px; top: 150px; font: 800 64px/1.15 var(--sans); letter-spacing: -0.02em; text-align: center; }
+    .stats { position: absolute; left: 96px; right: 96px; top: 400px; display: flex; gap: 40px; }
+    .stat { flex: 1; height: 460px; padding: 40px; border-radius: 24px; background: var(--panel); border: 1.5px solid var(--line); display: flex; flex-direction: column; }
+    .stat .num { font: 900 140px/1 var(--sans); color: var(--blue); letter-spacing: -0.03em; }
+    .stat p { margin-top: 22px; font: 500 30px/1.3 var(--sans); color: var(--ink); flex: 1; }
+    .stat .src { font: 500 26px/1.3 var(--sans); color: var(--muted); }
+    #s01-close { position: absolute; left: 96px; right: 96px; top: 915px; text-align: center; font: 700 44px/1.2 var(--sans); color: var(--amber); }
+  </style>
+  <div id="root" data-composition-id="s01" data-width="1920" data-height="1080">
+    <div id="s01-wrap" class="wrap">
+      <div class="kicker" id="s01-kicker">The problem</div>
+      <h1 id="s01-head">Runbooks drift from the code,<br />and nobody notices until an incident.</h1>
+      <div class="stats">
+        <div class="stat" id="s01-st1">
+          <div class="num">31%</div>
+          <p>of developers name insufficient or outdated documentation a top challenge</p>
+          <div class="src">SlashData, State of the Developer Nation, Q1 2025</div>
+        </div>
+        <div class="stat" id="s01-st2">
+          <div class="num">46%</div>
+          <p>in organisations with 1,000+ developers</p>
+          <div class="src">SlashData, State of the Developer Nation, Q1 2025</div>
+        </div>
+        <div class="stat" id="s01-st3">
+          <div class="num">55%</div>
+          <p>of knowledge workers find it hard to track down information</p>
+          <div class="src">Atlassian, State of Teams 2024</div>
+        </div>
+      </div>
+      <div id="s01-close">A runbook you cannot trust makes that worse.</div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      const D = 33;
+      tl.fromTo("#s01-head", { opacity: 1, y: 240, scale: 1.2 }, { opacity: 1, y: 240, scale: 1.17, duration: 4.5, ease: "none" }, 0);
+      tl.fromTo("#s01-kicker", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+      tl.fromTo(".stats", { scale: 1 }, { scale: 1.03, duration: 24, ease: "none" }, 8.6);
+      tl.to("#s01-head", { y: 0, scale: 1, duration: 0.8, ease: "power3.inOut" }, 4.6);
+      [["#s01-st1", 8.8], ["#s01-st2", 15.2], ["#s01-st3", 24.7]].forEach(([id, t]) => {
+        tl.fromTo(id, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, t);
+      });
+      tl.fromTo("#s01-close", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 29.3);
+      tl.to("#s01-wrap", { opacity: 0, duration: 0.35, ease: "none" }, D - 0.4);
+      window.__timelines["s01"] = tl;
+    })();
+  </script>
+</template>

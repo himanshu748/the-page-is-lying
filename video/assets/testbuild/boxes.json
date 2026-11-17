@@ -1,0 +1,80 @@
+{
+  "claim1": {
+    "x": 159,
+    "y": 126,
+    "width": 240,
+    "height": 23
+  },
+  "card": {
+    "x": 159,
+    "y": 149,
+    "width": 368,
+    "height": 231
+  },
+  "permalink": {
+    "x": 172,
+    "y": 248,
+    "width": 322,
+    "height": 24
+  },
+  "statement": {
+    "x": 172,
+    "y": 185,
+    "width": 342,
+    "height": 57
+  },
+  "draftJira": {
+    "x": 172,
+    "y": 346,
+    "width": 98,
+    "height": 23
+  },
+  "dialog": {
+    "x": 142,
+    "y": 8,
+    "width": 576,
+    "height": 364
+  },
+  "jiraSummary": {
+    "x": 159,
+    "y": 121,
+    "width": 542,
+    "height": 35
+  },
+  "jiraDescription": {
+    "x": 159,
+    "y": 189,
+    "width": 542,
+    "height": 113
+  },
+  "openJira": {
+    "x": 255,
+    "y": 312,
+    "width": 180,
+    "height": 31
+  },
+  "nothingCreated": {
+    "x": 159,
+    "y": 61,
+    "width": 542,
+    "height": 21
+  },
+  "settingsRepo": {
+    "x": 8,
+    "y": 83,
+    "width": 544,
+    "height": 33
+  },
+  "settingsStatus": {
+    "x": 8,
+    "y": 696,
+    "width": 414,
+    "height": 391
+  },
+  "settingsCommit": {
+    "x": 9,
+    "y": 756,
+    "width": 413,
+    "height": 30
+  }
+}
