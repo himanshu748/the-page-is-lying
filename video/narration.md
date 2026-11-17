@@ -25,7 +25,7 @@ The app also exposes two read-only tools through a Forge MCP server. Here is MCP
 Now we fix the page. Change the first claim to POST slash v2 slash payments, publish, and reload. That paragraph is verified in code, citing src routes dot t s, line eighty-eight. The counts are now three verified, two contradicted by code, and one with no evidence found.
 
 ## s08 Jira
-For a contradicted claim you can draft a Jira task. The app shows the exact issue text first, and nothing is written until you click confirm.
+For a contradicted claim you can draft a Jira task. The app shows the exact issue text first. It writes nothing itself: Open Jira create screen only opens Jira with that text filled in, and you create the issue there.
 
 ## s09 Close
 Deterministic, cites file and line, read-only, and it works on any public GitHub repository. The Page Is Lying. Documentation that checks itself against the code.
