@@ -10,4 +10,6 @@ body=$(node -e 'process.stdout.write(JSON.stringify({text: require("fs").readFil
 curl -sS --fail -X POST "https://api.deepgram.com/v1/speak?model=aura-2-thalia-en&encoding=mp3" \
   -H "Authorization: Token $DEEPGRAM_API_KEY" -H "Content-Type: application/json" \
   --data "$body" -o "raw/$scene.mp3"
+cp "raw/$scene.mp3" "assets/audio/$scene.mp3"
 ffprobe -v error -show_entries format=duration -of csv=p=0 "raw/$scene.mp3"
+echo "Update data-duration of vo-$scene in index.html (and the scene length if needed), then run tools/align.sh and npm run captions." >&2
