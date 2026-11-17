@@ -56,7 +56,7 @@ Change a narration line:
 
 Re-shoot the test-build images (from the repo root, after `npm install` there): `node video/tools/capture-testbuild.mjs`.
 
-Gallery stills from a render:
+Gallery stills from a render (the five in out/ were taken at 74.6, 120.5, 145, 175.5 and 191 s):
 
 ```sh
 cd video
@@ -74,7 +74,7 @@ YouTube:
 
 Vimeo: vimeo.com/upload, choose the MP4, privacy "Anyone". Then Settings, Distribution, Subtitles, "+", English, upload the SRT. Paste the link into Devpost.
 
-Gallery: upload 3 to 5 of `out/still-*.png` to the Devpost image gallery.
+Gallery: upload 3 to 5 of `out/still-*.png` to the Devpost image gallery: `still-1-page-contradicted.png` (the page with the contradiction card), `still-2-evidence-card.png` (evidence card with permalink), `still-3-rovo-answer.png` (the Rovo answer), `still-4-mcp-results.png` (MCP results table), `still-5-fixed-green.png` (the fix turning green).
 
 ## Wording and content rules used
 
