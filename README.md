@@ -15,7 +15,7 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **Optional Jira draft.** For a contradicted claim the app shows the exact issue text first. Nothing is written without a click.
 - **Admin settings page** for the repository URL, branch, optional read-only token, service hosts and Jira ids, with index status and an "Index now" button.
 
-Wording is fixed: "Verified in code", "Contradicted by code", "No evidence found". The app never says a page is "wrong" or "safe".
+Wording is fixed: "Verified in code", "Contradicted by code", "No evidence found". The app uses no other verdict words.
 
 ## Architecture
 
@@ -73,7 +73,7 @@ Optional live check of the public demo repo (network, unauthenticated GitHub rat
 3. Optional: a read-only GitHub token. It raises the rate limit and allows private repositories. It is stored with Forge's secret storage, never shown again, and never sent to the browser or to an agent.
 4. Click **Save settings**, then **Index now**. The first time, Forge may ask you to allow the app to act on your behalf (an "Allow access" prompt). Accept it: the app reads your Confluence user record once to confirm that you are a Confluence administrator before it saves. If the save fails, the page says so and asks you to reload and allow access. The settings page shows branch, commit, file count and coverage per kind.
 5. Insert the **Runbook check** macro in a page (type `/Runbook check`) and write the section inside it, or use the byline item to check the whole page.
-6. Enable the MCP tools for external clients: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**, **Tools** tab, and select `check-page` and `check-claim`. External exposure is off until an admin does this.
+6. Enable the MCP tools for external clients: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**. Under "Tools: Expose tools to MCP-compatible apps", choose **Enable tools** and confirm. It is one switch for both tools (`check-page`, `check-claim`). External exposure is off until an admin does this.
 
 ## External MCP clients
 
@@ -91,6 +91,8 @@ claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/
 ```
 
 Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module, so the details can change.
+
+**About the OAuth consent screen.** When a client connects, Atlassian's consent page says the app "will have these permissions on your behalf in Atlassian products: Read, Write, and Search". That wording, and the scopes it lists, come from Atlassian's MCP gateway client registration, not from this app. The app's manifest asks only for `storage:app`, `read:page:confluence` and `read:confluence-user`, and both tools are read-only (`GET`). Screenshot: [docs/screenshots/mcp-oauth-consent.png](docs/screenshots/mcp-oauth-consent.png).
 
 ## Limits
 
@@ -120,4 +122,22 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 
 ## Judge install link
 
-**Pending production deploy (needs owner approval).** The link will be created from the developer console, Distribution, Sharing, after `forge deploy -e production`. Until then judges cannot install the app. Placeholder: `https://developer.atlassian.com/console/install/<pending>`.
+**[Install The Page Is Lying on Confluence](https://developer.atlassian.com/console/install/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0?signature=AYABePL2xV9xjDb%2BabY%2FKJA8TaMAAAADAAdhd3Mta21zAEthcm46YXdzOmttczp1cy13ZXN0LTI6NzA5NTg3ODM1MjQzOmtleS83MDVlZDY3MC1mNTdjLTQxYjUtOWY5Yi1lM2YyZGNjMTQ2ZTcAuAECAQB4CxqLTo9l4lqXuFjNim1xJM%2Bp%2F3TVP9xHS2BrU5DRRucBJvE%2BVKNLIMGitmiSj4mo1AAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDLx939ZsZeaijjKclgIBEIA75PYe66AVXchPBvFYZGZ6RpV2qg938MuNIm1YnNOnElpMmx%2FYysctVAqAcilhLPjAt1hq%2B02FG4bTUyIAB2F3cy1rbXMAS2Fybjphd3M6a21zOmV1LXdlc3QtMTo3MDk1ODc4MzUyNDM6a2V5LzQ2MzBjZTZiLTAwYzMtNGRlMi04NzdiLTYyN2UyMDYwZTVjYwC4AQICAHi9bVMAkme4qVQX1fQHo6ePw3H40A7cGfz7yrmSfBWMXgEulkTgaS9JUjTYO9cXswquAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMfkteS1PqTPg5RzmrAgEQgDuvnEE0daVowBl1gRFACvqw4hbVNuTaanztMGjgJdsp6SmGqX6X8g1AS0U7787Lx9nBeFEYkNxkG8ws%2FgAHYXdzLWttcwBLYXJuOmF3czprbXM6dXMtZWFzdC0xOjcwOTU4NzgzNTI0MzprZXkvNmMxMjBiYTAtNGNkNS00OTg1LWI4MmUtNDBhMDQ5NTJjYzU3ALgBAgIAeDYASx0XCjkny4iLV6vz%2BKtEGSGT6kdt0QRpkn6D%2FlVEAU6KeoDU2JZ1u08L6bYqHukAAAB%2BMHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwwuh7aFba8s9D5yb8CARCAO%2Bnt4UNPgS3hrZOF8iMbxRnJj6Hm7Vz5mGk6%2BTLKRDBKLP4egurBHNOtoG9zgtNBz1ZrqfSSgCj4Yv%2FLAgAAAAAMAAAQAAAAAAAAAAAAAAAAAHZ7D8%2B%2FqGvAYC%2FDXNOCexb%2F%2F%2F%2F%2FAAAAAQAAAAAAAAAAAAAAAQAAADKJjuA2IkucvsdF0rCWjg1qStMzoFHgDwYkMEBplMBdjoP%2B3A8ISh1Yp1lWf4MVnMRlryC7m9ZOJqynX3y%2Bp00Yqx8%3D&product=confluence)**
+
+The link installs the production version on any Confluence Cloud site where you are an administrator. Before you install, the page lists what the app asks for: Read user, View pages, App Storage scope, and sharing data with 4 domains outside Atlassian (`api.github.com`, `codeload.github.com`, `api.bitbucket.org`, `bitbucket.org`, used only to download the configured repository). Screenshot: [docs/screenshots/install-consent.png](docs/screenshots/install-consent.png). Privacy policy: [PRIVACY.md](PRIVACY.md).
+
+### Setup for judges (about 5 minutes)
+
+1. Open the install link, choose **Get app**, pick your Confluence site and accept the permissions.
+2. Open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Enter repository URL `https://github.com/himanshu748/payments-api` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
+3. Create a page, type `/Runbook check` to insert the macro, and type these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks):
+   1. To take a payment, call `POST /v1/charge` with the amount in cents.
+   2. To look up a payment, call `GET /v2/payments/{id}`.
+   3. Set `STRIPE_KEY` before starting the service.
+   4. Run `npm run db:migrate` before each deploy.
+   5. To force a refund, run `payments refund <paymentId> --force`.
+   6. Reconcile with `ledgerctl reconcile --since 24h`.
+4. Publish. Expected: **2 Verified, 3 Contradicted, 1 No evidence** at `himanshu748/payments-api@0383355`. `POST /v1/charge` is contradicted by code (the repo has `POST /v2/payments` at `src/routes.ts:88`).
+5. Rovo (needs Rovo turned on for your site): choose **Ask Rovo**, pick the agent **Runbook checker**, and ask "Is this page still true?" or "Can I still call POST /v1/charge?". The answer cites file, line and evidence ids.
+6. Fix the page: change claim 1 to `POST /v2/payments` and publish. Expected: 3 Verified, 2 Contradicted, 1 No evidence.
+7. Optional, MCP: enable the tools (site admins, step 6 above), then connect a client to the endpoint in [External MCP clients](#external-mcp-clients). The OAuth screen wording is explained there.
