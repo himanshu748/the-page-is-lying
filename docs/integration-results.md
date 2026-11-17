@@ -230,3 +230,43 @@ Not confirmed: the macro on page 6815745 (2/3/1 at 0383355) after the transfer. 
 ### Test timeouts
 
 `robustness.test.ts` now bounds each input at 15 s; `vitest.config.ts` sets `testTimeout: 30000`. With load average 100 to 180, `npm test` at default settings still failed on `indexStore.test.ts` (5,000-file synthetic repo, 30 s timeout). With `--maxWorkers=2 --testTimeout=60000`: 675 passed, 0 failed, exit 0.
+
+## Release steps, third run (2026-11-17)
+
+Machine after a reboot, load average about 9. Branch `feat/integration`.
+
+### Step 1: gates (default settings, no extra flags)
+
+| Gate | Result |
+|---|---|
+| `npm run typecheck` | exit 0 |
+| `npm run lint` | exit 0 |
+| `npm test` | exit 0. 37 files passed, 1 skipped; 675 tests passed, 1 skipped (the live GitHub test). 2.8 s |
+| `npm run build:ui` | exit 0 |
+| `forge lint` (CLI 15.1.0) | exit 0, "No issues found" |
+| `npm run test:e2e` | exit 0, 49 passed |
+
+The earlier timeouts were load: with the machine idle, the default 30 s Vitest timeout and the 15 s per-input bound pass with wide headroom (`robustness.test.ts` 2.3 s for 8 tests). No time bound was changed.
+
+### Step 2: settings and index after the transfer
+
+- The preview browser had lost its login in the reboot (redirect to `id.atlassian.com/login`). Nothing was typed; the user signed in.
+- Page wording, read-only REST check (`page-toggle.mjs status`): version 5, broken text present, fixed text absent. No restore was needed.
+- Page 6815745 in the preview: macro header "2 Verified, 3 Contradicted, 1 No evidence", `himanshu748/payments-api@0383355`; rows POST /v1/charge CONTRADICTED, GET /v2/payments/{id} VERIFIED, STRIPE_KEY CONTRADICTED, npm run db:migrate VERIFIED, payments refund <paymentId> --force CONTRADICTED, ledgerctl reconcile --since 24h NO EVIDENCE. Byline "Runbook check (Development)". Pass: settings and index survived the transfer.
+- `forge logs -e development --since 1d`: no errors after the four pre-fix `NEEDS_AUTHENTICATION_ERR` lines of 2026-11-16 16:36 to 16:37 UTC.
+- A click on the POST /v1/charge claim did not open the evidence card in the automated preview, so the card is still not captured live.
+
+### Step 3: production and sharing
+
+- `forge deploy -e production --non-interactive`: exit 0, production version **2.0.0** (production numbers its versions separately from development 3.2.0). Deployed 2026-11-17 04:56:00 UTC. `forge register` was not run.
+- Developer Console, The Page Is Lying, Distribution, Edit. With "Sharing with anyone" the form requires Company/Department, Customer support contact and Privacy policy; Terms of service is optional; "Does your app store personal data?" is required.
+  - Company/Department: `himanshu748`.
+  - Customer support contact: `https://github.com/himanshu748/the-page-is-lying/issues` (repository is public, issues enabled).
+  - Privacy policy: `https://github.com/himanshu748/the-page-is-lying/blob/feat/integration/PRIVACY.md` (written from the manifest and storage code, commit 576bccd; switch to the `main` URL after the merge).
+  - Terms of service: empty.
+  - Personal data: No. Forge KVS holds only `settings:site`, the token secret, `idx:*` index shards, `status:*`, `head:*` (1-day TTL) and `counts:*` (numbers per page id and version). No account ids or page text are stored.
+  - Saved: "Distribution controls updated". Status **Sharing with anyone**. Install target: **Confluence**. The installation link appeared and persisted after a reload.
+- Install link opened in the same tab, up to the first screen only: "The Page Is Lying, By Himanshu Jha (himanshu748), For Confluence", privacy and log notice pointing to the vendor's privacy policy, "Support service desk", Permissions: Read user, View pages, App Storage scope, Share data with 4 domains outside of Atlassian. "Get app" was not clicked; nothing was installed. No developer space name is shown. Screenshot: `docs/screenshots/install-consent.png`.
+- Judge install link: README, section "Judge install link".
+
+All preview tabs this run opened were closed.
