@@ -1,0 +1,1 @@
+For a contradicted claim you can draft a Jira task. The app shows the exact issue text first. It writes nothing itself: Open Jira create screen only opens Jira with that text filled in, and you create the issue there.

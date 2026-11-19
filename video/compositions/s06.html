@@ -1,0 +1,108 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 10%, #17223d 0%, var(--bg) 70%); overflow: hidden; }
+    .wrap { position: absolute; inset: 0; }
+    .kicker { position: absolute; left: 96px; top: 64px; font: 700 26px/1 var(--sans); letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); }
+    .badge { position: absolute; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 999px; font: 600 28px/1 var(--sans); background: rgba(11, 17, 32, 0.88); color: var(--ink); border: 1.5px solid var(--line); white-space: nowrap; z-index: 20; }
+    .badge .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--green); }
+    .badge.test { background: var(--amber); color: #1f1a05; border-color: #c9a227; }
+    .badge.test .dot { background: #1f1a05; border-radius: 2px; }
+    .badge.rec .dot { background: var(--blue); }
+    .chip { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 8px 12px; border-radius: 10px; font: 700 26px/1 var(--sans); white-space: nowrap; }
+    .chip svg { width: 26px; height: 26px; flex: none; }
+    .chip.v { background: var(--green); color: var(--green-ink); }
+    .chip.c { background: var(--red); color: var(--red-ink); }
+    .chip.u { background: var(--grey); color: var(--grey-ink); }
+    .ann { position: absolute; left: 260px; width: 1400px; top: 724px; padding: 28px 36px; border-radius: 20px; background: rgba(15, 22, 40, 0.96); border: 1.5px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45); z-index: 15; }
+    .ann .row { display: flex; align-items: flex-start; gap: 22px; }
+    .ann .row + .row { margin-top: 18px; }
+    .ann p { font: 500 31px/1.35 var(--sans); color: var(--ink); }
+    .ann code, .mono { font-family: var(--mono); font-weight: 500; }
+    .ann code { color: #cfe1ff; }
+    .ann .ev { font: 500 24px/1 var(--mono); color: var(--muted); margin-left: 8px; }
+    .ring { position: absolute; border: 3px solid var(--amber); border-radius: 10px; box-shadow: 0 0 0 4px rgba(245, 205, 71, 0.22); opacity: 0; }
+    .cam { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    .viewport { position: absolute; inset: 0; overflow: hidden; background: #fff; }
+    .key { display: inline-block; padding: 10px 22px; border-radius: 12px; background: var(--panel-2); border: 2px solid #3b4a6e; border-bottom-width: 6px; font: 700 30px/1 var(--sans); color: var(--ink); }
+
+    #s06-intro h1 { position: absolute; left: 96px; top: 140px; font: 800 72px/1.1 var(--sans); letter-spacing: -0.02em; }
+    .tool { position: absolute; top: 340px; width: 780px; height: 360px; padding: 44px; border-radius: 24px; background: var(--panel); border: 1.5px solid var(--line); }
+    .tool h2 { font: 700 64px/1 var(--mono); color: #cfe1ff; }
+    .tool .sub { margin-top: 18px; font: 500 26px/1.3 var(--mono); color: var(--muted); }
+    .tool p { margin-top: 26px; font: 500 30px/1.35 var(--sans); }
+    .tags { margin-top: 30px; display: flex; gap: 14px; }
+    .tag { padding: 10px 16px; border-radius: 8px; background: var(--panel-2); border: 1.5px solid #3b4a6e; font: 700 24px/1 var(--sans); letter-spacing: 0.06em; color: var(--ink); }
+    #s06-t1 { left: 96px; }
+    #s06-t2 { left: 1044px; }
+    #s06-consent { position: absolute; inset: 0; background: #fff; }
+    #s06-consent img { position: absolute; left: 0; top: 0; width: 1920px; height: 1200px; }
+    #s06-b1 { left: 40px; top: 990px; }
+    #s06-b2 { left: 96px; top: 52px; }
+    #s06-panel { position: absolute; left: 96px; top: 140px; width: 1728px; padding: 36px 44px; border-radius: 22px; background: #0d1426; border: 1.5px solid var(--line); }
+    #s06-panel .cmd { font: 500 26px/1.5 var(--mono); color: var(--muted); }
+    #s06-panel .cmd b { color: var(--ink); font-weight: 700; }
+    #s06-panel table { margin-top: 22px; width: 100%; border-collapse: collapse; }
+    #s06-panel th { text-align: left; font: 700 22px/1 var(--sans); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; padding: 0 16px 14px; border-bottom: 1.5px solid var(--line); }
+    #s06-panel td { padding: 14px 16px; font: 500 25px/1.2 var(--mono); color: var(--ink); border-bottom: 1px solid #1f2a45; }
+    #s06-panel td .chip { font-size: 22px; padding: 6px 12px 6px 9px; }
+    #s06-panel td .chip svg { width: 22px; height: 22px; }
+    #s06-panel .foot { margin-top: 20px; font: 500 24px/1.4 var(--mono); color: var(--muted); }
+    #s06-same { position: absolute; left: 0; right: 0; top: 960px; text-align: center; font: 700 44px/1 var(--sans); color: var(--amber); }
+  </style>
+  <div id="root" data-composition-id="s06" data-width="1920" data-height="1080">
+    <div id="s06-wrap" class="wrap">
+      <div id="s06-intro">
+        <div class="kicker">Forge MCP server</div>
+        <h1>Two read-only tools</h1>
+        <div class="tool" id="s06-t1"><h2>check-page</h2><div class="sub">check-page_development</div><p>Checks every claim on a Confluence page.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
+        <div class="tool" id="s06-t2"><h2>check-claim</h2><div class="sub">check-claim_development</div><p>Checks one claim against the indexed repository.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
+      </div>
+      <div id="s06-consent">
+        <img src="assets/live/mcp-oauth-consent.png" alt="" />
+        <div id="s06-b1" class="badge live"><span class="dot"></span>LIVE · OAuth consent for MCP Inspector</div>
+      </div>
+      <div id="s06-result">
+        <div id="s06-b2" class="badge rec"><span class="dot"></span>Recorded MCP Inspector output (16 Nov 2026), set as text</div>
+        <div id="s06-panel">
+          <div class="cmd">tools/list → <b>check-claim_development</b>, <b>check-page_development</b></div>
+          <div class="cmd">tools/call <b>check-page_development</b> { page: 6815745 }</div>
+          <table>
+            <thead><tr><th>Claim</th><th>Verdict</th><th>File and line</th><th>Evidence id</th></tr></thead>
+            <tbody>
+              <tr class="s06-row"><td>POST /v1/charge</td><td><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span></td><td class="s06-fl">src/routes.ts:88</td><td class="s06-ev">ev_39dd3751</td></tr>
+              <tr class="s06-row"><td>GET /v2/payments/{id}</td><td><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span></td><td class="s06-fl">src/routes.ts:92</td><td class="s06-ev">ev_96b0428d</td></tr>
+              <tr class="s06-row"><td>STRIPE_KEY</td><td><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span></td><td class="s06-fl">src/config.ts:8</td><td class="s06-ev">ev_7659c2e1</td></tr>
+              <tr class="s06-row"><td>npm run db:migrate</td><td><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span></td><td class="s06-fl">package.json:18</td><td class="s06-ev">ev_bf48965b</td></tr>
+              <tr class="s06-row"><td>payments refund &lt;paymentId&gt; --force</td><td><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span></td><td class="s06-fl">src/cli.ts:10</td><td class="s06-ev">ev_af6bf648</td></tr>
+              <tr class="s06-row"><td>ledgerctl reconcile --since 24h</td><td><span class="chip u"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.33-1.2 1.05-1.2 1.87V14.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="18.5" r="1.5" fill="currentColor"/></svg>No evidence found</span></td><td>none</td><td>none</td></tr>
+            </tbody>
+          </table>
+          <div class="foot">himanshu748/payments-api@0383355 · 6 claims: 2 verified in code, 3 contradicted by code, 1 no evidence found</div>
+        </div>
+        <div id="s06-same">Same tool, same evidence, any MCP client.</div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      const D = 21.8;
+      tl.fromTo("#s06-wrap", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "none" }, 0);
+      tl.set(["#s06-consent", "#s06-result"], { opacity: 0 }, 0);
+      tl.fromTo("#s06-intro h1", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5 }, 0.3);
+      tl.fromTo(["#s06-t1", "#s06-t2"], { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.25, ease: "power3.out" }, 1.9);
+      tl.to("#s06-intro", { opacity: 0, duration: 0.3 }, 5.3);
+      tl.to("#s06-consent", { opacity: 1, duration: 0.3 }, 5.4);
+      tl.fromTo("#s06-consent img", { scale: 1, transformOrigin: "30% 30%" }, { scale: 1.06, transformOrigin: "30% 30%", duration: 3.6, ease: "none" }, 5.4);
+      tl.to("#s06-consent", { opacity: 0, duration: 0.3 }, 9.0);
+      tl.to("#s06-result", { opacity: 1, duration: 0.3 }, 9.1);
+      tl.fromTo(".s06-row", { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.18, ease: "power2.out" }, 11.7);
+      tl.fromTo("#s06-panel", { scale: 1 }, { scale: 1.02, transformOrigin: "50% 0%", duration: 12, ease: "none" }, 9.1);
+      tl.fromTo(".s06-fl", { backgroundColor: "rgba(245,205,71,0)", color: "#eef2f9" }, { backgroundColor: "rgba(245,205,71,0.22)", color: "#f5cd47", duration: 0.3 }, 14.0);
+      tl.fromTo(".s06-ev", { backgroundColor: "rgba(245,205,71,0)", color: "#eef2f9" }, { backgroundColor: "rgba(245,205,71,0.22)", color: "#f5cd47", duration: 0.3 }, 15.6);
+      tl.fromTo("#s06-same", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5 }, 17.3);
+      tl.to("#s06-wrap", { opacity: 0, duration: 0.35, ease: "none" }, D - 0.4);
+      window.__timelines["s06"] = tl;
+    })();
+  </script>
+</template>

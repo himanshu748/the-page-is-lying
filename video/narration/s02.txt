@@ -1,0 +1,1 @@
+This is The Page Is Lying, a Forge app for Confluence. An admin points it at a public GitHub repository, here the payments API, and it indexes the code. The check is read-only, it runs on the Forge free tier, and there is no language model in the check. It is regular expressions and a code index.

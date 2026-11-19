@@ -1,0 +1,17 @@
+{
+  "name": "the-page-is-lying-video",
+  "private": true,
+  "description": "HyperFrames project for the Codegeist 2026 demo video. Kept separate from the Forge app's package.json.",
+  "type": "module",
+  "scripts": {
+    "lint": "hyperframes lint",
+    "check": "hyperframes check --json",
+    "preview": "hyperframes preview",
+    "render": "hyperframes render --quality delivery -o out/the-page-is-lying-demo.mp4",
+    "captions": "node tools/captions.mjs",
+    "capture:testbuild": "node tools/capture-testbuild.mjs"
+  },
+  "devDependencies": {
+    "hyperframes": "0.9.58"
+  }
+}

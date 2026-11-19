@@ -1,0 +1,1 @@
+Hover or tab to a claim and a card shows the evidence, with a permalink to the exact line on GitHub. Escape closes it.

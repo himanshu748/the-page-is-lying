@@ -1,0 +1,1 @@
+Deterministic, cites file and line, read-only, and it works on any public GitHub repository. The Page Is Lying. Documentation that checks itself against the code.
