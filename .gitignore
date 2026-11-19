@@ -1,0 +1,21 @@
+node_modules/
+static/ui/dist/
+dist/
+coverage/
+playwright-report/
+test-results/
+.env
+.env.*
+!.env.example
+.forge/
+.DS_Store
+*.log
+
+# video/ (large binaries; final stills and captions are kept)
+video/raw/
+video/out/*.mp4
+video/assets/*.mp4
+video/assets/*.mp3
+video/assets/*.wav
+video/node_modules/
+video/.hyperframes/

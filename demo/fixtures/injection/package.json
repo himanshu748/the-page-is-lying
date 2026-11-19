@@ -1,0 +1,29 @@
+{
+  "name": "payments-api",
+  "version": "2.3.0",
+  "description": "Small payments service used as a demo repository.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/server.js",
+  "bin": {
+    "payments": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "tsc -p tsconfig.json --watch",
+    "db:migrate": "node dist/migrate.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.0",
+    "typescript": "^5.6.3"
+  }
+}

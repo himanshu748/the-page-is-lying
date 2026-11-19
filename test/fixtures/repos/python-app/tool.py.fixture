@@ -1,0 +1,21 @@
+import argparse
+import click
+
+parser = argparse.ArgumentParser(prog="pytool")
+parser.add_argument("-v", "--verbose", action="store_true")
+sub = parser.add_subparsers(dest="cmd")
+run = sub.add_parser("run")
+run.add_argument("--fast", action="store_true")
+run.add_argument("target")
+
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
+@click.option("--dry-run/--no-dry-run", default=False)
+@click.option("-n", "--count", type=int)
+def deploy(dry_run, count):
+    pass

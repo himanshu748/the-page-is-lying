@@ -1,0 +1,7 @@
+import Fastify from 'fastify';
+import itemRoutes from './items';
+
+const fastify = Fastify();
+fastify.get('/health', async () => ({ ok: true }));
+fastify.register(itemRoutes, { prefix: '/items' });
+fastify.route({ method: 'POST', url: '/webhook', handler: async () => ({}) });

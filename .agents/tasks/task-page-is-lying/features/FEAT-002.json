@@ -1,0 +1,29 @@
+{
+  "id": "FEAT-002",
+  "type": "feat",
+  "description": "Task A: claim extractor + fixtures. Pure TypeScript in src/core/adf and src/core/claims. Parallel with FEAT-003, FEAT-005, FEAT-006, FEAT-007 after FEAT-001. Implements PLAN.md section 6.",
+  "status": "completed",
+  "steps": [
+    "src/core/adf/walk.ts: walk an ADF doc (including bodiedExtension content) into TextBlock[] { blockIndex, nodeType, text, marks: {start,end,type}[] } for paragraph, heading, listItem paragraphs, tableCell paragraphs, codeBlock, blockquote, panel; hardBreak becomes newline.",
+    "src/core/claims/http.ts: METHOD /path, bare /vN/ paths in code spans, curl -X/--request + URL; normalize params ({id}, :id, <id>, <int:id>) to :param, strip trailing slash, query and fragment; keep host separately.",
+    "src/core/claims/env.ts: UPPER_SNAKE names with env cues (code span, export, $, ${, process.env., os.environ, KEY=value in code blocks) and a stop-list.",
+    "src/core/claims/cli.ts: tokenizer for code spans and code-block lines; strip '$ ' prompts; program + subcommands + flags (--x, --x=v -> --x, -s); special handling for npm run / yarn / pnpm / make; skip a list of well-known external tools except curl (handed to http.ts).",
+    "src/core/claims/config.ts, files.ts, packages.ts per PLAN.md section 6 table.",
+    "src/core/claims/index.ts: extractClaims(adf) and extractClaimsFromText(text) returning Claim[] with stable ids (c_<hash8>), confidence high for code marks/blocks and medium for prose, caps of 200 per document and 20 per block, claimsTruncated flag.",
+    "test/core/claims/*.test.ts: table-driven positive and negative cases per type, including all six demo claims from PLAN.md 10.2 and the fixed-page variant.",
+    "test/core/claims/properties.test.ts (fast-check): never throws on arbitrary strings and random ADF trees; raw equals substring at offsets; normalization idempotent; generated endpoints/env vars/flags inside random prose are found; file path normalizer never outputs '..'."
+  ],
+  "acceptance_criteria": [
+    "npm test passes including all claim tests and properties (1,000 runs each)",
+    "Demo runbook ADF from demo/confluence (or an inline copy until FEAT-007 lands) yields exactly the six expected claims with correct types",
+    "src/core/claims and src/core/adf have at least 90% line coverage",
+    "No imports from @forge/* under src/core"
+  ],
+  "verification": [
+    "npm run typecheck",
+    "npm run lint",
+    "npx vitest run test/core/claims --coverage"
+  ],
+  "blocked_reason": null,
+  "findings": "extractClaims(adf)->{claims,claimsTruncated}; extractClaimsFromText(text) same shape. 244 tests pass (all repo), 10 fast-check properties x1000 runs (seed logged, FC_SEED to replay). Coverage: core/adf 100% lines, core/claims 99.77%. Normalization notes for matcher: npm/yarn/pnpm script runs normalize to subcommands ['run', script] (npm test -> ['run','test']); make targets are subcommands, flags []; file_path keeps trailing '/' for directories; http host is hostname only (no port); package ecosystem 'runtime' uses name 'node'|'python', range like '>=20'; env raw is the name only (cue like $ excluded); file_path/config_key never overlap another claim, so paths inside a cli line are not separate claims. Demo ADF fixtures in test/fixtures/claims/."
+}

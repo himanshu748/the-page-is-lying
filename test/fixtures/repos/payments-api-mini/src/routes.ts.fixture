@@ -1,0 +1,91 @@
+import { Router } from 'express';
+import { createPayment, getPayment, listPayments, health } from './handlers';
+
+// Payment routes. Mounted at the root by src/app.ts.
+export const router = Router();
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+
+
+
+
+// route table, kept sorted by path
+
+
+router.post('/v2/payments', createPayment);
+router.get('/v2/payments/:id', getPayment);
+router.get('/v2/payments', listPayments);
+router.get('/healthz', health);

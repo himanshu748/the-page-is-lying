@@ -1,0 +1,473 @@
+/* Fallback palette used outside Confluence (tests). Inside Confluence view.theme.enable() defines --ds-* tokens. */
+:root {
+  --pil-text: #172b4d;
+  --pil-text-subtle: #44546f;
+  --pil-bg: #ffffff;
+  --pil-surface: #ffffff;
+  --pil-border: #8590a2;
+  --pil-link: #0c66e4;
+  --pil-focus: #0c66e4;
+  --pil-success-bg: #dcfff1;
+  --pil-danger-bg: #ffd5d2;
+  --pil-neutral-bg: #dcdfe4;
+  --pil-warn-bg: #f8e6a0;
+  --pil-success-icon: #216e4e;
+  --pil-danger-icon: #ae2e24;
+  --pil-neutral-icon: #44546f;
+  --pil-button-bg: #f1f2f4;
+}
+
+:root[data-color-mode='dark'] {
+  --pil-text: #b6c2cf;
+  --pil-text-subtle: #9fadbc;
+  --pil-bg: #1d2125;
+  --pil-surface: #22272b;
+  --pil-border: #738496;
+  --pil-link: #579dff;
+  --pil-focus: #579dff;
+  --pil-success-bg: #1c3329;
+  --pil-danger-bg: #42221f;
+  --pil-neutral-bg: #2c333a;
+  --pil-warn-bg: #533f04;
+  --pil-success-icon: #4bce97;
+  --pil-danger-icon: #f87168;
+  --pil-neutral-icon: #9fadbc;
+  --pil-button-bg: #2c333a;
+}
+
+:root {
+  --c-text: var(--ds-text, var(--pil-text));
+  --c-subtle: var(--ds-text-subtle, var(--pil-text-subtle));
+  --c-bg: var(--ds-surface, var(--pil-bg));
+  --c-surface: var(--ds-surface-overlay, var(--pil-surface));
+  --c-border: var(--ds-border-bold, var(--pil-border));
+  --c-link: var(--ds-link, var(--pil-link));
+  --c-focus: var(--ds-border-focused, var(--pil-focus));
+  --c-success-bg: var(--ds-background-success, var(--pil-success-bg));
+  --c-danger-bg: var(--ds-background-danger, var(--pil-danger-bg));
+  --c-neutral-bg: var(--ds-background-neutral, var(--pil-neutral-bg));
+  --c-warn-bg: var(--ds-background-warning, var(--pil-warn-bg));
+  --c-success-icon: var(--ds-icon-success, var(--pil-success-icon));
+  --c-danger-icon: var(--ds-icon-danger, var(--pil-danger-icon));
+  --c-neutral-icon: var(--ds-icon-subtle, var(--pil-neutral-icon));
+  --c-button-bg: var(--ds-background-neutral, var(--pil-button-bg));
+}
+
+* {
+  box-sizing: border-box;
+}
+[hidden] {
+  display: none !important;
+}
+body {
+  margin: 0;
+  padding: 8px;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.view h1,
+.view h2 {
+  margin: 12px 0 6px;
+}
+.view h1 {
+  font-size: 20px;
+}
+.view h2 {
+  font-size: 16px;
+}
+.view h3 {
+  font-size: 14px;
+  margin: 8px 0 4px;
+}
+.muted {
+  color: var(--c-subtle);
+}
+code,
+pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+}
+
+/* Header bar */
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+}
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 10px;
+}
+.count-verified,
+.claim-verified {
+  --mark: var(--c-success-icon);
+  --mark-bg: var(--c-success-bg);
+}
+.count-contradicted,
+.claim-contradicted {
+  --mark: var(--c-danger-icon);
+  --mark-bg: var(--c-danger-bg);
+}
+.count-unknown,
+.claim-unknown {
+  --mark: var(--c-neutral-icon);
+  --mark-bg: var(--c-neutral-bg);
+}
+.count {
+  background: var(--mark-bg);
+}
+.repo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--c-subtle);
+}
+.warn,
+.notice {
+  padding: 6px 10px;
+  border-radius: 4px;
+  background: var(--c-neutral-bg);
+  margin: 6px 0;
+}
+.warn,
+.notice-warn {
+  background: var(--c-warn-bg);
+}
+.notice-error {
+  background: var(--c-danger-bg);
+}
+
+.icon {
+  flex: none;
+  vertical-align: -2px;
+}
+.icon-verified {
+  color: var(--c-success-icon);
+}
+.icon-contradicted {
+  color: var(--c-danger-icon);
+}
+.icon-unknown {
+  color: var(--c-neutral-icon);
+}
+
+/* Claims: icon + label + distinct underline + token background */
+.claim-wrap {
+  position: relative;
+  display: inline-block;
+}
+.claim {
+  font: inherit;
+  color: inherit;
+  background: var(--mark-bg);
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 0 4px;
+  cursor: pointer;
+  text-align: left;
+}
+.claim-text code {
+  background: transparent;
+  color: inherit;
+}
+.claim-text {
+  text-decoration-color: var(--mark);
+  text-underline-offset: 3px;
+}
+.claim-verified .claim-text {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: 2px;
+}
+.claim-contradicted .claim-text {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 2px;
+}
+.claim-unknown .claim-text {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 2px;
+}
+.claim-label {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.claim:focus-visible,
+.btn:focus-visible,
+.ev-link:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--c-focus);
+  outline-offset: 2px;
+}
+
+/* Evidence card */
+.card {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  width: min(23rem, calc(100vw - 16px));
+  padding: 10px 12px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(9, 30, 66, 0.35);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: left;
+  text-decoration: none;
+  white-space: normal;
+}
+.card-above {
+  top: auto;
+  bottom: 100%;
+}
+.ev {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.ev-heading {
+  font-weight: 700;
+}
+.ev-statement {
+  overflow-wrap: anywhere;
+}
+.ev-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 100%;
+}
+.ev-snippet {
+  display: block;
+  padding: 4px 6px;
+  border-radius: 3px;
+  background: var(--c-neutral-bg);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ev-link {
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--c-link);
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
+.ev-loc {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.ev-note,
+.ev-meta {
+  color: var(--c-subtle);
+  font-size: 12px;
+}
+
+.btn {
+  font: inherit;
+  padding: 4px 12px;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  background: var(--c-button-bg);
+  color: var(--c-text);
+  cursor: pointer;
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.btn-small {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.btn-quiet {
+  background: transparent;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+/* Rendered ADF */
+.adf-doc p {
+  margin: 6px 0;
+}
+.adf-code {
+  padding: 8px;
+  background: var(--c-neutral-bg);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.adf-panel,
+blockquote {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-left: 4px solid var(--c-border);
+  background: var(--c-neutral-bg);
+}
+.adf-table {
+  border-collapse: collapse;
+}
+.adf-table td,
+.adf-table th {
+  border: 1px solid var(--c-border);
+  padding: 4px 8px;
+  text-align: left;
+}
+.adf-unsupported small {
+  color: var(--c-subtle);
+}
+.link-text {
+  color: var(--c-link);
+  text-decoration: underline;
+}
+
+/* Byline list */
+.claim-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.claim-item {
+  padding: 8px 10px;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+}
+.claim-item-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.claim-chip {
+  background: var(--mark-bg);
+  padding: 0 4px;
+  border-radius: 3px;
+  text-decoration-color: var(--mark);
+  text-underline-offset: 3px;
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+}
+.claim-chip.claim-verified {
+  text-decoration-style: solid;
+}
+.claim-chip.claim-contradicted {
+  text-decoration-style: wavy;
+}
+.claim-chip.claim-unknown {
+  text-decoration-style: dotted;
+}
+
+/* Settings */
+.settings .field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0;
+  max-width: 34rem;
+}
+.settings label {
+  font-weight: 600;
+}
+.settings label.inline {
+  font-weight: 400;
+}
+.settings input[type='url'],
+.settings input[type='text'],
+.settings input[type='password'],
+.settings textarea {
+  font: inherit;
+  padding: 5px 8px;
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  background: var(--c-bg);
+  color: var(--c-text);
+}
+fieldset {
+  border: 1px solid var(--c-border);
+  border-radius: 4px;
+  max-width: 34rem;
+}
+.status-table {
+  border-collapse: collapse;
+}
+.status-table th,
+.status-table td {
+  border: 1px solid var(--c-border);
+  padding: 4px 10px;
+  text-align: left;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8px;
+  background: rgba(9, 30, 66, 0.6);
+  overflow: auto;
+}
+.modal {
+  width: min(36rem, 100%);
+  padding: 14px 16px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+}
+.modal h2 {
+  margin-top: 0;
+}
+.draft {
+  margin: 0;
+  padding: 8px;
+  background: var(--c-neutral-bg);
+  border-radius: 4px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

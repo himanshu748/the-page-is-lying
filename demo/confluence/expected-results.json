@@ -1,0 +1,82 @@
+{
+  "schema": "pil.demo-expected.v1",
+  "repoFixture": "demo/payments-api",
+  "page": "payments-api-runbook.adf.json",
+  "counts": {
+    "claims": 6,
+    "verified": 2,
+    "contradicted": 3,
+    "unknown": 1
+  },
+  "claims": [
+    {
+      "n": 1,
+      "raw": "POST /v1/charge",
+      "type": "http_endpoint",
+      "verdict": "contradicted",
+      "evidence": {
+        "file": "src/routes.ts",
+        "line": 88
+      }
+    },
+    {
+      "n": 2,
+      "raw": "GET /v2/payments/{id}",
+      "type": "http_endpoint",
+      "verdict": "verified",
+      "evidence": {
+        "file": "src/routes.ts",
+        "line": 92
+      }
+    },
+    {
+      "n": 3,
+      "raw": "STRIPE_KEY",
+      "type": "env_var",
+      "verdict": "contradicted",
+      "evidence": {
+        "file": "src/config.ts",
+        "line": 8
+      },
+      "alsoCites": []
+    },
+    {
+      "n": 4,
+      "raw": "npm run db:migrate",
+      "type": "cli",
+      "verdict": "verified",
+      "evidence": {
+        "file": "package.json",
+        "line": 18
+      }
+    },
+    {
+      "n": 5,
+      "raw": "payments refund <paymentId> --force",
+      "type": "cli",
+      "verdict": "contradicted",
+      "evidence": {
+        "file": "src/cli.ts",
+        "line": 10
+      },
+      "alsoCites": [
+        {
+          "file": "src/cli.ts",
+          "line": 12
+        },
+        {
+          "file": "src/cli.ts",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "n": 6,
+      "raw": "ledgerctl reconcile --since 24h",
+      "type": "cli",
+      "verdict": "unknown",
+      "evidence": null
+    }
+  ],
+  "note": "Evidence lines are relative to demo/payments-api. For contradicted claims the cited line is the nearest real alternative (route registration, env read, subcommand definition). Task C must assert verdicts and src/routes.ts:88 exactly; other lines are the contract of the fixture, asserted by test/demo."
+}
