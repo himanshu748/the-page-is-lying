@@ -51,7 +51,7 @@ Work in steps: run `audit-space`, state the scope, list the ranked pages, give t
 
 Every success result has `schema: "pil.agent.v1"` and contains:
 
-- `repo`: `fullName`, `ref`, `sha`, `indexedAt`, `stale`.
+- `repo`: `fullName`, `ref`, `sha`, `indexedAt`, `stale`, and `freshnessUnchecked` when the code host could not be asked for a newer commit (for example a rate limit). When it is true, say the result is from the index of `indexedAt` and that it could not be compared with the latest commit: do not call the index current, and do not call it stale.
 - `page`: `id`, `untrustedTitle`, `version`, and `source` (`context` when Atlassian supplied the page, `input` when you did). Only for `check-page`.
 - `counts`: `claims`, `verified`, `contradicted`, `unknown`.
 - `limits`: claim cap and truncation, files indexed and skipped, and `coverage` per kind (`complete`, `partial`, `none`).

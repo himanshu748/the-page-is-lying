@@ -215,6 +215,8 @@ export interface Report {
   schema: 'pil.report.v1';
   repo: RepoRef;
   stale: boolean;
+  /** True when the check for a newer commit failed, so `stale: false` only means no newer commit is known. */
+  freshnessUnchecked?: boolean;
   counts: ReportCounts;
   limits: ReportLimits;
   results: ClaimResult[];
@@ -328,6 +330,8 @@ export interface AgentEnvelope {
     sha: string;
     indexedAt: string;
     stale: boolean;
+    /** Present and true when the code host could not be asked for a newer commit (for example a rate limit). */
+    freshnessUnchecked?: boolean;
   };
   /** Absent for check-claim calls that are not tied to a page. */
   page?: {
