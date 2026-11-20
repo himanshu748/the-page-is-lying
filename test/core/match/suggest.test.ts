@@ -75,6 +75,14 @@ describe('fix suggestions on contradicted results', () => {
     const sub = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refnd', '<paymentId>'], flags: ['--confirm'] }, 'payments refnd <paymentId> --confirm'), index);
     expect(sub.reason).toBe('cli_subcommand_not_defined');
     expect(sub.suggestion?.replacement).toBe('payments refund <paymentId> --confirm');
+    const sameName = makeIndex({
+      cli: [
+        { ...loc('src/cli.ts', 5), program: 'deploy', subcommands: [], flags: [], kind: 'bin' },
+        { ...loc('src/cli.ts', 9), program: 'deploy', subcommands: ['release'], flags: [], kind: 'command' },
+      ],
+    });
+    const repeated = matchClaim(makeClaim({ type: 'cli', program: 'deploy', subcommands: ['deploy'], flags: [] }, 'deploy deploy'), sameName);
+    expect(repeated.suggestion?.replacement).toBe('deploy release');
   });
 
   it('cli subcommand and npm script: propose the defined name in the same command line', () => {
