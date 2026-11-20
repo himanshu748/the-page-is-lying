@@ -32,6 +32,10 @@ describe('manifest.yml contract', () => {
     );
   });
 
+  it('binds the packaged skill to the agent, which is how a Rovo agent gets to use it', () => {
+    expect(mod('rovo:agent')[0]?.['skills']).toEqual(['runbook-checker-skill']);
+  });
+
   it('uses a bodied macro and a settings page that acts as config', () => {
     expect(mod('macro')[0]?.['layout']).toBe('bodied');
     expect(mod('confluence:globalSettings')[0]?.['useAsConfig']).toBe(true);

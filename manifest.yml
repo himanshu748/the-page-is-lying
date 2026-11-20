@@ -81,6 +81,8 @@ modules:
         - explain-claim
         - suggest-fix
         - audit-space
+      skills:
+        - runbook-checker-skill
 
   action:
     - key: check-page
