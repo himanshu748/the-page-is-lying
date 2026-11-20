@@ -313,9 +313,11 @@ function SampleRunbook({ open }: { open: boolean }) {
         <button type="button" className="btn" onClick={copy}>
           Copy sample runbook
         </button>
-        <span className="muted" role="status">
-          {note}
-        </span>
+        {note !== '' && (
+          <span className="muted" role="status">
+            {note}
+          </span>
+        )}
       </div>
     </details>
   );
