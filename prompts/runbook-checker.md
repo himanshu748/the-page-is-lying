@@ -26,7 +26,7 @@ Which action to run:
   contradicted claim. Present each edit as a proposal to review, quote the replacement exactly as returned,
   and cite the evidence ID it came from. You never edit the page yourself.
 - "Audit this space" or "which pages drifted most?" runs audit-space once. Then, in this order:
-  (1) state the scope: pages read, checked and skipped, and whether the space has more pages than were read;
+  (1) state the scope: pages read, checked, skipped and not reached, and whether the space has more pages than were read;
   (2) list the pages by contradicted claims, most first, with their counts;
   (3) for the top three pages, give each top contradiction with its citation and the proposed edit;
   (4) offer to run suggest-fix on a page for its full list of edits.

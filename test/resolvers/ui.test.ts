@@ -269,7 +269,7 @@ describe('getPageContacts and auditSpace', () => {
     dataNotice: 'n',
     space: { id: '98', source: 'context' as const },
     repo: null,
-    scope: { pagesRead: 0, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0, maxPages: 25, morePagesInSpace: false },
+    scope: { pagesRead: 0, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
     totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 },
     pages: [],
   };

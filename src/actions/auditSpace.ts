@@ -21,6 +21,12 @@ export interface AuditSpacePayload {
   context?: ActionContext;
 }
 
+/**
+ * Time allowed for checking pages. A Rovo action and a UI resolver must answer within 25 seconds, so the
+ * audit stops early and reports the pages it did not reach instead of timing out.
+ */
+export const AUDIT_BUDGET_MS = 15_000;
+
 /** Contradictions returned for each page. The full list comes from `suggest-fix` or `check-page`. */
 export const MAX_FIXES_PER_PAGE = 3;
 
@@ -48,6 +54,8 @@ export interface AuditEnvelope {
     pagesSkipped: number;
     /** Checked pages without any checkable claim. */
     pagesWithoutClaims: number;
+    /** Pages left unchecked because the time budget ran out. No verdict was produced for them. */
+    pagesNotReached: number;
     maxPages: number;
     /** True when the space has more pages than were read. */
     morePagesInSpace: boolean;
@@ -62,6 +70,7 @@ export type AuditSpaceResult = AuditEnvelope | (AgentError & { detail?: string }
 export interface AuditSpaceDeps {
   service: () => CheckService;
   readSpace: SpaceReader;
+  clock?: { now: () => number; budgetMs: number };
 }
 
 function auditedPage(page: SpacePage, report: Report): AuditedPage {
@@ -84,11 +93,16 @@ export function rankAudited(pages: AuditedPage[]): AuditedPage[] {
 }
 
 export async function auditSpace(deps: AuditSpaceDeps, pageId: string, source: PageIdSource): Promise<AuditSpaceResult> {
-  return auditPages(deps.service, await deps.readSpace(pageId), source);
+  return auditPages(deps.service, await deps.readSpace(pageId), source, deps.clock);
 }
 
 /** Checks and ranks pages that were already read. Shared by the action and the space page in Confluence. */
-export async function auditPages(getService: () => CheckService, read: SpaceReadResult, source: PageIdSource): Promise<AuditSpaceResult> {
+export async function auditPages(
+  getService: () => CheckService,
+  read: SpaceReadResult,
+  source: PageIdSource,
+  clock: { now: () => number; budgetMs: number } = { now: Date.now, budgetMs: AUDIT_BUDGET_MS },
+): Promise<AuditSpaceResult> {
   if (!read.ok) return buildError(read.error);
 
   const audited: AuditedPage[] = [];
@@ -96,9 +110,16 @@ export async function auditPages(getService: () => CheckService, read: SpaceRead
   let repo: AuditEnvelope['repo'] = null;
   let skipped = 0;
   let withoutClaims = 0;
+  let notReached = 0;
+  const deadline = clock.now() + clock.budgetMs;
   try {
     const service = getService();
-    for (const page of read.pages.slice(0, MAX_AUDIT_PAGES)) {
+    const pages = read.pages.slice(0, MAX_AUDIT_PAGES);
+    for (const [position, page] of pages.entries()) {
+      if (clock.now() > deadline) {
+        notReached = pages.length - position;
+        break;
+      }
       if (page.adf === undefined) {
         skipped++;
         continue;
@@ -135,9 +156,10 @@ export async function auditPages(getService: () => CheckService, read: SpaceRead
     repo,
     scope: {
       pagesRead: read.pages.length,
-      pagesChecked: read.pages.length - skipped,
+      pagesChecked: read.pages.length - skipped - notReached,
       pagesSkipped: skipped,
       pagesWithoutClaims: withoutClaims,
+      pagesNotReached: notReached,
       maxPages: MAX_AUDIT_PAGES,
       morePagesInSpace: read.more,
     },

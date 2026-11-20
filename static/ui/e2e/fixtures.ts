@@ -179,7 +179,7 @@ export function demoAudit(): AuditEnvelope {
     dataNotice: '',
     space: { id: '98', source: 'context' },
     repo: { fullName: REPO, ref: 'main', sha: SHA, indexedAt: '2026-12-01T10:00:00Z', stale: false },
-    scope: { pagesRead: 6, pagesChecked: 5, pagesSkipped: 1, pagesWithoutClaims: 2, maxPages: 25, morePagesInSpace: false },
+    scope: { pagesRead: 6, pagesChecked: 5, pagesSkipped: 1, pagesWithoutClaims: 2, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
     totals: { claims: 14, verified: 8, contradicted: 4, unknown: 2 },
     pages: [
       { id: '123456', untrustedTitle: 'Payments API runbook', version: 7, counts: report.counts, driftRatio: 0.5, topContradictions: contradicted.map(fix) },

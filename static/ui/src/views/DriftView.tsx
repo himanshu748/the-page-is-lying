@@ -79,6 +79,7 @@ function DriftResult({ audit }: { audit: AuditEnvelope }) {
         {scope.morePagesInSpace ? ` (the space has more than ${scope.maxPages})` : ''}
         {scope.pagesWithoutClaims > 0 ? `, ${scope.pagesWithoutClaims} without checkable claims` : ''}
         {scope.pagesSkipped > 0 ? `, ${scope.pagesSkipped} skipped because the body could not be read` : ''}
+        {scope.pagesNotReached > 0 ? `, ${scope.pagesNotReached} not reached in the time allowed` : ''}
         {audit.repo ? `. Code: ${audit.repo.fullName}@${shortSha(audit.repo.sha)}, indexed ${formatIndexTime(audit.repo.indexedAt)}${audit.repo.stale ? ', index may be stale' : ''}` : ''}.
       </p>
       {audit.pages.length === 0 ? (

@@ -128,13 +128,21 @@ describe('audit-space handler', () => {
     const out = (await createAuditSpaceHandler({ service: svc, readSpace })(ctx)) as AuditEnvelope;
     expect(out.schema).toBe('pil.agent.audit.v1');
     expect(out.space).toEqual({ id: '98', source: 'context' });
-    expect(out.scope).toEqual({ pagesRead: 5, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, maxPages: 25, morePagesInSpace: true });
+    expect(out.scope).toEqual({ pagesRead: 5, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, pagesNotReached: 0, maxPages: 25, morePagesInSpace: true });
     expect(out.totals).toEqual({ claims: 9, verified: 3, contradicted: 5, unknown: 1 });
     expect(out.pages.map((p) => [p.id, p.counts.contradicted, p.driftRatio])).toEqual([['2', 4, 0.8], ['5', 1, 0.5], ['1', 0, 0]]);
     expect(out.pages[0]?.untrustedTitle).toBe('Worst page');
     expect(out.pages[0]?.topContradictions).toHaveLength(3);
     expect(out.pages[0]?.topContradictions[0]).toMatchObject({ claimId: 'c_20000001', suggestion: { kind: 'replace', evidenceId: 'ev_20000001' } });
     expect(out.repo).toMatchObject({ fullName: 'acme/payments-api' });
+  });
+
+  it('stops when the time budget runs out and reports the pages it did not reach', async () => {
+    let t = 0;
+    const clock = { now: () => (t += 400), budgetMs: 1000 };
+    const out = (await createAuditSpaceHandler({ service: svc, readSpace, clock })(ctx)) as AuditEnvelope;
+    expect(out.scope).toMatchObject({ pagesRead: 5, pagesChecked: 2, pagesNotReached: 3 });
+    expect(out.pages.map((p) => p.id)).toEqual(['2', '1']);
   });
 
   it('breaks ties by ratio and then page id', () => {

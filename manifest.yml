@@ -216,7 +216,6 @@ modules:
       handler: actions/suggestFix.handler
     - key: audit-space-fn
       handler: actions/auditSpace.handler
-      timeoutSeconds: 55
     - key: index-repo-fn
       handler: consumers/indexRepo.handler
       timeoutSeconds: 300
