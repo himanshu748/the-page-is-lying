@@ -11,7 +11,12 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **Confluence macro "Runbook check"** (bodied). Put it around a section of a page. Claims are underlined and marked with an icon and a label, not by colour alone. Hover or focus a claim to see the evidence card with a permalink.
 - **Page byline item** showing the counts for the page and a way to check the whole page.
 - **Rovo agent "Runbook checker"**. Answers "is this page still true?" and "can I still call X?" using only the result of a read-only action. It cites evidence ids and never guesses. "No evidence found" is never presented as a pass.
-- **`rovo:mcp` tools** `check-page` and `check-claim`: the same read-only checks for Claude Code, Cursor or any MCP client.
+- **Five `rovo:mcp` tools** for Claude Code, Cursor or any MCP client, all read-only: `check-page`, `check-claim`, `explain-claim` (which rule decided, what was searched and how complete that index is), `suggest-fix` (the proposed edit for a contradicted claim, read from the code) and `audit-space` (the pages of a space ranked by contradicted claims). They return the same claim ids and evidence ids the Confluence panel shows.
+- **`rovo:skill` "runbook-checker"**: the same instructions as `skills/runbook-checker/SKILL.md`, packaged so any Rovo agent on the site can use the five actions.
+- **Suggested edit on every contradiction.** The nearest route, variable, flag, key, path or declared version, with the evidence id it came from. A proposal for a person to review: the app never edits a page.
+- **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has.
+- **Space page "Doc drift"** in the space sidebar: the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
+- **Get started guide** on the settings page, with a button that connects the public demo repository and starts indexing.
 - **Optional Jira draft.** For a contradicted claim the app shows the exact issue text first. Nothing is written without a click.
 - **Admin settings page** for the repository URL, branch, optional read-only token, service hosts and Jira ids, with index status and an "Index now" button.
 
@@ -73,7 +78,7 @@ Optional live check of the public demo repo (network, unauthenticated GitHub rat
 3. Optional: a read-only GitHub token. It raises the rate limit and allows private repositories. It is stored with Forge's secret storage, never shown again, and never sent to the browser or to an agent.
 4. Click **Save settings**, then **Index now**. The first time, Forge may ask you to allow the app to act on your behalf (an "Allow access" prompt). Accept it: the app reads your Confluence user record once to confirm that you are a Confluence administrator before it saves. If the save fails, the page says so and asks you to reload and allow access. The settings page shows branch, commit, file count and coverage per kind.
 5. Insert the **Runbook check** macro in a page (type `/Runbook check`) and write the section inside it, or use the byline item to check the whole page.
-6. Enable the MCP tools for external clients: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**. Under "Tools: Expose tools to MCP-compatible apps", choose **Enable tools** and confirm. It is one switch for both tools (`check-page`, `check-claim`). External exposure is off until an admin does this.
+6. Enable the MCP tools for external clients: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**. Under "Tools: Expose tools to MCP-compatible apps", choose **Enable tools** and confirm. It is one switch for all five tools (`check-page`, `check-claim`, `explain-claim`, `suggest-fix`, `audit-space`). External exposure is off until an admin does this.
 
 ## External MCP clients
 
@@ -100,6 +105,8 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 - Index limits: size, file count and per-kind entry caps; a truncated or dynamic repo makes coverage `partial`, which turns would-be red claims into "No evidence found" instead of a false contradiction.
 - Supported source for the index: JavaScript and TypeScript, Python, Go, Java; other languages mark coverage `partial`.
 - Claims per page: at most 200 (the report says when it was truncated). Page body limit 400 KB for the macro and byline.
+- Space audit: the 25 most recently edited pages of a space that the calling user can view, within a 15 second time budget. The result says how many pages were read, checked, skipped and not reached.
+- First index under the GitHub rate limit: when the REST API refuses the commit lookup, the index job reads the commit id from the archive it downloads anyway, so the first index does not depend on the hourly limit.
 - GitHub unauthenticated rate limit: 60 requests per hour. The app asks for the commit at most once every 10 minutes and serves a stale index (marked stale) when the host rate-limits it.
 - Freshness: an index younger than 15 minutes is used as is; after that a changed branch head triggers a background reindex.
 - No LLM in the check. The Rovo agent and MCP client only phrase what the action returned.
