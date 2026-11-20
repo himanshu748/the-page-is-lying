@@ -12,7 +12,7 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **Page byline item** showing the counts for the page and a way to check the whole page.
 - **Rovo agent "Runbook checker"**. Answers "is this page still true?" and "can I still call X?" using only the result of a read-only action. It cites evidence ids and never guesses. "No evidence found" is never presented as a pass.
 - **Five `rovo:mcp` tools** for Claude Code, Cursor or any MCP client, all read-only: `check-page`, `check-claim`, `explain-claim` (which rule decided, what was searched and how complete that index is), `suggest-fix` (the proposed edit for a contradicted claim, read from the code) and `audit-space` (the pages of a space ranked by contradicted claims). They return the same claim ids and evidence ids the Confluence panel shows.
-- **`rovo:skill` "runbook-checker"**: the same instructions as `skills/runbook-checker/SKILL.md`, packaged so any Rovo agent on the site can use the five actions.
+- **`rovo:skill` "runbook-checker"**: the same instructions as `skills/runbook-checker/SKILL.md`, packaged as a Forge skill and bound to the Runbook checker agent, which loads it for checks and the multi-step space audit.
 - **Suggested edit on every contradiction.** The nearest route, variable, flag, key, path or declared version, with the evidence id it came from. A proposal for a person to review: the app never edits a page.
 - **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has.
 - **Space page "Doc drift"** in the space sidebar: the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.

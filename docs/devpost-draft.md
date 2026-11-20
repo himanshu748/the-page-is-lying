@@ -18,7 +18,7 @@ The problem is common. In the State of the Developer Nation Q1 2025 survey (over
 - Each claim is marked **Verified**, **Contradicted by code** or **No evidence found**, with an icon, a label and an underline, not colour alone. The hover or focus card shows the evidence, for example "the repo only has `POST /v2/payments`, `src/routes.ts:88`", with a permalink to the line.
 - A **Rovo agent, "Runbook checker"**, answers "is this page still true?" and "can I still call `/v1/charge`?" using only the result of a read-only action. It cites evidence ids, states the counts, repository and commit, and never treats "no evidence found" as a pass.
 - A **`rovo:mcp` server** exposes five read-only tools (`check-page`, `check-claim`, `explain-claim`, `suggest-fix`, `audit-space`) to Claude Code, Cursor and other MCP clients. They return the same evidence ids the Confluence panel shows.
-- A **`rovo:skill`** packages the checker's instructions so any Rovo agent on the site can run the checks and the multi-step space audit.
+- A **`rovo:skill`** packages the checker's instructions as a reusable skill; the Runbook checker agent loads it for the checks and the multi-step space audit.
 - A **Doc drift space page** ranks the pages of a space by contradicted claims, and every contradiction shows a suggested edit and who to ask (page owner and last editor).
 - An optional **Jira draft** for a contradicted claim shows the exact issue text first. Nothing is written without a click.
 
