@@ -123,7 +123,7 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
       'cli_flag_not_defined',
       contradictedCliFlagStatement({ program: 'payments', subcommand: 'refund', flag: '--force', defined: ['--confirm', '--reason'], file: 'src/cli.ts', line: 21 }),
       [ev('ev_e5f6a7b8', 'nearest', 'src/cli.ts', 21, ".command('refund <paymentId>')")],
-      { kind: 'replace', replacement: 'payments refund', evidenceId: 'ev_e5f6a7b8', alternatives: ['payments refund --confirm', 'payments refund --reason'] },
+      { kind: 'replace', replacement: 'payments refund <paymentId>', evidenceId: 'ev_e5f6a7b8', alternatives: ['payments refund <paymentId> --confirm', 'payments refund <paymentId> --reason'] },
     ),
     result(
       claim(5, 'cli', { type: 'cli', program: 'ledgerctl', subcommands: ['reconcile'], flags: ['--since'] }),

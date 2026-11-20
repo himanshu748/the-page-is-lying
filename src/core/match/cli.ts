@@ -71,7 +71,7 @@ function matchTargetRunner(
     }),
     evidence,
     // The same command line with the defined script or target in place of the missing one.
-    makeSuggestion(names.map((candidate) => swapToken(n, name, candidate)), top ? evidence[0] : undefined),
+    makeSuggestion(names.map((candidate) => editCommand(claim.raw, [name], candidate) ?? swapToken(n, name, candidate)), top ? evidence[0] : undefined),
   );
 }
 
@@ -79,6 +79,29 @@ function matchTargetRunner(
 function swapToken(n: CliClaim, from: string, to: string): string {
   const subs = n.subcommands.some((token) => token === from) ? n.subcommands.map((token) => (token === from ? to : token)) : [...n.subcommands, to];
   return [n.program, ...subs, ...n.flags].join(' ');
+}
+
+/**
+ * The command as the page wrote it, with the tokens in `remove` (in order) replaced by `insert`, or dropped
+ * when `insert` is empty. Every other token stays, so arguments and flag values the normalized claim does not
+ * keep (`<paymentId>`, `--amount 500`) are not lost from the proposed edit. Undefined when a token is not in
+ * the text.
+ */
+function editCommand(raw: string, remove: readonly string[], insert: string): string | undefined {
+  const tokens = raw.trim().split(/\s+/);
+  const at: number[] = [];
+  let from = 0;
+  for (const wanted of remove) {
+    const isFlag = wanted.startsWith('-');
+    const found = tokens.findIndex((token, i) => i >= from && (token === wanted || (isFlag && token.startsWith(`${wanted}=`))));
+    if (found === -1) return undefined;
+    at.push(found);
+    from = found + 1;
+  }
+  const first = at[0];
+  if (first === undefined) return undefined;
+  const drop = new Set(at);
+  return tokens.flatMap((token, i) => (i === first && insert !== '' ? [insert] : drop.has(i) ? [] : [token])).join(' ');
 }
 
 export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimResult {
@@ -142,7 +165,10 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
         detail: alternativesDetail({ label: 'The program defines', items: names, ...(top ? { file: top.file, line: top.line } : {}) }),
       }),
       evidence,
-      makeSuggestion(names.map((candidate) => `${n.program} ${candidate}`), top ? evidence[0] : undefined),
+      makeSuggestion(
+        names.map((candidate) => editCommand(claim.raw, subs, candidate) ?? `${n.program} ${candidate}`),
+        top ? evidence[0] : undefined,
+      ),
     );
   }
 
@@ -156,7 +182,8 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   const definition = makeEvidence(index, 'nearest', target);
   // The command without the flag the code does not define. The flags it does define are the alternatives.
-  const withoutFlag = [n.program, ...subs, ...n.flags.filter((flag) => flag !== missing)].join(' ');
+  const withoutFlag = editCommand(claim.raw, [missing], '') ?? [n.program, ...n.subcommands, ...n.flags.filter((flag) => flag !== missing)].join(' ');
+  const withFlag = (flag: string): string => editCommand(claim.raw, [missing], flag) ?? [n.program, ...n.subcommands, flag].join(' ');
   return toResult(
     claim,
     'contradicted',
@@ -170,7 +197,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       line: target.line,
     }),
     [definition, ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
-    makeSuggestion([withoutFlag, ...target.flags.map((flag) => [n.program, ...subs, flag].join(' '))], definition),
+    makeSuggestion([withoutFlag, ...target.flags.map(withFlag)], definition),
   );
 }
 

@@ -54,6 +54,29 @@ describe('fix suggestions on contradicted results', () => {
     });
   });
 
+  it('cli: the proposed command keeps the arguments and flag values the page wrote', () => {
+    const index = makeIndex({
+      cli: [
+        { ...loc('src/cli.ts', 5), program: 'payments', subcommands: [], flags: [], kind: 'bin' },
+        { ...loc('src/cli.ts', 12), program: 'payments', subcommands: ['refund'], flags: ['--confirm', '--amount'], kind: 'command' },
+      ],
+    });
+    const flag = matchClaim(
+      makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund', '<paymentId>'], flags: ['--amount', '--force'] }, 'payments refund <paymentId> --amount 500 --force'),
+      index,
+    );
+    expect(flag.reason).toBe('cli_flag_not_defined');
+    expect(flag.suggestion).toMatchObject({
+      replacement: 'payments refund <paymentId> --amount 500',
+      alternatives: ['payments refund <paymentId> --amount 500 --confirm', 'payments refund <paymentId> --amount 500 --amount'],
+    });
+    const valued = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund', '<id>'], flags: ['--force'] }, 'payments refund <id> --force=true'), index);
+    expect(valued.suggestion?.replacement).toBe('payments refund <id>');
+    const sub = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refnd', '<paymentId>'], flags: ['--confirm'] }, 'payments refnd <paymentId> --confirm'), index);
+    expect(sub.reason).toBe('cli_subcommand_not_defined');
+    expect(sub.suggestion?.replacement).toBe('payments refund <paymentId> --confirm');
+  });
+
   it('cli subcommand and npm script: propose the defined name in the same command line', () => {
     const index = makeIndex({
       cli: [
