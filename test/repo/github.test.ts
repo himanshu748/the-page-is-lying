@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GitHubSource } from '../../src/repo/github';
+import { archiveCommitId } from '../../src/repo/tar';
 import { DEFAULT_LIMITS as DEFAULTS, RepoError, createCounters, toReasonCode } from '../../src/repo/source';
 import type { RepoErrorReason } from '../../src/repo/source';
 import { buildTarGz, fakeFetch, filesToEntries, loadFixture } from './helpers';
@@ -139,6 +140,64 @@ describe('GitHubSource.snapshot', () => {
 async function drain(it: AsyncIterable<unknown>): Promise<void> {
   for await (const x of it) void x;
 }
+
+describe('archive fallback for the commit lookup', () => {
+  const ARCHIVE_SHA = '0123456789abcdef0123456789abcdef01234567'; // written by buildTar's pax global header
+  const tarball = buildTarGz('o-r-0123456', filesToEntries(loadFixture('payments-api-mini')));
+  const limited = { status: 403, headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': String(NOW / 1000 + 600) } };
+  const withFallback = (routes: Route[]) => {
+    const f = fakeFetch(routes);
+    return { f, s: new GitHubSource({ owner: 'o', repo: 'r', fetch: f.fetch, now: () => NOW, archiveFallback: true }) };
+  };
+
+  it('reads the commit id from the pax global header', () => {
+    expect(archiveCommitId(tarball)).toBe(ARCHIVE_SHA);
+    expect(archiveCommitId(buildTarGz('t', [{ path: 'a.ts', data: 'x' }], { pax: false }))).toBeUndefined();
+    expect(archiveCommitId(Buffer.from('garbage'))).toBeUndefined();
+    expect(archiveCommitId(new Uint8Array(0))).toBeUndefined();
+  });
+
+  it('resolves the ref from codeload when the REST API is rate limited, and reuses that download', async () => {
+    const { s, f } = withFallback([(r) => (r.url.startsWith('https://api.github.com/') ? limited : { body: tarball })]);
+    expect(await s.resolveRef()).toEqual({ sha: ARCHIVE_SHA, ref: 'HEAD' });
+    const files = [];
+    for await (const file of s.snapshot(ARCHIVE_SHA)) files.push(file);
+    expect(files.some((x) => x.path === 'src/routes.ts')).toBe(true);
+    expect(f.calls.map((c) => c.url)).toEqual(['https://api.github.com/repos/o/r/commits/HEAD', 'https://codeload.github.com/o/r/tar.gz/HEAD']);
+    // The kept archive is used once. A later snapshot downloads again.
+    for await (const x of s.snapshot(ARCHIVE_SHA)) void x;
+    expect(f.calls[2]?.url).toBe(`https://codeload.github.com/o/r/tar.gz/${ARCHIVE_SHA}`);
+  });
+
+  it('keeps the branch name in the archive URL and does not reuse the archive for another commit', async () => {
+    const { s, f } = withFallback([(r) => (r.url.startsWith('https://api.github.com/') ? limited : { body: tarball })]);
+    expect((await s.resolveRef('release/2.x')).sha).toBe(ARCHIVE_SHA);
+    expect(f.calls[1]?.url).toBe('https://codeload.github.com/o/r/tar.gz/release/2.x');
+    for await (const x of s.snapshot(SHA)) void x;
+    expect(f.calls[2]?.url).toBe(`https://codeload.github.com/o/r/tar.gz/${SHA}`);
+  });
+
+  it('is off unless asked for, so a page view never downloads an archive', async () => {
+    const { s, f } = source([(r) => (r.url.startsWith('https://api.github.com/') ? limited : { body: tarball })]);
+    expect((await failure(s.resolveRef())).reason).toBe('rate_limited');
+    expect(f.calls).toHaveLength(1);
+  });
+
+  it('reports the rate limit, with its reset time, when the archive cannot answer', async () => {
+    for (const archive of [{ status: 429 }, { status: 404 }, { body: Buffer.from('garbage') }, { body: buildTarGz('t', [], { pax: false }) }, { body: 'x', headers: { 'content-length': String(26 * 1024 * 1024) } }]) {
+      const { s } = withFallback([(r) => (r.url.startsWith('https://api.github.com/') ? limited : archive)]);
+      const e = await failure(s.resolveRef('main'));
+      expect(e.reason).toBe('rate_limited');
+      expect(e.resetAt).toBe(new Date(NOW + 600_000).toISOString());
+    }
+  });
+
+  it('does not fall back for errors that are not a rate limit', async () => {
+    const { s, f } = withFallback([() => ({ status: 404 })]);
+    expect((await failure(s.resolveRef('main'))).reason).toBe('repo_not_found_or_private');
+    expect(f.calls).toHaveLength(1);
+  });
+});
 
 describe('permalink and constructor', () => {
   const { s } = source([]);

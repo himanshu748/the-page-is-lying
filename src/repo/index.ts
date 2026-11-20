@@ -60,10 +60,15 @@ export interface CreateSourceOptions {
   token?: string;
   fetch: FetchFn;
   now?: () => number;
+  /** GitHub only: see `GitHubSourceOptions.archiveFallback`. */
+  archiveFallback?: boolean;
 }
 
 export function createRepoSource(opts: CreateSourceOptions): RepoSource {
   const c = parseRepoUrl(opts.repoUrl);
   const base = { fetch: opts.fetch, ...(opts.token !== undefined ? { token: opts.token } : {}), ...(opts.now ? { now: opts.now } : {}) };
-  return c.provider === 'github' ? new GitHubSource({ owner: c.owner, repo: c.repo, ...base }) : new BitbucketSource({ workspace: c.owner, repo: c.repo, ...base });
+  if (c.provider === 'github') {
+    return new GitHubSource({ owner: c.owner, repo: c.repo, ...base, ...(opts.archiveFallback ? { archiveFallback: true } : {}) });
+  }
+  return new BitbucketSource({ workspace: c.owner, repo: c.repo, ...base });
 }
