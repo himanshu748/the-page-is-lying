@@ -117,6 +117,46 @@ export function unknownReasonText(reason: UnknownReasonKey, claim?: string): str
   return claim === undefined || claim === '' ? base : `${base} (${claim})`;
 }
 
+/** One sentence for a fix suggestion. `claim` and the replacement are already sanitized by the caller. */
+export function suggestionStatement(args: { claim: string; kind: 'replace' | 'remove'; replacement?: string }): string {
+  if (args.kind === 'replace' && args.replacement !== undefined && args.replacement !== '') {
+    return `Suggested edit: replace ${args.claim} with ${args.replacement}. Review it before you change the page.`;
+  }
+  return `Suggested edit: remove or rewrite ${args.claim}. The code has no close counterpart.`;
+}
+
+export const NO_SUGGESTION_VERIFIED = 'No edit suggested: the claim matches the code.';
+export const NO_SUGGESTION_UNKNOWN = `No edit suggested: no evidence was found either way. ${UNKNOWN_DISCLAIMER}`;
+
+/** How each rule decides, for the explain-claim tool. Fixed text: nothing from the page or the repository. */
+const REASON_EXPLANATION: Record<string, string> = {
+  route_exact: 'A route with the same method and path is defined in the code.',
+  route_any_method: 'The claim names no method, and a route with this path is defined in the code.',
+  env_read_in_code: 'The code reads an environment variable with this exact name.',
+  env_listed_in_config: 'An env example, compose or Kubernetes file lists a variable with this exact name.',
+  cli_defined: 'The command and every flag in the claim are defined in the code.',
+  script_defined: 'A package script or make target with this name is defined.',
+  config_key_present: 'A parsed configuration file defines this key.',
+  file_present: 'A file or directory with this path is in the repository tree.',
+  package_range_intersects: 'A manifest declares this package with a version range that overlaps the claim.',
+  route_absent_nearest: 'Route coverage is complete and no route matches. The nearest routes are cited.',
+  route_absent: 'Route coverage is complete, no route matches and none is similar.',
+  env_not_read: 'Env coverage is complete and nothing reads or lists this name. The nearest names are cited.',
+  cli_flag_not_defined: 'The command is defined, but it does not define one of the flags in the claim.',
+  cli_subcommand_not_defined: 'The program is defined, but not this subcommand.',
+  script_not_defined: 'Scripts or targets are defined, but none has this name.',
+  config_key_absent: 'Config coverage is complete and no parsed file defines this key.',
+  file_absent: 'The repository tree is complete and has no file at this path.',
+  package_range_conflict: 'A manifest declares this package with a version range that does not overlap the claim.',
+};
+
+export function reasonExplanation(reason: string): string {
+  const fixed = REASON_EXPLANATION[reason];
+  if (fixed !== undefined) return fixed;
+  const unknown = (UNKNOWN_REASON_TEXT as Record<string, string | undefined>)[reason];
+  return unknown === undefined ? 'No evidence was found either way.' : `No evidence was found: ${unknown}.`;
+}
+
 export function jiraDraftSummary(args: { claim: string }): string {
   return `Update runbook: ${args.claim} is contradicted by code`;
 }
