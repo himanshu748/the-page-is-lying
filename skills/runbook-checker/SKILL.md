@@ -1,6 +1,6 @@
 ---
 name: runbook-checker
-description: Check whether claims in a Confluence runbook or how-to page (HTTP endpoints, env vars, CLI commands and flags, config keys, file paths, package versions) still match the code, using the read-only check-page and check-claim tools of "The Page Is Lying". Use when someone asks if a page is still true, or if an endpoint, variable or flag still exists.
+description: Check whether claims in a Confluence runbook or how-to page (HTTP endpoints, env vars, CLI commands and flags, config keys, file paths, package versions) still match the code, using the read-only check-page, check-claim, explain-claim, suggest-fix and audit-space tools of "The Page Is Lying". Use when someone asks if a page is still true, if an endpoint, variable or flag still exists, why a claim was contradicted, how to fix it, or which pages in a space drifted from the code.
 license: MIT
 ---
 
@@ -15,7 +15,31 @@ license: MIT
 | `check-page` | The question is about a whole page: "is this page still true?", "what in this runbook is out of date?" | `page`: a Confluence page URL or numeric page ID. Optional inside Rovo when the user is viewing the page. Required from an external client. |
 | `check-claim` | The question is about one thing: "can I still call POST /v1/charge?", "is STRIPE_KEY still read?", "does `payments refund --force` exist?" | `claim`: the text as the user wrote it, at most 300 characters. `page`: optional. |
 
-Both tools are read-only. They never create, edit or delete anything.
+| `explain-claim` | The user asks why a claim got its verdict. | `claim` (required), `page` (optional). |
+| `suggest-fix` | The user asks how to fix a contradicted claim or a page. | `claim` for one edit, or only `page` for every contradicted claim on it. |
+| `audit-space` | The user asks which pages in a space drifted from the code. | `page`: any page in the space. Optional inside Rovo when the user is viewing a page. |
+
+All five tools are read-only. They never create, edit or delete anything. Every tool returns the same `claimId` and evidence `id` values for the same page and commit, and they are the IDs the Confluence panel shows.
+
+### Explaining a verdict
+
+`explain-claim` returns `schema: "pil.agent.explain.v1"` with `explanations[]`. Each entry has the fields of a result plus `reason` (the rule code), `rule` (how that rule decides), `untrustedParsed` (how the text was read), `searched` (`index` and its `coverage`), `evidenceRoles` (evidence IDs grouped as `match`, `nearest`, `absence`, `coverage`) and `suggestion`.
+
+### Proposing an edit
+
+`suggest-fix` returns `schema: "pil.agent.fix.v1"` with `applied: false` and `fixes[]`. Each fix has a `suggestion`:
+
+- `kind: "replace"`: `untrustedReplacement` is the counterpart read from the code, `evidenceId` is the evidence entry it came from, `untrustedAlternatives` lists other candidates.
+- `kind: "remove"`: the code has no close counterpart.
+- `kind: "none"`: the claim is verified, or no evidence was found. Do not propose an edit.
+
+Present an edit as a proposal for a person to review. Quote the replacement exactly and cite its evidence ID.
+
+### Auditing a space
+
+`audit-space` returns `schema: "pil.agent.audit.v1"`: `scope` (pages read, checked, skipped, without claims, not reached in the time allowed, and `morePagesInSpace`), `totals`, and `pages[]` sorted by contradicted claims, most first. Each page has `id`, `untrustedTitle`, `counts`, `driftRatio`, `claimsTruncated` and up to three `topContradictions` with their proposed edits. When `claimsTruncated` is true (also on `suggest-fix`), say that the page has more claims than the limit and the rest were not checked: never describe such a page as free of contradictions. It reads the 25 most recently edited pages the calling user can view.
+
+Work in steps: run `audit-space`, state the scope, list the ranked pages, give the top contradictions of the first three pages with citations and proposed edits, then offer `suggest-fix` for the full list of a page. Never describe a page the result does not list.
 
 ### Passing a page
 

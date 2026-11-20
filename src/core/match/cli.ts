@@ -12,7 +12,7 @@ import {
   contradictedGenericStatement,
   verifiedStatement,
 } from '../wording';
-import { describeClaim, makeEvidence, sanitizeUntrusted, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, sanitizeUntrusted, toResult } from './evidence';
 import { rankNames } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -70,7 +70,39 @@ function matchTargetRunner(
       }),
     }),
     evidence,
+    // The same command line with the defined script or target in place of the missing one.
+    makeSuggestion(names.map((candidate) => editCommand(claim.raw, n.program, [name], candidate) ?? swapToken(n, name, candidate)), top ? evidence[0] : undefined),
   );
+}
+
+/** The claim's command line with one token replaced. Flags are kept. */
+function swapToken(n: CliClaim, from: string, to: string): string {
+  const subs = n.subcommands.some((token) => token === from) ? n.subcommands.map((token) => (token === from ? to : token)) : [...n.subcommands, to];
+  return [n.program, ...subs, ...n.flags].join(' ');
+}
+
+/**
+ * The command as the page wrote it, with the tokens in `remove` (in order) replaced by `insert`, or dropped
+ * when `insert` is empty. Every other token stays, so arguments and flag values the normalized claim does not
+ * keep (`<paymentId>`, `--amount 500`) are not lost from the proposed edit. The search starts after the
+ * program, so `deploy deploy` edits the subcommand and not the executable. Undefined when a token is not in
+ * the text.
+ */
+function editCommand(raw: string, program: string, remove: readonly string[], insert: string): string | undefined {
+  const tokens = raw.trim().split(/\s+/);
+  const at: number[] = [];
+  let from = tokens.indexOf(program) + 1;
+  for (const wanted of remove) {
+    const isFlag = wanted.startsWith('-');
+    const found = tokens.findIndex((token, i) => i >= from && (token === wanted || (isFlag && token.startsWith(`${wanted}=`))));
+    if (found === -1) return undefined;
+    at.push(found);
+    from = found + 1;
+  }
+  const first = at[0];
+  if (first === undefined) return undefined;
+  const drop = new Set(at);
+  return tokens.flatMap((token, i) => (i === first && insert !== '' ? [insert] : drop.has(i) ? [] : [token])).join(' ');
 }
 
 export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimResult {
@@ -134,6 +166,10 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
         detail: alternativesDetail({ label: 'The program defines', items: names, ...(top ? { file: top.file, line: top.line } : {}) }),
       }),
       evidence,
+      makeSuggestion(
+        names.map((candidate) => editCommand(claim.raw, n.program, subs, candidate) ?? `${n.program} ${candidate}`),
+        top ? evidence[0] : undefined,
+      ),
     );
   }
 
@@ -145,6 +181,10 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
     ]);
   }
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
+  const definition = makeEvidence(index, 'nearest', target);
+  // The command without the flag the code does not define. The flags it does define are the alternatives.
+  const withoutFlag = editCommand(claim.raw, n.program, [missing], '') ?? [n.program, ...n.subcommands, ...n.flags.filter((flag) => flag !== missing)].join(' ');
+  const withFlag = (flag: string): string => editCommand(claim.raw, n.program, [missing], flag) ?? [n.program, ...n.subcommands, flag].join(' ');
   return toResult(
     claim,
     'contradicted',
@@ -157,7 +197,8 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       file: target.file,
       line: target.line,
     }),
-    [makeEvidence(index, 'nearest', target), ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
+    [definition, ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
+    makeSuggestion([withoutFlag, ...target.flags.map(withFlag)], definition),
   );
 }
 

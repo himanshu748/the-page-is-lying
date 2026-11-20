@@ -2,7 +2,12 @@
  * Payload shapes shared by the UI resolvers (src/resolvers/ui.ts) and the Custom UI (static/ui/src).
  * Types only, so the UI bundle imports nothing at runtime from here.
  */
+import type { AuditEnvelope } from '../actions/auditSpace';
+import type { PageContact } from '../actions/contacts';
 import type { Coverage, IndexKind, Report } from '../core/model';
+
+export type { AuditEnvelope, AuditedPage } from '../actions/auditSpace';
+export type { PageContact } from '../actions/contacts';
 
 export interface PageInfo {
   id: string;
@@ -80,3 +85,21 @@ export interface BylineProperties {
   title: string;
   tooltip: string;
 }
+
+export interface PageContactsPayload {
+  contentId: string;
+}
+
+/** Owner, last editor and creator of the page. Empty when they cannot be read. */
+export interface PageContactsResponse {
+  contacts: PageContact[];
+}
+
+/** Space drift page. `audit` is the same `pil.agent.audit.v1` result the audit-space tool returns. */
+export type DriftResponse =
+  | { state: 'ready'; audit: AuditEnvelope }
+  | { state: 'indexing' }
+  | { state: 'no_repo' }
+  | { state: 'repo_not_found' }
+  | { state: 'rate_limited' }
+  | { state: 'error'; message: string };

@@ -1,7 +1,7 @@
 /** file_path rules (PLAN.md 7.2). */
 import type { Claim, ClaimResult, FilePathClaim } from '../model';
 import { alternativesDetail, contradictedGenericStatement, verifiedFileStatement } from '../wording';
-import { describeClaim, makeEvidence, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, toResult } from './evidence';
 import { rankMovedFiles } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -42,5 +42,7 @@ export function matchFile(claim: Claim, n: FilePathClaim, ctx: MatchContext): Cl
             }),
     }),
     evidence,
+    // Only a file with the same name elsewhere is a counterpart. Neighbours in the nearest directory are not.
+    makeSuggestion(near.moved ? near.files.map((file) => file.path) : [], near.moved ? evidence[0] : undefined),
   );
 }

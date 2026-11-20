@@ -4,6 +4,8 @@ import { setBackend } from '../../src/resolvers/backend';
 import type { CheckDocumentInput, PageContent, StoredSettings, UiBackend } from '../../src/resolvers/backend';
 import { dynamicProperties, titleFor } from '../../src/resolvers/byline';
 import type { CheckResponse, IndexStatus } from '../../src/resolvers/contract';
+import { setInsights } from '../../src/resolvers/insights';
+import type { Insights } from '../../src/resolvers/insights';
 import { handler } from '../../src/resolvers/ui';
 import { validateHosts, validateRef, validateRepoUrl } from '../../src/resolvers/validate';
 
@@ -75,7 +77,10 @@ beforeEach(() => {
   backend = makeBackend();
   setBackend(backend);
 });
-afterEach(() => setBackend(undefined));
+afterEach(() => {
+  setBackend(undefined);
+  setInsights(undefined);
+});
 
 describe('validateRepoUrl', () => {
   it('accepts and canonicalises GitHub URLs', () => {
@@ -255,6 +260,73 @@ describe('checkPage', () => {
     setBackend((backend = makeBackend({ page: null })));
     expect(await call('checkPage', { contentId: '42' }, macroCtx)).toMatchObject({ state: 'error' });
     expect(backend.checks).toHaveLength(0);
+  });
+});
+
+describe('getPageContacts and auditSpace', () => {
+  const audit = {
+    schema: 'pil.agent.audit.v1' as const,
+    dataNotice: 'n',
+    space: { id: '98', source: 'context' as const },
+    repo: null,
+    scope: { pagesRead: 0, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
+    totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 },
+    pages: [],
+  };
+  const insights = (over: Partial<Insights> = {}): Insights & { spaces: string[] } => {
+    const spaces: string[] = [];
+    return {
+      spaces,
+      pageContacts: () =>
+        Promise.resolve([
+          { role: 'owner', accountId: 'a1', displayName: 'Asha Rao' },
+          { role: 'last_editor', accountId: 'a2', displayName: 'Ben Ito' },
+          { role: 'creator', accountId: 'a3', displayName: 'Cy Wu' },
+          { role: 'creator', accountId: 'a4', displayName: 'Extra' },
+        ]),
+      auditSpace: (spaceId) => {
+        spaces.push(spaceId);
+        return Promise.resolve(audit);
+      },
+      ...over,
+    };
+  };
+  const driftCtx = { moduleKey: 'runbook-drift', extension: { space: { id: '98', key: 'OPS' } } };
+
+  it('returns at most three contacts and an empty list for bad ids or failures', async () => {
+    setInsights(insights());
+    const ok = (await call('getPageContacts', { contentId: '42' }, macroCtx)) as { contacts: unknown[] };
+    expect(ok.contacts).toHaveLength(3);
+    expect(ok.contacts[0]).toEqual({ role: 'owner', accountId: 'a1', displayName: 'Asha Rao' });
+    expect(await call('getPageContacts', { contentId: '../1' }, macroCtx)).toEqual({ contacts: [] });
+    setInsights(insights({ pageContacts: () => Promise.reject(new Error('x')) }));
+    expect(await call('getPageContacts', { contentId: '42' }, macroCtx)).toEqual({ contacts: [] });
+  });
+
+  it('audits the space from the context only, and only from the space page', async () => {
+    const fake = insights();
+    setInsights(fake);
+    expect(await call('auditSpace', { spaceId: '7' }, driftCtx)).toEqual({ state: 'ready', audit });
+    expect(fake.spaces).toEqual(['98']);
+    expect(await call('auditSpace', {}, macroCtx)).toMatchObject({ state: 'error' });
+    expect(await call('auditSpace', {}, { moduleKey: 'runbook-drift', extension: { space: { id: '../x' } } })).toMatchObject({ state: 'error' });
+    expect(fake.spaces).toEqual(['98']);
+  });
+
+  it('maps audit errors to states and never to a result', async () => {
+    const failing = (error: string) => insights({ auditSpace: () => Promise.resolve({ schema: 'pil.agent.error.v1', error, message: 'm' } as never) });
+    setInsights(failing('index_missing'));
+    expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'indexing' });
+    setBackend({ ...backend, loadSettings: () => Promise.resolve({ repoUrl: '', ref: '', serviceHosts: [], jiraProjectId: '', jiraIssueTypeId: '' }) });
+    expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'no_repo' });
+    setInsights(failing('repo_not_found_or_private'));
+    expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'repo_not_found' });
+    setInsights(failing('rate_limited'));
+    expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'rate_limited' });
+    setInsights(failing('forbidden'));
+    expect(await call('auditSpace', {}, driftCtx)).toMatchObject({ state: 'error', message: 'You cannot view the pages of this space.' });
+    setInsights(insights({ auditSpace: () => Promise.reject(new Error('x')) }));
+    expect(await call('auditSpace', {}, driftCtx)).toMatchObject({ state: 'error' });
   });
 });
 

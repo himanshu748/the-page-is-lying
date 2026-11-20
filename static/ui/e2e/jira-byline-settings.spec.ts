@@ -12,7 +12,7 @@ const EXPECTED_DESCRIPTION = [
   'Checked against himanshu748/payments-api@3f2c1a9.',
 ].join('\n');
 
-const READ_ONLY_CALLS = new Set(['checkBody', 'checkPage', 'getJiraTarget', 'getSettings', 'getIndexStatus']);
+const READ_ONLY_CALLS = new Set(['checkBody', 'checkPage', 'getJiraTarget', 'getSettings', 'getIndexStatus', 'getPageContacts']);
 
 async function openJiraDraft(page: Page, query: string) {
   await page.goto(`/?module=runbook-check${query}`);

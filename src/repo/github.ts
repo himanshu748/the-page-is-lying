@@ -3,7 +3,7 @@
  * tarball from codeload.github.com (PLAN.md section 8). Hosts are fixed here; nothing from
  * the repo or the page can change them.
  */
-import { iterateTarGz } from './tar';
+import { archiveCommitId, iterateTarGz } from './tar';
 import {
   DEFAULT_LIMITS,
   RepoError,
@@ -29,6 +29,12 @@ export interface GitHubSourceOptions {
   token?: string;
   fetch: FetchFn;
   now?: () => number;
+  /**
+   * When the REST API refuses the commit lookup because of its rate limit, read the commit id from the
+   * archive on codeload.github.com instead (see `resolveRef`). Off by default: only the index job turns it
+   * on, so a page view never downloads an archive.
+   */
+  archiveFallback?: boolean;
 }
 
 export class GitHubSource implements RepoSource {
@@ -39,6 +45,9 @@ export class GitHubSource implements RepoSource {
   private readonly token: string | undefined;
   private readonly doFetch: FetchFn;
   private readonly now: () => number;
+  private readonly archiveFallback: boolean;
+  /** Archive downloaded by the fallback in `resolveRef`, reused once by `snapshot` for the same commit. */
+  private prefetched: { sha: string; archive: Uint8Array } | undefined;
 
   constructor(opts: GitHubSourceOptions) {
     if (!GITHUB_OWNER_RE.test(opts.owner) || !GITHUB_REPO_RE.test(opts.repo) || opts.repo === '.' || opts.repo === '..') {
@@ -50,6 +59,7 @@ export class GitHubSource implements RepoSource {
     this.token = opts.token;
     this.doFetch = opts.fetch;
     this.now = opts.now ?? Date.now;
+    this.archiveFallback = opts.archiveFallback ?? false;
     this.fullName = `${opts.owner}/${opts.repo}`;
   }
 
@@ -73,24 +83,65 @@ export class GitHubSource implements RepoSource {
     if (name !== 'HEAD' && !validateRef(name)) throw new RepoError('ref_not_found', 'The branch or tag name is not valid.');
     const url = `https://${GITHUB_API_HOST}/repos/${this.owner}/${this.repo}/commits/${encodePath(name)}`;
     const res = await this.get(url, this.headers({ Accept: 'application/vnd.github.sha', 'X-GitHub-Api-Version': '2022-11-28' }));
-    if (!res.ok) throw await this.mapError(res, 'api');
+    if (!res.ok) {
+      const error = await this.mapError(res, 'api');
+      if (error.reason === 'rate_limited' && this.archiveFallback) {
+        const sha = await this.resolveFromArchive(name);
+        if (sha !== undefined) return { sha, ref: name };
+      }
+      throw error;
+    }
     const sha = (await res.text()).trim();
     if (!SHA_RE.test(sha)) throw new RepoError('upstream_error', 'GitHub returned an unexpected commit id.');
     return { sha, ref: name };
   }
 
+  /**
+   * The REST API allows 60 unauthenticated requests an hour for each address, and Forge apps share
+   * addresses. codeload.github.com is not counted against that limit, and its archive names the commit
+   * it was made from, so the ref can be resolved from the archive that indexing needs anyway.
+   * Returns undefined when that does not work; the caller then reports the rate limit.
+   */
+  private async resolveFromArchive(name: string): Promise<string | undefined> {
+    try {
+      const url = `https://${GITHUB_CODELOAD_HOST}/${this.owner}/${this.repo}/tar.gz/${encodePath(name)}`;
+      const res = await this.get(url, this.headers());
+      if (!res.ok) return undefined;
+      const declared = Number(res.headers.get('content-length'));
+      if (Number.isFinite(declared) && declared > DEFAULT_LIMITS.maxCompressedBytes) return undefined;
+      const archive = new Uint8Array(await res.arrayBuffer());
+      if (archive.byteLength > DEFAULT_LIMITS.maxCompressedBytes) return undefined;
+      const sha = archiveCommitId(archive);
+      if (sha === undefined) return undefined;
+      this.prefetched = { sha, archive };
+      return sha;
+    } catch {
+      return undefined;
+    }
+  }
+
   async *snapshot(sha: string, limits: SnapshotLimits = DEFAULT_LIMITS, counters: SnapshotCounters = createCounters()): AsyncGenerator<RepoFile, void, undefined> {
     if (!SHA_RE.test(sha)) throw new RepoError('ref_not_found', 'A full 40 character commit id is required.');
+    const buf = this.takePrefetched(sha) ?? (await this.download(sha, limits));
+    if (buf.byteLength > limits.maxCompressedBytes) throw new RepoError('tarball_too_large', 'The repository archive is larger than the allowed size.');
+    yield* iterateTarGz(buf, limits, counters);
+    if (counters.problem === 'tarball_too_large') throw new RepoError('tarball_too_large', 'The repository is larger than the allowed unpacked size.');
+    if (counters.problem === 'invalid_archive') throw new RepoError('upstream_error', 'The repository archive could not be read.');
+  }
+
+  private takePrefetched(sha: string): Uint8Array | undefined {
+    const kept = this.prefetched;
+    this.prefetched = undefined;
+    return kept?.sha === sha ? kept.archive : undefined;
+  }
+
+  private async download(sha: string, limits: SnapshotLimits): Promise<Uint8Array> {
     const url = `https://${GITHUB_CODELOAD_HOST}/${this.owner}/${this.repo}/tar.gz/${sha}`;
     const res = await this.get(url, this.headers());
     if (!res.ok) throw await this.mapError(res, 'codeload');
     const declared = Number(res.headers.get('content-length'));
     if (Number.isFinite(declared) && declared > limits.maxCompressedBytes) throw new RepoError('tarball_too_large', 'The repository archive is larger than the allowed size.');
-    const buf = new Uint8Array(await res.arrayBuffer());
-    if (buf.byteLength > limits.maxCompressedBytes) throw new RepoError('tarball_too_large', 'The repository archive is larger than the allowed size.');
-    yield* iterateTarGz(buf, limits, counters);
-    if (counters.problem === 'tarball_too_large') throw new RepoError('tarball_too_large', 'The repository is larger than the allowed unpacked size.');
-    if (counters.problem === 'invalid_archive') throw new RepoError('upstream_error', 'The repository archive could not be read.');
+    return new Uint8Array(await res.arrayBuffer());
   }
 
   permalink(sha: string, path: string, line: number): string {

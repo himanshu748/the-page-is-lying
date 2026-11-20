@@ -4,7 +4,7 @@
  * with "..", absolute or NUL-containing paths are dropped, and only regular files are read.
  */
 import { TextDecoder } from 'node:util';
-import { gunzipSync } from 'node:zlib';
+import { constants, gunzipSync } from 'node:zlib';
 import { wantsContent } from '../core/index/build';
 import { baseName } from '../core/index/text';
 import type { RepoFile, SnapshotCounters, SnapshotLimits } from './source';
@@ -50,8 +50,9 @@ function isZero(h: Uint8Array): boolean {
   return true;
 }
 
-function paxPath(data: Uint8Array): string | undefined {
+function paxValue(data: Uint8Array, key: string): string | undefined {
   // "<len> key=value\n" records
+  const prefix = `${key}=`;
   let pos = 0;
   let found: string | undefined;
   while (pos < data.length) {
@@ -60,10 +61,36 @@ function paxPath(data: Uint8Array): string | undefined {
     const len = parseInt(Buffer.from(data.subarray(pos, sp)).toString('ascii'), 10);
     if (!Number.isFinite(len) || len <= 0 || pos + len > data.length) break;
     const rec = Buffer.from(data.subarray(sp + 1, pos + len - 1)).toString('utf8');
-    if (rec.startsWith('path=')) found = rec.slice(5);
+    if (rec.startsWith(prefix)) found = rec.slice(prefix.length);
     pos += len;
   }
   return found;
+}
+
+const paxPath = (data: Uint8Array): string | undefined => paxValue(data, 'path');
+
+/** How much of the compressed archive is inflated to read the first tar header. */
+const COMMIT_ID_PROBE_BYTES = 8192;
+
+/**
+ * The commit id a `git archive` tarball was made from. GitHub writes it as the `comment` record of the
+ * pax global header, which is the first entry. Only the start of the archive is inflated. Returns
+ * undefined when the archive does not carry one.
+ */
+export function archiveCommitId(gz: Uint8Array): string | undefined {
+  let head: Uint8Array;
+  try {
+    head = gunzipSync(gz.subarray(0, COMMIT_ID_PROBE_BYTES), { finishFlush: constants.Z_SYNC_FLUSH, maxOutputLength: 1024 * 1024 });
+  } catch {
+    return undefined;
+  }
+  if (head.length < BLOCK * 2) return undefined;
+  const h = head.subarray(0, BLOCK);
+  if (!checksumOk(h) || String.fromCharCode(h[156] as number) !== 'g') return undefined;
+  const size = parseOctal(h, 124, 12);
+  if (Number.isNaN(size) || size <= 0 || BLOCK + size > head.length) return undefined;
+  const id = paxValue(head.subarray(BLOCK, BLOCK + size), 'comment');
+  return id !== undefined && /^[0-9a-f]{40}$/.test(id) ? id : undefined;
 }
 
 /** Strip the top-level folder and reject unsafe paths. */

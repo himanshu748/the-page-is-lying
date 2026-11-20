@@ -90,6 +90,20 @@ describe('runIndexJob', () => {
     expect((await loadIndex(kvs, KEY))?.index.repo.sha).toBe(SHA1);
   });
 
+  it('builds the first index from the archive when the REST API rate limit blocks the commit lookup', async () => {
+    const ARCHIVE_SHA = '0123456789abcdef0123456789abcdef01234567'; // the commit id buildTar writes in the archive
+    const limitedApi: Route = (r) => (r.url.startsWith('https://api.github.com/') ? { status: 403, headers: { 'x-ratelimit-remaining': '0' } } : undefined);
+    const { kvs, f, deps } = await setup([limitedApi, code(tarball(ARCHIVE_SHA))]);
+    const r = await runIndexJob(deps, { body: { repoKey: KEY, reason: 'manual' } });
+    expect(r).toMatchObject({ outcome: 'indexed', sha: ARCHIVE_SHA });
+    expect(f.calls.map((c) => c.url)).toEqual([
+      'https://api.github.com/repos/himanshu748/payments-api/commits/main',
+      'https://codeload.github.com/himanshu748/payments-api/tar.gz/main',
+    ]);
+    expect((await loadIndex(kvs, KEY))?.index.repo).toMatchObject({ ref: 'main', sha: ARCHIVE_SHA });
+    expect(await getStatus(kvs, KEY)).toMatchObject({ state: 'ok', sha: ARCHIVE_SHA });
+  });
+
   it('maps 404 to repo_not_found_or_private and oversize to tarball_too_large, leaving no index behind', async () => {
     const a = await setup([() => ({ status: 404 })]);
     expect(await runIndexJob(a.deps, {})).toMatchObject({ outcome: 'error', reason: 'repo_not_found_or_private' });

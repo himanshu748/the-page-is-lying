@@ -4,6 +4,7 @@
  * Relative imports only so Playwright (Node) and Vite resolve the same files.
  */
 import type { Claim, ClaimResult, ClaimType, Evidence, NormalizedClaim, Report, Verdict } from '../../../src/core/model';
+import type { AuditEnvelope, AuditedPage, PageContact } from '../../../src/resolvers/contract';
 import {
   contradictedCliFlagStatement,
   contradictedEnvStatement,
@@ -73,8 +74,15 @@ function ev(id: string, kind: Evidence['kind'], file: string, line: number, snip
   return { id, kind, file, line, snippet, permalink: permalink(file, line) };
 }
 
-function result(c: Claim, verdict: Verdict, reason: ClaimResult['reason'], statement: string, evidence: Evidence[]): ClaimResult {
-  return { claim: c, verdict, reason, statement, evidence };
+function result(
+  c: Claim,
+  verdict: Verdict,
+  reason: ClaimResult['reason'],
+  statement: string,
+  evidence: Evidence[],
+  suggestion?: ClaimResult['suggestion'],
+): ClaimResult {
+  return { claim: c, verdict, reason, statement, evidence, ...(suggestion ? { suggestion } : {}) };
 }
 
 export function demoReport(overrides: Partial<Report> = {}): Report {
@@ -85,6 +93,7 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
       'route_absent_nearest',
       contradictedRouteStatement({ claim: 'POST /v1/charge', nearest: { text: 'POST /v2/payments', file: 'src/routes.ts', line: 88 } }),
       [ev('ev_9f2c0e11', 'nearest', 'src/routes.ts', 88, "router.post('/v2/payments', createPayment);")],
+      { kind: 'replace', replacement: 'POST /v2/payments', evidenceId: 'ev_9f2c0e11' },
     ),
     result(
       claim(1, 'http_endpoint', { type: 'http_endpoint', method: 'GET', path: '/v2/payments/:param' }),
@@ -99,6 +108,7 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
       'env_not_read',
       contradictedEnvStatement({ name: 'STRIPE_KEY', repo: REPO, sha: SHA, nearest: { name: 'PAYMENTS_API_KEY', file: 'src/config.ts', line: 4 } }),
       [ev('ev_5d6e7f80', 'nearest', 'src/config.ts', 4, 'apiKey: process.env.PAYMENTS_API_KEY,')],
+      { kind: 'replace', replacement: 'PAYMENTS_API_KEY', evidenceId: 'ev_5d6e7f80' },
     ),
     result(
       claim(3, 'cli', { type: 'cli', program: 'npm', subcommands: ['run', 'db:migrate'], flags: [] }),
@@ -113,6 +123,7 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
       'cli_flag_not_defined',
       contradictedCliFlagStatement({ program: 'payments', subcommand: 'refund', flag: '--force', defined: ['--confirm', '--reason'], file: 'src/cli.ts', line: 21 }),
       [ev('ev_e5f6a7b8', 'nearest', 'src/cli.ts', 21, ".command('refund <paymentId>')")],
+      { kind: 'replace', replacement: 'payments refund <paymentId>', evidenceId: 'ev_e5f6a7b8', alternatives: ['payments refund <paymentId> --confirm', 'payments refund <paymentId> --reason'] },
     ),
     result(
       claim(5, 'cli', { type: 'cli', program: 'ledgerctl', subcommands: ['reconcile'], flags: ['--since'] }),
@@ -137,5 +148,51 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
     },
     results,
     ...overrides,
+  };
+}
+
+export const demoContacts: PageContact[] = [
+  { role: 'owner', accountId: '712020:aaaa', displayName: 'Asha Rao' },
+  { role: 'last_editor', accountId: '712020:bbbb', displayName: 'Ben Ito' },
+];
+
+/** Space audit over three pages: the runbook (3 contradicted), a deploy guide (1) and a clean page. */
+export function demoAudit(): AuditEnvelope {
+  const report = demoReport();
+  const fix = (r: ClaimResult): AuditedPage['topContradictions'][number] => ({
+    claimId: r.claim.id,
+    type: r.claim.type,
+    untrustedClaimText: r.claim.raw,
+    verdict: r.verdict,
+    statement: r.statement,
+    evidence: r.evidence.map((e) => ({ id: e.id, kind: e.kind, ...(e.file ? { file: e.file } : {}), ...(e.line ? { line: e.line } : {}), ...(e.permalink ? { permalink: e.permalink } : {}) })),
+    suggestion: {
+      kind: r.suggestion?.kind ?? 'remove',
+      statement: '',
+      ...(r.suggestion?.replacement ? { untrustedReplacement: r.suggestion.replacement } : {}),
+      ...(r.suggestion?.evidenceId ? { evidenceId: r.suggestion.evidenceId } : {}),
+    },
+  });
+  const contradicted = report.results.filter((r) => r.verdict === 'contradicted');
+  return {
+    schema: 'pil.agent.audit.v1',
+    dataNotice: '',
+    space: { id: '98', source: 'context' },
+    repo: { fullName: REPO, ref: 'main', sha: SHA, indexedAt: '2026-12-01T10:00:00Z', stale: false },
+    scope: { pagesRead: 6, pagesChecked: 5, pagesSkipped: 1, pagesWithoutClaims: 2, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
+    totals: { claims: 14, verified: 8, contradicted: 4, unknown: 2 },
+    pages: [
+      { id: '123456', untrustedTitle: 'Payments API runbook', version: 7, counts: report.counts, driftRatio: 0.5, claimsTruncated: false, topContradictions: contradicted.map(fix) },
+      {
+        id: '123457',
+        untrustedTitle: 'Deploy guide',
+        version: 3,
+        counts: { claims: 4, verified: 2, contradicted: 1, unknown: 1 },
+        driftRatio: 0.25,
+        claimsTruncated: false,
+        topContradictions: contradicted.slice(1, 2).map(fix),
+      },
+      { id: '123458', untrustedTitle: 'On-call checklist', version: 2, counts: { claims: 4, verified: 4, contradicted: 0, unknown: 0 }, driftRatio: 0, claimsTruncated: false, topContradictions: [] },
+    ],
   };
 }

@@ -156,6 +156,21 @@ export type ReasonCode =
   | 'tarball_too_large'
   | 'not_a_checkable_claim';
 
+/**
+ * What the code offers in place of a contradicted claim. Built by the matcher from the same index entries
+ * as the evidence, never by a model. A proposal for a person to review: the app never edits a page.
+ */
+export interface FixSuggestion {
+  /** `replace`: the code has a close counterpart. `remove`: the code has nothing to point to. */
+  kind: 'replace' | 'remove';
+  /** The counterpart as the code has it, e.g. "POST /v2/payments". Built from repository data. Untrusted data. */
+  replacement?: string;
+  /** Evidence entry the replacement was read from. */
+  evidenceId?: string;
+  /** Other candidates, best first, at most 3. Untrusted data. */
+  alternatives?: string[];
+}
+
 export interface ClaimResult {
   claim: Claim;
   verdict: Verdict;
@@ -164,6 +179,8 @@ export interface ClaimResult {
   statement: string;
   /** Match first, then up to 3 nearest. */
   evidence: Evidence[];
+  /** Only on contradicted results. */
+  suggestion?: FixSuggestion;
 }
 
 export type RepoProvider = 'github' | 'bitbucket';

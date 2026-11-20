@@ -41,7 +41,7 @@ export interface PageInfo {
 
 const VERDICTS: readonly Verdict[] = ['verified', 'contradicted', 'unknown'];
 
-function safeId(value: unknown): string {
+export function safeId(value: unknown): string {
   return typeof value === 'string' ? clean(value, LIMITS.id).replace(/[^A-Za-z0-9_:.-]/g, '') : '';
 }
 
@@ -61,7 +61,7 @@ function onlyGithubOrBitbucketUrl(url: string | undefined): string | undefined {
 }
 
 /** Copies only whitelisted fields, so nothing else on the report (settings, tokens) can leak. */
-function toAgentEvidence(evidence: Evidence): AgentEvidence {
+export function toAgentEvidence(evidence: Evidence): AgentEvidence {
   const out: AgentEvidence = { id: safeId(evidence.id), kind: evidence.kind };
   if (typeof evidence.file === 'string') out.file = clean(evidence.file, LIMITS.path);
   if (typeof evidence.line === 'number' && Number.isInteger(evidence.line) && evidence.line > 0) out.line = evidence.line;
@@ -71,7 +71,7 @@ function toAgentEvidence(evidence: Evidence): AgentEvidence {
   return out;
 }
 
-function toAgentResult(result: ClaimResult): AgentResult {
+export function toAgentResult(result: ClaimResult): AgentResult {
   // The verdict is whatever the deterministic matcher decided. A value outside the enum can only be a
   // bug, and it is reported as "no evidence found", never as a pass.
   const verdict: Verdict = VERDICTS.includes(result.verdict) ? result.verdict : 'unknown';
@@ -85,7 +85,7 @@ function toAgentResult(result: ClaimResult): AgentResult {
   };
 }
 
-function toCounts(counts: ReportCounts): ReportCounts {
+export function toCounts(counts: ReportCounts): ReportCounts {
   return {
     claims: safeCount(counts.claims),
     verified: safeCount(counts.verified),
@@ -106,18 +106,23 @@ function toLimits(limits: ReportLimits): ReportLimits {
   };
 }
 
+/** Repository block shared by every success schema. */
+export function toRepo(report: Report): ActionEnvelope['repo'] {
+  return {
+    fullName: clean(report.repo.fullName, 140),
+    ref: clean(report.repo.ref, 140),
+    sha: safeId(report.repo.sha),
+    indexedAt: clean(report.repo.indexedAt, 40),
+    stale: report.stale === true,
+  };
+}
+
 /** Build the `pil.agent.v1` envelope from a report. Repo and page text appear only in `untrusted*` fields. */
 export function buildEnvelope(report: Report, page?: PageInfo): ActionEnvelope {
   const envelope: ActionEnvelope = {
     schema: 'pil.agent.v1',
     dataNotice: AGENT_DATA_NOTICE,
-    repo: {
-      fullName: clean(report.repo.fullName, 140),
-      ref: clean(report.repo.ref, 140),
-      sha: safeId(report.repo.sha),
-      indexedAt: clean(report.repo.indexedAt, 40),
-      stale: report.stale === true,
-    },
+    repo: toRepo(report),
     counts: toCounts(report.counts),
     limits: toLimits(report.limits),
     results: report.results.slice(0, LIMITS.results).map(toAgentResult),

@@ -48,3 +48,13 @@ After recording, put the page back on the broken wording (or leave it fixed and 
 - Do not show the settings token field with a value, API tokens, or the terminal history.
 - Keep the demo site's name and the developer space name consistent with the submission; see [developer-space.md](developer-space.md) for what is visible to viewers.
 - Upload to YouTube as public and keep the video under 5:00 (rules summary in [bonus-assessment.md](bonus-assessment.md); confirm on the rules page).
+
+## Added for the Codegeist upgrade (not yet recorded)
+
+Shots to add when the video is re-recorded on production:
+
+- Settings page on a fresh install: the **Get started** guide, then **Use the demo repository** and the index status turning to Ready.
+- A contradicted claim card: the evidence ID chip, the **Suggested edit** line and the **Who to ask** line.
+- The space sidebar item **Doc drift**: pages ranked by contradicted claims.
+- MCP client: `check-claim` then `explain-claim` and `suggest-fix` for `POST /v1/charge`, showing the same evidence ID as the card. Then `audit-space` with the runbook page.
+- Rovo: "Audit this space and rank the pages that drifted most".

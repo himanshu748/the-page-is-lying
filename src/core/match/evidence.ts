@@ -5,6 +5,7 @@ import type {
   ClaimResult,
   Evidence,
   EvidenceKind,
+  FixSuggestion,
   NormalizedClaim,
   ReasonCode,
   RepoIndex,
@@ -63,15 +64,40 @@ export function toResult(
   reason: ReasonCode,
   statement: string,
   evidence: Evidence[],
+  suggestion?: FixSuggestion,
 ): ClaimResult {
   // Statements embed repo-derived names (routes, env vars, flags), so strip control chars and cap length here too.
-  return {
+  const result: ClaimResult = {
     claim: { ...claim, raw: sanitizeUntrusted(claim.raw) },
     verdict,
     reason,
     statement: sanitizeUntrusted(statement, 500),
     evidence,
   };
+  if (suggestion !== undefined && verdict === 'contradicted') result.suggestion = suggestion;
+  return result;
+}
+
+export const MAX_SUGGESTION_ALTERNATIVES = 3;
+/** A replacement is quoted in full or not at all: a shortened path or route would name something that does not exist. */
+export const MAX_SUGGESTION_LENGTH = 300;
+
+/**
+ * Suggestion for a contradicted claim. `candidates` are the code's counterparts, best first, in the same order
+ * as the `nearest` evidence. With no candidate the suggestion is `remove`. When the best candidate is too long
+ * to quote in full there is no suggestion: the cited evidence still names it.
+ */
+export function makeSuggestion(candidates: readonly string[], evidence?: Evidence): FixSuggestion | undefined {
+  const cleaned = candidates.map((candidate) => sanitizeUntrusted(candidate, Number.MAX_SAFE_INTEGER)).filter((candidate) => candidate !== '');
+  const [replacement, ...others] = cleaned;
+  if (replacement === undefined) return { kind: 'remove' };
+  if (Array.from(replacement).length > MAX_SUGGESTION_LENGTH) return undefined;
+  const rest = others.filter((candidate) => Array.from(candidate).length <= MAX_SUGGESTION_LENGTH);
+  const suggestion: FixSuggestion = { kind: 'replace', replacement };
+  if (evidence !== undefined) suggestion.evidenceId = evidence.id;
+  const alternatives = [...new Set(rest)].filter((candidate) => candidate !== replacement).slice(0, MAX_SUGGESTION_ALTERNATIVES);
+  if (alternatives.length > 0) suggestion.alternatives = alternatives;
+  return suggestion;
 }
 
 /** Human readable claim text built from the normalized claim, never from the raw page text. */

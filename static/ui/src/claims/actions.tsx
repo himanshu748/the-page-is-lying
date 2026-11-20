@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { ClaimResult, Report } from '@core/model';
+import type { PageContact } from '../../../../src/resolvers/contract';
 
 export interface ClaimActions {
   report: Report;
@@ -7,6 +8,8 @@ export interface ClaimActions {
   openLink: (url: string) => void;
   /** Opens the Jira draft modal for a contradicted claim. */
   draftJira: (result: ClaimResult, opener: HTMLElement | null) => void;
+  /** Page owner, last editor and creator, shown on contradicted claims. Empty until loaded or when unknown. */
+  contacts?: PageContact[];
 }
 
 export const ClaimActionsContext = createContext<ClaimActions | null>(null);

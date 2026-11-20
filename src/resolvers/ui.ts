@@ -1,13 +1,17 @@
 import Resolver from '@forge/resolver';
 import { getBackend } from './backend';
 import type { StoredSettings } from './backend';
+import { getInsights } from './insights';
 import type {
   CheckBodyPayload,
   CheckPagePayload,
   CheckResponse,
+  DriftResponse,
   IndexNowResponse,
   IndexStatus,
   JiraTarget,
+  PageContactsPayload,
+  PageContactsResponse,
   SaveSettingsPayload,
   SaveSettingsResponse,
   SettingsView,
@@ -31,7 +35,7 @@ export const SETTINGS_MODULE_KEY = 'runbook-settings';
 interface Ctx {
   moduleKey?: unknown;
   accountId?: unknown;
-  extension?: { moduleKey?: unknown };
+  extension?: { moduleKey?: unknown; space?: { id?: unknown } };
 }
 
 export function moduleKeyOf(context: Ctx): string {
@@ -170,6 +174,50 @@ resolver.define('getJiraTarget', async (): Promise<JiraTarget | null> => {
   const settings = await (await getBackend()).loadSettings();
   if (settings.jiraProjectId === '' || settings.jiraIssueTypeId === '') return null;
   return { projectId: settings.jiraProjectId, issueTypeId: settings.jiraIssueTypeId };
+});
+
+resolver.define('getPageContacts', async ({ payload }): Promise<PageContactsResponse> => {
+  const input = (payload ?? {}) as Partial<PageContactsPayload>;
+  if (!isNumericId(input.contentId)) return { contacts: [] };
+  try {
+    const contacts = await (await getInsights()).pageContacts(input.contentId);
+    return { contacts: contacts.slice(0, 3) };
+  } catch {
+    return { contacts: [] };
+  }
+});
+
+export const DRIFT_MODULE_KEY = 'runbook-drift';
+
+/** The space comes from the Atlassian-provided context only, never from the payload. */
+resolver.define('auditSpace', async ({ context }): Promise<DriftResponse> => {
+  const ctx = context as Ctx;
+  if (!moduleKeyOf(ctx).endsWith(DRIFT_MODULE_KEY)) return { state: 'error', message: 'The space audit runs from the space page only.' };
+  const spaceId = ctx.extension?.space?.id;
+  if (typeof spaceId !== 'string' && typeof spaceId !== 'number') return { state: 'error', message: 'The space could not be identified.' };
+  const id = String(spaceId);
+  if (!isNumericId(id)) return { state: 'error', message: 'The space could not be identified.' };
+  try {
+    const audit = await (await getInsights()).auditSpace(id);
+    if (audit.schema === 'pil.agent.audit.v1') return { state: 'ready', audit };
+    switch (audit.error) {
+      case 'index_missing': {
+        // The agent service reports "no repository" and "index still building" with one code.
+        const settings = await (await getBackend()).loadSettings();
+        return settings.repoUrl === '' ? { state: 'no_repo' } : { state: 'indexing' };
+      }
+      case 'repo_not_found_or_private':
+        return { state: 'repo_not_found' };
+      case 'rate_limited':
+        return { state: 'rate_limited' };
+      case 'forbidden':
+        return { state: 'error', message: 'You cannot view the pages of this space.' };
+      default:
+        return { state: 'error', message: 'The space audit failed. Try again in a minute.' };
+    }
+  } catch {
+    return { state: 'error', message: 'The space audit failed. Try again in a minute.' };
+  }
 });
 
 export const handler = resolver.getDefinitions();

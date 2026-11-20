@@ -2,9 +2,28 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Report } from '@core/model';
 import { shortSha } from '@core/wording';
-import type { CheckResponse } from '../../../../src/resolvers/contract';
-import { rovo } from '../bridge';
+import type { CheckResponse, PageContact, PageContactsResponse } from '../../../../src/resolvers/contract';
+import { invoke, rovo } from '../bridge';
 import { STATUS_LABEL, StatusIcon } from '../status';
+
+/** "Who to ask" for a page. Loaded only when the report has a contradicted claim. Failures leave it empty. */
+export function useContacts(contentId: string | null | undefined, report: Report | undefined): PageContact[] {
+  const [contacts, setContacts] = useState<PageContact[]>([]);
+  const needed = typeof contentId === 'string' && contentId !== '' && (report?.counts.contradicted ?? 0) > 0;
+  useEffect(() => {
+    if (!needed) return;
+    let cancelled = false;
+    invoke<PageContactsResponse>('getPageContacts', { contentId })
+      .then((response) => {
+        if (!cancelled && Array.isArray(response?.contacts)) setContacts(response.contacts);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [needed, contentId]);
+  return contacts;
+}
 
 export const POLL_MS = 3000;
 export const POLL_MAX_MS = 60_000;

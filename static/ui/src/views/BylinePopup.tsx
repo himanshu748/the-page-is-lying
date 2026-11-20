@@ -6,7 +6,7 @@ import { EvidenceDetails } from '../claims/EvidenceCard';
 import { invoke, router, view } from '../bridge';
 import { STATUS_LABEL, STATUS_PHRASE, StatusIcon } from '../status';
 import { useJiraDraft } from '../useJiraDraft';
-import { ReportHeader, StateNotice, useCheck } from './common';
+import { ReportHeader, StateNotice, useCheck, useContacts } from './common';
 
 const ORDER: Verdict[] = ['contradicted', 'unknown', 'verified'];
 
@@ -40,15 +40,16 @@ export function BylinePopup() {
           Checking this page against code…
         </p>
       )}
-      {loaded.phase === 'done' && <BylineResult response={loaded.response} pollingStopped={loaded.pollingStopped} />}
+      {loaded.phase === 'done' && <BylineResult response={loaded.response} pollingStopped={loaded.pollingStopped} contentId={contentId} />}
     </section>
   );
 }
 
-function BylineResult({ response, pollingStopped }: { response: CheckResponse; pollingStopped: boolean }) {
+function BylineResult({ response, pollingStopped, contentId }: { response: CheckResponse; pollingStopped: boolean; contentId: string | null }) {
   const report = 'report' in response ? response.report : undefined;
   const pageTitle = response.state === 'ready' && response.page ? response.page.title : 'this page';
   const { draftJira, modal } = useJiraDraft(report, pageTitle);
+  const contacts = useContacts(contentId, report);
   const actions = useMemo(
     () =>
       report
@@ -58,9 +59,10 @@ function BylineResult({ response, pollingStopped }: { response: CheckResponse; p
               void router.open(url);
             },
             draftJira,
+            contacts,
           }
         : null,
-    [report, draftJira],
+    [report, draftJira, contacts],
   );
 
   const groups = useMemo(() => {

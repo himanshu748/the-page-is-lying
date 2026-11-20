@@ -1,7 +1,7 @@
 /** env_var rules (PLAN.md 7.2). */
 import type { Claim, ClaimResult, EnvEntry, EnvVarClaim } from '../model';
 import { contradictedEnvStatement, verifiedStatement } from '../wording';
-import { makeEvidence, toResult } from './evidence';
+import { makeEvidence, makeSuggestion, toResult } from './evidence';
 import { rankEnv } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -39,5 +39,6 @@ export function matchEnv(claim: Claim, n: EnvVarClaim, ctx: MatchContext): Claim
       ...(top ? { nearest: { name: top.name, file: top.file, line: top.line } } : {}),
     }),
     evidence,
+    makeSuggestion(nearest.map((entry) => entry.name), top ? evidence[0] : undefined),
   );
 }

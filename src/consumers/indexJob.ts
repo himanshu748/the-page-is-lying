@@ -70,7 +70,7 @@ export async function runIndexJob(deps: IndexJobDeps, event: IndexRepoEvent = {}
   try {
     const token = await readTokenForFetch(kvs, coords.provider);
     const source =
-      deps.source ?? createRepoSource({ repoUrl: settings.repoUrl, fetch: deps.fetch, now, ...(token !== undefined ? { token } : {}) });
+      deps.source ?? createRepoSource({ repoUrl: settings.repoUrl, fetch: deps.fetch, now, archiveFallback: true, ...(token !== undefined ? { token } : {}) });
     const head = await getHeadSha({
       kvs,
       source,
