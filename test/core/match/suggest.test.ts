@@ -121,4 +121,12 @@ describe('fix suggestions on contradicted results', () => {
     expect(s).toEqual({ kind: 'replace', replacement: 'A B', alternatives: ['c1', 'c2', 'c3'] });
     expect(makeSuggestion(['', '\n'])).toEqual({ kind: 'remove' });
   });
+
+  it('quotes a replacement in full or not at all', () => {
+    const long = `src/${'a'.repeat(200)}/handler.ts`;
+    expect(makeSuggestion([long])?.replacement).toBe(long);
+    const tooLong = `src/${'a'.repeat(400)}/handler.ts`;
+    expect(makeSuggestion([tooLong, 'src/short.ts'])).toBeUndefined();
+    expect(makeSuggestion(['src/short.ts', tooLong])).toEqual({ kind: 'replace', replacement: 'src/short.ts' });
+  });
 });

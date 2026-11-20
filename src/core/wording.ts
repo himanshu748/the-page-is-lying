@@ -125,6 +125,8 @@ export function suggestionStatement(args: { claim: string; kind: 'replace' | 're
   return `Suggested edit: remove or rewrite ${args.claim}. The code has no close counterpart.`;
 }
 
+/** A contradicted claim whose counterpart in the code is too long to quote in full. */
+export const NO_SUGGESTION_TOO_LONG = 'No edit suggested: the counterpart in the code is too long to quote in full. Read it from the cited evidence.';
 export const NO_SUGGESTION_VERIFIED = 'No edit suggested: the claim matches the code.';
 export const NO_SUGGESTION_UNKNOWN = `No edit suggested: no evidence was found either way. ${UNKNOWN_DISCLAIMER}`;
 

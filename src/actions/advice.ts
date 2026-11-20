@@ -1,6 +1,6 @@
 import type { AgentEvidence, AgentResult, ClaimResult, ClaimType, Coverage, IndexKind, NormalizedClaim, Report } from '../core/model';
-import { describeClaim } from '../core/match/evidence';
-import { NO_SUGGESTION_UNKNOWN, NO_SUGGESTION_VERIFIED, reasonExplanation, suggestionStatement } from '../core/wording';
+import { MAX_SUGGESTION_LENGTH, describeClaim } from '../core/match/evidence';
+import { NO_SUGGESTION_TOO_LONG, NO_SUGGESTION_UNKNOWN, NO_SUGGESTION_VERIFIED, reasonExplanation, suggestionStatement } from '../core/wording';
 import { LIMITS, safeId, toAgentEvidence, toAgentResult } from './envelope';
 import { clean } from './input';
 
@@ -34,16 +34,17 @@ export function toAgentSuggestion(result: ClaimResult): AgentSuggestion {
   if (result.verdict !== 'contradicted') return { kind: 'none', statement: NO_SUGGESTION_UNKNOWN };
   const claim = clean(describeClaim(result.claim.normalized), LIMITS.claimText);
   const suggestion = result.suggestion;
-  const replacement = suggestion?.kind === 'replace' && typeof suggestion.replacement === 'string' ? clean(suggestion.replacement, LIMITS.claimText) : '';
+  if (suggestion === undefined) return { kind: 'none', statement: NO_SUGGESTION_TOO_LONG };
+  const replacement = suggestion.kind === 'replace' && typeof suggestion.replacement === 'string' ? clean(suggestion.replacement, MAX_SUGGESTION_LENGTH) : '';
   if (replacement === '') return { kind: 'remove', statement: suggestionStatement({ claim, kind: 'remove' }) };
   const out: AgentSuggestion = {
     kind: 'replace',
     statement: clean(suggestionStatement({ claim, kind: 'replace', replacement }), LIMITS.statement),
     untrustedReplacement: replacement,
   };
-  const alternatives = (suggestion?.alternatives ?? []).slice(0, 3).map((item) => clean(item, LIMITS.claimText)).filter((item) => item !== '');
+  const alternatives = (suggestion.alternatives ?? []).slice(0, 3).map((item) => clean(item, MAX_SUGGESTION_LENGTH)).filter((item) => item !== '');
   if (alternatives.length > 0) out.untrustedAlternatives = alternatives;
-  const evidenceId = safeId(suggestion?.evidenceId);
+  const evidenceId = safeId(suggestion.evidenceId);
   if (evidenceId !== '') out.evidenceId = evidenceId;
   return out;
 }

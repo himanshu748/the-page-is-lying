@@ -79,15 +79,20 @@ export function toResult(
 }
 
 export const MAX_SUGGESTION_ALTERNATIVES = 3;
+/** A replacement is quoted in full or not at all: a shortened path or route would name something that does not exist. */
+export const MAX_SUGGESTION_LENGTH = 300;
 
 /**
  * Suggestion for a contradicted claim. `candidates` are the code's counterparts, best first, in the same order
- * as the `nearest` evidence. With no candidate the suggestion is `remove`.
+ * as the `nearest` evidence. With no candidate the suggestion is `remove`. When the best candidate is too long
+ * to quote in full there is no suggestion: the cited evidence still names it.
  */
-export function makeSuggestion(candidates: readonly string[], evidence?: Evidence): FixSuggestion {
-  const cleaned = candidates.map((candidate) => sanitizeUntrusted(candidate)).filter((candidate) => candidate !== '');
-  const [replacement, ...rest] = cleaned;
+export function makeSuggestion(candidates: readonly string[], evidence?: Evidence): FixSuggestion | undefined {
+  const cleaned = candidates.map((candidate) => sanitizeUntrusted(candidate, Number.MAX_SAFE_INTEGER)).filter((candidate) => candidate !== '');
+  const [replacement, ...others] = cleaned;
   if (replacement === undefined) return { kind: 'remove' };
+  if (Array.from(replacement).length > MAX_SUGGESTION_LENGTH) return undefined;
+  const rest = others.filter((candidate) => Array.from(candidate).length <= MAX_SUGGESTION_LENGTH);
   const suggestion: FixSuggestion = { kind: 'replace', replacement };
   if (evidence !== undefined) suggestion.evidenceId = evidence.id;
   const alternatives = [...new Set(rest)].filter((candidate) => candidate !== replacement).slice(0, MAX_SUGGESTION_ALTERNATIVES);

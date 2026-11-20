@@ -91,10 +91,11 @@ describe('suggest-fix handler', () => {
     expect(out.fixes[1]?.suggestion.statement).toBe('Suggested edit: remove or rewrite POST /v1/charge. The code has no close counterpart.');
   });
 
-  it('gives no edit for verified and no-evidence claims, and a contradicted result without a suggestion is "remove"', async () => {
+  it('gives no edit for verified and no-evidence claims, and a contradicted result without a suggestion says why', async () => {
     const svc = service({ ok: true, report: makeReport([verified(), unknown(), makeResult('c_00000005', 'contradicted')]) });
     const out = (await createSuggestFixHandler({ service: () => svc, readPage: okPage })({ claim: 'GET /v2/payments/1' })) as FixEnvelope;
-    expect(out.fixes.map((f) => f.suggestion.kind)).toEqual(['none', 'none', 'remove']);
+    expect(out.fixes.map((f) => f.suggestion.kind)).toEqual(['none', 'none', 'none']);
+    expect(out.fixes[2]?.suggestion.statement).toBe('No edit suggested: the counterpart in the code is too long to quote in full. Read it from the cited evidence.');
   });
 
   it('needs a page when no claim is given, and maps read and service failures', async () => {
