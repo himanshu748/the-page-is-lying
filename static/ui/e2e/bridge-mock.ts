@@ -2,7 +2,7 @@
  * Mock of the parts of @forge/bridge the UI uses. Selected through vite.config.e2e.ts.
  *
  * Query parameters:
- *   module=runbook-check (default) | runbook-byline | runbook-settings | runbook-drift
+ *   module=runbook-check (default) | runbook-byline | runbook-settings | runbook-get-started | runbook-drift
  *   repo=none starts the settings page without a saved repository (first run)
  *   contacts=none returns no page contacts      drift=empty | no_repo | error | truncated for the space page
  *   scenario=ready (default) | indexing | indexing-then-ready | stale | rate_limited | rate_limited_stale

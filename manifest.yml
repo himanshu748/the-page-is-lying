@@ -55,6 +55,13 @@ modules:
       resolver:
         function: ui-resolver
       useAsConfig: true
+    # Linked from the dialog shown after install and from Manage apps. Same page as the settings, with the guide on top.
+    - key: runbook-get-started
+      title: Get started with The Page Is Lying
+      resource: ui
+      resolver:
+        function: ui-resolver
+      useAsGetStarted: true
 
   confluence:spacePage:
     - key: runbook-drift

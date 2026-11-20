@@ -49,7 +49,7 @@ test.describe('get started', () => {
     await page.goto('/?module=runbook-settings&repo=none');
     const start = page.getByTestId('get-started');
     await expect(start.getByRole('heading', { level: 2, name: 'Get started' })).toBeVisible();
-    await expect(start.getByRole('listitem')).toHaveCount(3);
+    await expect(start.locator('.start-steps').getByRole('listitem')).toHaveCount(3);
     await start.getByRole('button', { name: 'Use the demo repository' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
     await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
@@ -73,6 +73,45 @@ test.describe('get started', () => {
     await page.goto('/?module=runbook-settings&status=ready');
     await expect(page.getByTestId('get-started').getByRole('heading', { level: 2, name: 'You are set up' })).toBeVisible();
     await expect(page.getByTestId('get-started')).toContainText('Doc drift');
+  });
+
+  test('the page opened after install shows the guide and the same settings', async ({ page }) => {
+    await page.goto('/?module=runbook-get-started&repo=none');
+    await expect(page.getByRole('heading', { level: 1, name: 'Get started with The Page Is Lying' })).toBeVisible();
+    await page.getByTestId('get-started').getByRole('button', { name: 'Use the demo repository' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
+    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
+  });
+
+  test('the sample runbook lists the six demo claims as inline code and can be copied', async ({ page }) => {
+    await page.goto('/?module=runbook-get-started&status=ready');
+    const sample = page.getByTestId('sample-runbook');
+    await expect(sample.getByRole('listitem')).toHaveCount(6);
+    await expect(sample.locator('ol code')).toHaveText([
+      'POST /v1/charge',
+      'GET /v2/payments/{id}',
+      'STRIPE_KEY',
+      'npm run db:migrate',
+      'payments refund <paymentId> --force',
+      'ledgerctl reconcile --since 24h',
+    ]);
+    await page.evaluate(() => {
+      document.addEventListener('copy', (event) => {
+        (window as unknown as { __copied?: string }).__copied = window.getSelection()?.toString() ?? '';
+        event.preventDefault();
+      });
+    });
+    await sample.getByRole('button', { name: 'Copy sample runbook' }).click();
+    await expect(sample.getByRole('status')).toContainText(/Copied|The lines are selected/);
+    const copied = await page.evaluate(() => (window as unknown as { __copied?: string }).__copied);
+    if (copied !== undefined) expect(copied).toContain('payments refund <paymentId> --force');
+  });
+
+  test('on the settings page the sample is folded away once setup is done', async ({ page }) => {
+    await page.goto('/?module=runbook-settings&status=ready');
+    const sample = page.getByTestId('sample-runbook');
+    await expect(sample.getByText('Sample runbook for the demo repository')).toBeVisible();
+    await expect(sample.getByRole('button', { name: 'Copy sample runbook' })).toBeHidden();
   });
 
   for (const theme of ['light', 'dark']) {

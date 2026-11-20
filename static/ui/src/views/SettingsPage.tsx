@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { IndexKind } from '@core/model';
 import { shortSha } from '@core/wording';
@@ -22,9 +22,23 @@ export const ACCESS_HELP = (what: string): string =>
 export const DEMO_REPO_URL = 'https://github.com/himanshu748/payments-api';
 export const DEMO_REPO_REF = 'main';
 
+/**
+ * The demo repository's runbook. Each entry is the text before the claim, the claim (inline code on the page) and the
+ * text after it. Against the demo repository it gives 2 verified, 3 contradicted and 1 with no evidence.
+ */
+export const SAMPLE_RUNBOOK: readonly (readonly [string, string, string])[] = [
+  ['To take a payment, call ', 'POST /v1/charge', ' with the amount in cents.'],
+  ['To look up a payment, call ', 'GET /v2/payments/{id}', '.'],
+  ['Set ', 'STRIPE_KEY', ' before starting the service.'],
+  ['Run ', 'npm run db:migrate', ' before each deploy.'],
+  ['To force a refund, run ', 'payments refund <paymentId> --force', '.'],
+  ['Reconcile with ', 'ledgerctl reconcile --since 24h', '.'],
+];
+
 type Message = { kind: 'ok' | 'error'; text: string } | null;
 
-export function SettingsPage() {
+/** `intro` is the page opened after install: same settings, with the guide kept open once setup is done. */
+export function SettingsPage({ intro = false }: { intro?: boolean } = {}) {
   const [settings, setSettings] = useState<SettingsView | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
@@ -127,8 +141,8 @@ export function SettingsPage() {
 
   return (
     <main className="view settings" data-testid="view-runbook-settings">
-      <h1>The Page Is Lying settings</h1>
-      {settings !== null && <GetStarted repoSaved={settings.repoUrl !== ''} status={status} busy={busy} onUseDemo={() => void save(null, true)} />}
+      <h1>{intro ? 'Get started with The Page Is Lying' : 'The Page Is Lying settings'}</h1>
+      {settings !== null && <GetStarted intro={intro} repoSaved={settings.repoUrl !== ''} status={status} busy={busy} onUseDemo={() => void save(null, true)} />}
       <form onSubmit={(event) => void save(event)}>
         <div className="field">
           <label htmlFor="repo-url">Repository URL</label>
@@ -196,7 +210,7 @@ export function SettingsPage() {
 }
 
 /** First-run guide. Stays visible, with each step marked done, until the first index is ready. */
-function GetStarted({ repoSaved, status, busy, onUseDemo }: { repoSaved: boolean; status: IndexStatus; busy: boolean; onUseDemo: () => void }) {
+function GetStarted({ intro, repoSaved, status, busy, onUseDemo }: { intro: boolean; repoSaved: boolean; status: IndexStatus; busy: boolean; onUseDemo: () => void }) {
   const indexed = status.state === 'ready';
   if (repoSaved && indexed) {
     return (
@@ -205,6 +219,7 @@ function GetStarted({ repoSaved, status, busy, onUseDemo }: { repoSaved: boolean
         <p>
           Open any page and choose <strong>Runbook check</strong> under the title, or add the <strong>Runbook check</strong> macro around a section. The space sidebar has <strong>Doc drift</strong>, which ranks the pages of a space by contradicted claims.
         </p>
+        <SampleRunbook open={intro} />
       </section>
     );
   }
@@ -252,7 +267,57 @@ function GetStarted({ repoSaved, status, busy, onUseDemo }: { repoSaved: boolean
           <span className="muted">Saves {DEMO_REPO_URL.replace('https://', '')} ({DEMO_REPO_REF}) and starts indexing.</span>
         </div>
       )}
+      <SampleRunbook open />
     </section>
+  );
+}
+
+/** Six claims to paste inside the Runbook check macro. Copied as rich text so each claim stays inline code. */
+function SampleRunbook({ open }: { open: boolean }) {
+  const list = useRef<HTMLOListElement>(null);
+  const [note, setNote] = useState('');
+  const copy = () => {
+    const node = list.current;
+    const selection = window.getSelection();
+    if (!node || !selection) return;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    let copied: boolean;
+    try {
+      copied = document.execCommand('copy');
+    } catch {
+      copied = false;
+    }
+    // On failure the lines stay selected, so the keyboard shortcut still copies them.
+    if (copied) selection.removeAllRanges();
+    setNote(copied ? 'Copied. Paste it inside the Runbook check macro.' : 'The lines are selected. Press Ctrl+C or Cmd+C to copy them.');
+  };
+  return (
+    <details className="sample" open={open} data-testid="sample-runbook">
+      <summary>Sample runbook for the demo repository</summary>
+      <p className="muted">
+        On a new page, type <code>/Runbook check</code> to insert the macro and paste these six lines inside it. Expected with the demo repository: 2 verified, 3 contradicted, 1 with no evidence.
+      </p>
+      <ol ref={list} className="sample-lines">
+        {SAMPLE_RUNBOOK.map(([before, claim, after]) => (
+          <li key={claim}>
+            {before}
+            <code>{claim}</code>
+            {after}
+          </li>
+        ))}
+      </ol>
+      <div className="row">
+        <button type="button" className="btn" onClick={copy}>
+          Copy sample runbook
+        </button>
+        <span className="muted" role="status">
+          {note}
+        </span>
+      </div>
+    </details>
   );
 }
 

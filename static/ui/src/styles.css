@@ -529,6 +529,22 @@ fieldset {
   color: var(--c-success-icon);
   font-weight: 400;
 }
+.sample {
+  margin-top: 12px;
+  border-top: 1px solid var(--c-border);
+  padding-top: 10px;
+}
+.sample > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.sample-lines {
+  margin: 8px 0 12px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 .btn-primary {
   background: var(--ds-background-brand-bold, #0c66e4);
   border-color: var(--ds-background-brand-bold, #0c66e4);

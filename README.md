@@ -16,7 +16,7 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **Suggested edit on every contradiction.** The nearest route, variable, flag, key, path or declared version, with the evidence id it came from. A proposal for a person to review: the app never edits a page.
 - **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has.
 - **Space page "Doc drift"** in the space sidebar: the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
-- **Get started guide** on the settings page, with a button that connects the public demo repository and starts indexing.
+- **Get started page**, linked from the dialog shown after install and from Manage apps (`useAsGetStarted`), with a button that connects the public demo repository and starts indexing, and a sample runbook to copy into the macro. The same guide is on the settings page.
 - **Optional Jira draft.** For a contradicted claim the app shows the exact issue text first. Nothing is written without a click.
 - **Admin settings page** for the repository URL, branch, optional read-only token, service hosts and Jira ids, with index status and an "Index now" button.
 
@@ -136,8 +136,8 @@ The link installs the production version on any Confluence Cloud site where you 
 ### Setup for judges (about 5 minutes)
 
 1. Open the install link, choose **Get app**, pick your Confluence site and accept the permissions.
-2. Open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Enter repository URL `https://github.com/himanshu748/payments-api` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
-3. Create a page, type `/Runbook check` to insert the macro, and type these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks):
+2. Choose **Get started** in the dialog shown after install, or open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Choose **Use the demo repository**, or enter repository URL `https://github.com/himanshu748/payments-api` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
+3. Create a page, type `/Runbook check` to insert the macro, and put these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks). **Copy sample runbook** on the Get started page copies them with the inline code in place:
    1. To take a payment, call `POST /v1/charge` with the amount in cents.
    2. To look up a payment, call `GET /v2/payments/{id}`.
    3. Set `STRIPE_KEY` before starting the service.

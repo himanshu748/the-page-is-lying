@@ -20,7 +20,7 @@ describe('manifest.yml contract', () => {
   it('declares every module key from PLAN.md section 4', () => {
     expect(keys('macro')).toEqual(['runbook-check']);
     expect(keys('confluence:contentBylineItem')).toEqual(['runbook-byline']);
-    expect(keys('confluence:globalSettings')).toEqual(['runbook-settings']);
+    expect(keys('confluence:globalSettings')).toEqual(['runbook-settings', 'runbook-get-started']);
     expect(keys('confluence:spacePage')).toEqual(['runbook-drift']);
     expect(keys('rovo:agent')).toEqual(['runbook-checker']);
     expect(keys('action').sort()).toEqual(ACTION_KEYS);
@@ -39,6 +39,7 @@ describe('manifest.yml contract', () => {
   it('uses a bodied macro and a settings page that acts as config', () => {
     expect(mod('macro')[0]?.['layout']).toBe('bodied');
     expect(mod('confluence:globalSettings')[0]?.['useAsConfig']).toBe(true);
+    expect(mod('confluence:globalSettings')[1]?.['useAsGetStarted']).toBe(true);
   });
 
   it('keeps every action read-only (actionVerb GET)', () => {

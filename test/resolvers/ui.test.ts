@@ -197,6 +197,13 @@ describe('getSettings, getIndexStatus, indexNow', () => {
     expect(await call('getIndexStatus', undefined, settingsCtx)).toEqual({ state: 'ready' });
   });
 
+  it('answers the Get started page, which shows the same settings', async () => {
+    const startCtx = { moduleKey: 'runbook-get-started', accountId: 'acc-1' };
+    expect(await call('getSettings', undefined, startCtx)).toMatchObject({ repoUrl: 'https://github.com/o/r' });
+    expect(await call('getIndexStatus', undefined, startCtx)).toEqual({ state: 'ready' });
+    expect(await call('saveSettings', validSave, startCtx)).toMatchObject({ ok: true });
+  });
+
   it('indexNow needs the settings module and an admin', async () => {
     expect(await call('indexNow', undefined, macroCtx)).toMatchObject({ ok: false, error: 'forbidden' });
     setBackend((backend = makeBackend({ admin: false })));
