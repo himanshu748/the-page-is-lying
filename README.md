@@ -15,7 +15,7 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **`rovo:skill` "runbook-checker"**: the same instructions as `skills/runbook-checker/SKILL.md`, packaged as a Forge skill and bound to the Runbook checker agent, which loads it for checks and the multi-step space audit.
 - **Suggested edit on every contradiction.** The nearest route, variable, flag, key, path or declared version, with the evidence id it came from. A proposal for a person to review: the app never edits a page.
 - **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has.
-- **Space page "Doc drift"** in the space sidebar: the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
+- **Space page "Doc drift"** in the space sidebar: the pages with the Runbook check macro among the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
 - **Get started page**, linked from the dialog shown after install and from Manage apps (`useAsGetStarted`), with a button that connects the public demo repository and starts indexing, and a sample runbook to copy into the macro. The same guide is on the settings page.
 - **Optional Jira draft.** For a contradicted claim the app shows the exact issue text first. Nothing is written without a click.
 - **Admin settings page** for the repository URL, branch, optional read-only token, service hosts and Jira ids, with index status and an "Index now" button.
@@ -105,7 +105,7 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 - Index limits: size, file count and per-kind entry caps; a truncated or dynamic repo makes coverage `partial`, which turns would-be red claims into "No evidence found" instead of a false contradiction.
 - Supported source for the index: JavaScript and TypeScript, Python, Go, Java; other languages mark coverage `partial`.
 - Claims per page: at most 200 (the report says when it was truncated). Page body limit 400 KB for the macro and byline.
-- Space audit: the 25 most recently edited pages of a space that the calling user can view, within a 15 second time budget. The result says how many pages were read, checked, skipped and not reached.
+- Space audit: the 25 most recently edited pages of a space that the calling user can view, within a 15 second time budget. Only pages that have the Runbook check macro are checked, because other pages may describe other services. The result says how many pages were read, had no macro, were checked, skipped and not reached.
 - First index under the GitHub rate limit: when the REST API refuses the commit lookup, the index job reads the commit id from the archive it downloads anyway, so the first index does not depend on the hourly limit.
 - GitHub unauthenticated rate limit: 60 requests per hour. The app asks for the commit at most once every 10 minutes and serves a stale index (marked stale) when the host rate-limits it.
 - Freshness: an index younger than 15 minutes is used as is; after that a changed branch head triggers a background reindex.

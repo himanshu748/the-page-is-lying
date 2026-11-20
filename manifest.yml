@@ -172,8 +172,9 @@ modules:
       function: audit-space-fn
       actionVerb: GET
       description: >
-        Read-only. Checks the 25 most recently edited pages of the space that contains the given page and
-        ranks them by contradicted claims, with top contradictions, evidence IDs and proposed edits.
+        Read-only. Of the 25 most recently edited pages of the space that contains the given page, checks
+        the ones that have the Runbook check macro and ranks them by contradicted claims, with top
+        contradictions, evidence IDs and proposed edits.
         Never writes.
       inputs:
         page:

@@ -137,7 +137,7 @@ test.describe('space doc drift page', () => {
     await expect(pages.nth(0)).toContainText('Suggested edit: replace POST /v1/charge with POST /v2/payments.');
     await expect(pages.nth(1)).toContainText('Deploy guide');
     await expect(pages.nth(2)).toContainText('0 contradicted of 4 claims');
-    await expect(page.getByTestId('drift-scope')).toContainText('Checked the 5 most recently edited pages, 2 without checkable claims, 1 skipped');
+    await expect(page.getByTestId('drift-scope')).toContainText('Checked 5 of the 9 most recently edited pages, 3 left out because they have no Runbook check macro, 2 without checkable claims, 1 skipped');
     await expect(page.getByTestId('drift-scope')).toContainText('himanshu748/payments-api@3f2c1a9');
     await expect(page.getByLabel('Space totals')).toContainText('2 of 3 pages with claims have a contradiction');
   });
@@ -171,7 +171,10 @@ test.describe('space doc drift page', () => {
 
   test('empty space, missing repository and failure show a notice and no ranking', async ({ page }) => {
     await page.goto('/?module=runbook-drift&drift=empty');
-    await expect(page.getByText('No checkable claims were found in the pages of this space.')).toBeVisible();
+    await expect(page.getByTestId('drift-empty')).toContainText('No checkable claims were found in the checked pages.');
+    await page.goto('/?module=runbook-drift&drift=no_macro');
+    await expect(page.getByTestId('drift-empty')).toContainText('None of the 12 most recently edited pages has the Runbook check macro.');
+    await expect(page.getByTestId('drift-page')).toHaveCount(0);
     await page.goto('/?module=runbook-drift&drift=no_repo');
     await expect(page.getByRole('alert')).toContainText('No repository is connected yet.');
     await page.goto('/?module=runbook-drift&drift=error');

@@ -13,7 +13,7 @@ const STATE_TEXT: Record<Exclude<DriftResponse['state'], 'ready' | 'error'>, str
   rate_limited: 'The code host is limiting requests right now. Run the audit again in a few minutes.',
 };
 
-/** Space page: ranks the most recently edited pages of this space by contradicted claims. */
+/** Space page: ranks the recently edited pages of this space that have the Runbook check macro by contradicted claims. */
 export function DriftView() {
   const [loaded, setLoaded] = useState<Loaded>({ phase: 'loading' });
 
@@ -75,16 +75,19 @@ function DriftResult({ audit }: { audit: AuditEnvelope }) {
         </li>
       </ul>
       <p className="muted" data-testid="drift-scope">
-        Checked the {scope.pagesChecked} most recently edited pages
+        Checked {scope.pagesChecked} of the {scope.pagesRead} most recently edited pages
         {scope.morePagesInSpace ? ` (the space has more than ${scope.maxPages})` : ''}
+        {scope.pagesWithoutMacro > 0 ? `, ${scope.pagesWithoutMacro} left out because they have no Runbook check macro` : ''}
         {scope.pagesWithoutClaims > 0 ? `, ${scope.pagesWithoutClaims} without checkable claims` : ''}
         {scope.pagesSkipped > 0 ? `, ${scope.pagesSkipped} skipped because the body could not be read` : ''}
         {scope.pagesNotReached > 0 ? `, ${scope.pagesNotReached} not reached in the time allowed` : ''}
         {audit.repo ? `. Code: ${audit.repo.fullName}@${shortSha(audit.repo.sha)}, indexed ${formatIndexTime(audit.repo.indexedAt)}${audit.repo.stale ? ', index may be stale' : ''}` : ''}.
       </p>
       {audit.pages.length === 0 ? (
-        <p className="notice" role="status">
-          No checkable claims were found in the pages of this space. The check looks for endpoints, environment variables, commands, config keys, file paths and package versions.
+        <p className="notice" role="status" data-testid="drift-empty">
+          {scope.pagesChecked === 0 && scope.pagesWithoutMacro > 0
+            ? `None of the ${scope.pagesRead} most recently edited pages has the Runbook check macro. Add the macro to a runbook page and it is checked here.`
+            : 'No checkable claims were found in the checked pages. The check looks for endpoints, environment variables, commands, config keys, file paths and package versions.'}
         </p>
       ) : (
         <ol className="drift-list">

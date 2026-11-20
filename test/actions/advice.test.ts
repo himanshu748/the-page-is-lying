@@ -109,12 +109,16 @@ describe('suggest-fix handler', () => {
 });
 
 describe('audit-space handler', () => {
+  const withMacro = {
+    type: 'doc',
+    content: [{ type: 'bodiedExtension', attrs: { extensionType: 'com.atlassian.ecosystem', extensionKey: 'app-id/env-id/static/runbook-check' }, content: [] }],
+  };
   const pages = [
-    { id: '1', title: 'Clean page', version: 1, adf: {} },
-    { id: '2', title: 'Worst page', version: 3, adf: {} },
-    { id: '3', title: 'No claims', version: 1, adf: {} },
+    { id: '1', title: 'Clean page', version: 1, adf: withMacro },
+    { id: '2', title: 'Worst page', version: 3, adf: withMacro },
+    { id: '3', title: 'No claims', version: 1, adf: withMacro },
     { id: '4', title: 'Too large', version: 1 },
-    { id: '5', title: 'One contradiction', version: 2, adf: {} },
+    { id: '5', title: 'One contradiction', version: 2, adf: withMacro },
   ];
   const reports: Record<string, ClaimResult[]> = {
     '1': [verified('c_10000001'), verified('c_10000002')],
@@ -129,13 +133,28 @@ describe('audit-space handler', () => {
     const out = (await createAuditSpaceHandler({ service: svc, readSpace })(ctx)) as AuditEnvelope;
     expect(out.schema).toBe('pil.agent.audit.v1');
     expect(out.space).toEqual({ id: '98', source: 'context' });
-    expect(out.scope).toEqual({ pagesRead: 5, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, pagesNotReached: 0, maxPages: 25, morePagesInSpace: true });
+    expect(out.scope).toEqual({ pagesRead: 5, pagesWithoutMacro: 0, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, pagesNotReached: 0, maxPages: 25, morePagesInSpace: true });
     expect(out.totals).toEqual({ claims: 9, verified: 3, contradicted: 5, unknown: 1 });
     expect(out.pages.map((p) => [p.id, p.counts.contradicted, p.driftRatio])).toEqual([['2', 4, 0.8], ['5', 1, 0.5], ['1', 0, 0]]);
     expect(out.pages[0]?.untrustedTitle).toBe('Worst page');
     expect(out.pages[0]?.topContradictions).toHaveLength(3);
     expect(out.pages[0]?.topContradictions[0]).toMatchObject({ claimId: 'c_20000001', suggestion: { kind: 'replace', evidenceId: 'ev_20000001' } });
     expect(out.repo).toMatchObject({ fullName: 'acme/payments-api' });
+  });
+
+  it('leaves out pages without the Runbook check macro and never sends them to the check', async () => {
+    const unrelated = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Call POST /v1/other on the billing service.' }] }] };
+    const otherMacro = { type: 'doc', content: [{ type: 'extension', attrs: { extensionKey: 'app-id/env-id/static/some-other-macro' } }] };
+    const mixed = [...pages, { id: '6', title: 'Another service', version: 1, adf: unrelated }, { id: '7', title: 'Another app', version: 1, adf: otherMacro }];
+    const checked: string[] = [];
+    const out = (await createAuditSpaceHandler({
+      service: () => service(({ pageId }) => (checked.push(pageId ?? ''), { ok: true, report: makeReport(reports[pageId ?? ''] ?? [contradicted('c_60000001')]) })),
+      readSpace: () => Promise.resolve({ ok: true, spaceId: '98', pages: mixed, more: false }),
+    })(ctx)) as AuditEnvelope;
+    expect(checked).toEqual(['1', '2', '3', '5']);
+    expect(out.scope).toMatchObject({ pagesRead: 7, pagesWithoutMacro: 2, pagesChecked: 4, pagesSkipped: 1 });
+    expect(out.pages.map((p) => p.id)).toEqual(['2', '5', '1']);
+    expect(out.totals.contradicted).toBe(5);
   });
 
   it('stops when the time budget runs out and reports the pages it did not reach', async () => {

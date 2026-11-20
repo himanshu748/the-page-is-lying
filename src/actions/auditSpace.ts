@@ -1,3 +1,4 @@
+import { hasRunbookMacro } from '../core/adf/macro';
 import type { AgentError, Report, ReportCounts } from '../core/model';
 import { AGENT_DATA_NOTICE } from '../core/wording';
 import type { AgentFix } from './advice';
@@ -13,8 +14,10 @@ import { MAX_AUDIT_PAGES, readSpaceAsUser } from './spaceReader';
 
 /**
  * Rovo action and MCP tool `audit-space` (actionVerb GET, read-only).
- * Checks the most recently edited pages of the space that contains the given page and ranks them by
- * contradicted claims, worst first. Each page carries its top contradictions with the proposed edit.
+ * Reads the most recently edited pages of the space that contains the given page, checks the ones that have
+ * the Runbook check macro and ranks them by contradicted claims, worst first. Each page carries its top
+ * contradictions with the proposed edit. Pages without the macro are counted and left unchecked: the space
+ * may document other services, and their claims are not about the configured repository.
  */
 export interface AuditSpacePayload {
   page?: unknown;
@@ -51,6 +54,9 @@ export interface AuditEnvelope {
   scope: {
     /** Most recently edited pages that were read (at most `maxPages`). */
     pagesRead: number;
+    /** Read pages without the Runbook check macro. They are not checked: nothing says they describe this repository. */
+    pagesWithoutMacro: number;
+    /** Pages with the macro that were checked. */
     pagesChecked: number;
     /** Pages without a readable body or over the size limit. No verdict was produced for them. */
     pagesSkipped: number;
@@ -114,10 +120,14 @@ export async function auditPages(
   let skipped = 0;
   let withoutClaims = 0;
   let notReached = 0;
+  // Only pages that carry the macro are about this repository. A page without a readable body stays in the list,
+  // so it is reported as skipped rather than as lacking the macro.
+  const listed = read.pages.slice(0, MAX_AUDIT_PAGES);
+  const pages = listed.filter((page) => page.adf === undefined || hasRunbookMacro(page.adf));
+  const withoutMacro = listed.length - pages.length;
   const deadline = clock.now() + clock.budgetMs;
   try {
     const service = getService();
-    const pages = read.pages.slice(0, MAX_AUDIT_PAGES);
     for (const [position, page] of pages.entries()) {
       if (clock.now() > deadline) {
         notReached = pages.length - position;
@@ -159,7 +169,8 @@ export async function auditPages(
     repo,
     scope: {
       pagesRead: read.pages.length,
-      pagesChecked: read.pages.length - skipped - notReached,
+      pagesWithoutMacro: withoutMacro,
+      pagesChecked: read.pages.length - withoutMacro - skipped - notReached,
       pagesSkipped: skipped,
       pagesWithoutClaims: withoutClaims,
       pagesNotReached: notReached,
