@@ -1,7 +1,7 @@
 /** config_key rules (PLAN.md 7.2). */
 import type { Claim, ClaimResult, ConfigKeyClaim } from '../model';
 import { alternativesDetail, contradictedGenericStatement, verifiedStatement } from '../wording';
-import { describeClaim, makeEvidence, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, toResult } from './evidence';
 import { rankConfigSiblings } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -56,5 +56,6 @@ export function matchConfig(claim: Claim, n: ConfigKeyClaim, ctx: MatchContext):
       }),
     }),
     evidence,
+    makeSuggestion(siblings.map((entry) => entry.keyPath), top ? evidence[0] : undefined),
   );
 }

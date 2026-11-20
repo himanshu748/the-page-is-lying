@@ -1,7 +1,7 @@
 /** package_version rules (PLAN.md 7.2). */
 import type { Claim, ClaimResult, PackageEntry, PackageVersionClaim } from '../model';
 import { contradictedGenericStatement, verifiedStatement } from '../wording';
-import { describeClaim, makeEvidence, sanitizeUntrusted, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, sanitizeUntrusted, toResult } from './evidence';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 import { rangesIntersect } from './semver';
 
@@ -41,6 +41,7 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
 
   const first: PackageEntry | undefined = ordered[0];
   if (!first) return unknownResult(claim, ctx, 'package_not_direct_dependency', 'packages');
+  const declared = makeEvidence(index, 'nearest', first);
   return toResult(
     claim,
     'contradicted',
@@ -49,6 +50,7 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
       claim: `${text} does not match the declared version`,
       detail: `The manifest declares ${sanitizeUntrusted(first.name)}@${sanitizeUntrusted(first.range)} at ${first.file}:${first.line}.`,
     }),
-    [makeEvidence(index, 'nearest', first), absenceEvidence(ctx, 'packages')],
+    [declared, absenceEvidence(ctx, 'packages')],
+    makeSuggestion([`${first.name}@${first.range}`], declared),
   );
 }

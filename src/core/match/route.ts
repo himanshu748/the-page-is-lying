@@ -5,7 +5,7 @@ import {
   contradictedGenericStatement,
   verifiedStatement,
 } from '../wording';
-import { describeClaim, makeEvidence, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, toResult } from './evidence';
 import { methodMatches, pathSegments, rankRoutes, segmentsMatch } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -51,6 +51,7 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
       'route_absent',
       contradictedGenericStatement({ claim: `no route matches ${text}`, detail: `The repo defines no similar route.` }),
       evidence,
+      makeSuggestion([]),
     );
   }
   return toResult(
@@ -59,5 +60,6 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
     'route_absent_nearest',
     contradictedRouteStatement({ claim: text, nearest: { text: routeText(top), file: top.file, line: top.line } }),
     evidence,
+    makeSuggestion(nearest.map(routeText), evidence[0]),
   );
 }

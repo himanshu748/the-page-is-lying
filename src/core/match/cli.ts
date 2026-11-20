@@ -12,7 +12,7 @@ import {
   contradictedGenericStatement,
   verifiedStatement,
 } from '../wording';
-import { describeClaim, makeEvidence, sanitizeUntrusted, toResult } from './evidence';
+import { describeClaim, makeEvidence, makeSuggestion, sanitizeUntrusted, toResult } from './evidence';
 import { rankNames } from './nearest';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
 
@@ -70,7 +70,15 @@ function matchTargetRunner(
       }),
     }),
     evidence,
+    // The same command line with the defined script or target in place of the missing one.
+    makeSuggestion(names.map((candidate) => swapToken(n, name, candidate)), top ? evidence[0] : undefined),
   );
+}
+
+/** The claim's command line with one token replaced. Flags are kept. */
+function swapToken(n: CliClaim, from: string, to: string): string {
+  const subs = n.subcommands.some((token) => token === from) ? n.subcommands.map((token) => (token === from ? to : token)) : [...n.subcommands, to];
+  return [n.program, ...subs, ...n.flags].join(' ');
 }
 
 export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimResult {
@@ -134,6 +142,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
         detail: alternativesDetail({ label: 'The program defines', items: names, ...(top ? { file: top.file, line: top.line } : {}) }),
       }),
       evidence,
+      makeSuggestion(names.map((candidate) => `${n.program} ${candidate}`), top ? evidence[0] : undefined),
     );
   }
 
@@ -145,6 +154,9 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
     ]);
   }
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
+  const definition = makeEvidence(index, 'nearest', target);
+  // The command without the flag the code does not define. The flags it does define are the alternatives.
+  const withoutFlag = [n.program, ...subs, ...n.flags.filter((flag) => flag !== missing)].join(' ');
   return toResult(
     claim,
     'contradicted',
@@ -157,7 +169,8 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       file: target.file,
       line: target.line,
     }),
-    [makeEvidence(index, 'nearest', target), ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
+    [definition, ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
+    makeSuggestion([withoutFlag, ...target.flags.map((flag) => [n.program, ...subs, flag].join(' '))], definition),
   );
 }
 
