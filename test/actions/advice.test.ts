@@ -10,7 +10,7 @@ import type { PageReader } from '../../src/actions/pageReader';
 import type { CheckService, ServiceOutcome } from '../../src/actions/service';
 import type { SpaceReader } from '../../src/actions/spaceReader';
 import { toSpacePage } from '../../src/actions/spaceReader';
-import type { ClaimResult } from '../../src/core/model';
+import type { ClaimResult, Report } from '../../src/core/model';
 import { makeReport, makeResult } from './fixtures';
 
 const contradicted = (id = 'c_00000001'): ClaimResult => ({
@@ -146,8 +146,19 @@ describe('audit-space handler', () => {
     expect(out.pages.map((p) => p.id)).toEqual(['2', '1']);
   });
 
+  it('flags a page whose claims were cut at the limit, in the audit and in suggest-fix', async () => {
+    const cut = (): Report => {
+      const report = makeReport([verified()]);
+      return { ...report, limits: { ...report.limits, claimsTruncated: true } };
+    };
+    const audit = (await createAuditSpaceHandler({ service: () => service(({ pageId }) => ({ ok: true, report: pageId === '1' ? cut() : makeReport(reports[pageId ?? ''] ?? []) })), readSpace })(ctx)) as AuditEnvelope;
+    expect(audit.pages.map((p) => [p.id, p.claimsTruncated])).toEqual([['2', false], ['5', false], ['1', true]]);
+    const fix = (await createSuggestFixHandler({ service: () => service({ ok: true, report: cut() }), readPage: okPage })({ page: '123' })) as FixEnvelope;
+    expect(fix.claimsTruncated).toBe(true);
+  });
+
   it('breaks ties by ratio and then page id', () => {
-    const p = (id: string, contradictedCount: number, ratio: number): AuditedPage => ({ id, untrustedTitle: '', version: 1, counts: { claims: 4, verified: 0, contradicted: contradictedCount, unknown: 0 }, driftRatio: ratio, topContradictions: [] });
+    const p = (id: string, contradictedCount: number, ratio: number): AuditedPage => ({ id, untrustedTitle: '', version: 1, counts: { claims: 4, verified: 0, contradicted: contradictedCount, unknown: 0 }, driftRatio: ratio, claimsTruncated: false, topContradictions: [] });
     expect(rankAudited([p('9', 1, 0.2), p('3', 1, 0.5), p('2', 1, 0.2), p('7', 2, 0.1)]).map((x) => x.id)).toEqual(['7', '3', '2', '9']);
   });
 

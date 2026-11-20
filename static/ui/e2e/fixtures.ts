@@ -182,16 +182,17 @@ export function demoAudit(): AuditEnvelope {
     scope: { pagesRead: 6, pagesChecked: 5, pagesSkipped: 1, pagesWithoutClaims: 2, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
     totals: { claims: 14, verified: 8, contradicted: 4, unknown: 2 },
     pages: [
-      { id: '123456', untrustedTitle: 'Payments API runbook', version: 7, counts: report.counts, driftRatio: 0.5, topContradictions: contradicted.map(fix) },
+      { id: '123456', untrustedTitle: 'Payments API runbook', version: 7, counts: report.counts, driftRatio: 0.5, claimsTruncated: false, topContradictions: contradicted.map(fix) },
       {
         id: '123457',
         untrustedTitle: 'Deploy guide',
         version: 3,
         counts: { claims: 4, verified: 2, contradicted: 1, unknown: 1 },
         driftRatio: 0.25,
+        claimsTruncated: false,
         topContradictions: contradicted.slice(1, 2).map(fix),
       },
-      { id: '123458', untrustedTitle: 'On-call checklist', version: 2, counts: { claims: 4, verified: 4, contradicted: 0, unknown: 0 }, driftRatio: 0, topContradictions: [] },
+      { id: '123458', untrustedTitle: 'On-call checklist', version: 2, counts: { claims: 4, verified: 4, contradicted: 0, unknown: 0 }, driftRatio: 0, claimsTruncated: true, topContradictions: [] },
     ],
   };
 }

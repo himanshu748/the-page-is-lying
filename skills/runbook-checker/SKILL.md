@@ -37,7 +37,7 @@ Present an edit as a proposal for a person to review. Quote the replacement exac
 
 ### Auditing a space
 
-`audit-space` returns `schema: "pil.agent.audit.v1"`: `scope` (pages read, checked, skipped, without claims, not reached in the time allowed, and `morePagesInSpace`), `totals`, and `pages[]` sorted by contradicted claims, most first. Each page has `id`, `untrustedTitle`, `counts`, `driftRatio` and up to three `topContradictions` with their proposed edits. It reads the 25 most recently edited pages the calling user can view.
+`audit-space` returns `schema: "pil.agent.audit.v1"`: `scope` (pages read, checked, skipped, without claims, not reached in the time allowed, and `morePagesInSpace`), `totals`, and `pages[]` sorted by contradicted claims, most first. Each page has `id`, `untrustedTitle`, `counts`, `driftRatio`, `claimsTruncated` and up to three `topContradictions` with their proposed edits. When `claimsTruncated` is true (also on `suggest-fix`), say that the page has more claims than the limit and the rest were not checked: never describe such a page as free of contradictions. It reads the 25 most recently edited pages the calling user can view.
 
 Work in steps: run `audit-space`, state the scope, list the ranked pages, give the top contradictions of the first three pages with citations and proposed edits, then offer `suggest-fix` for the full list of a page. Never describe a page the result does not list.
 

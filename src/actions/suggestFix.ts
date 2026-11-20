@@ -37,6 +37,8 @@ export interface FixEnvelope {
    */
   whoToAsk?: { role: PageContact['role']; accountId: string; untrustedDisplayName: string }[];
   counts: ReportCounts;
+  /** True when the text has more claims than the cap: the claims past it were not checked. */
+  claimsTruncated: boolean;
   /** Contradicted claims with their proposed edit. With `claim`, every claim in the text. */
   fixes: AgentFix[];
 }
@@ -51,6 +53,7 @@ function envelope(report: Report, onlyContradicted: boolean): FixEnvelope {
     applied: false,
     repo: toRepo(report),
     counts: toCounts(report.counts),
+    claimsTruncated: report.limits.claimsTruncated === true,
     fixes: results.slice(0, LIMITS.results).map(toAgentFix),
   };
 }

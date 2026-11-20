@@ -38,6 +38,8 @@ export interface AuditedPage {
   counts: ReportCounts;
   /** Contradicted claims divided by checked claims, 0 to 1, two decimals. */
   driftRatio: number;
+  /** True when the page has more claims than the cap: the claims past it were not checked. */
+  claimsTruncated: boolean;
   topContradictions: AgentFix[];
 }
 
@@ -81,6 +83,7 @@ function auditedPage(page: SpacePage, report: Report): AuditedPage {
     version: page.version,
     counts,
     driftRatio: counts.claims === 0 ? 0 : Math.round((counts.contradicted / counts.claims) * 100) / 100,
+    claimsTruncated: report.limits.claimsTruncated === true,
     topContradictions: report.results.filter((result) => result.verdict === 'contradicted').slice(0, MAX_FIXES_PER_PAGE).map(toAgentFix),
   };
 }
