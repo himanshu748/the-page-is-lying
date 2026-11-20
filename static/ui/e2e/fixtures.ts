@@ -192,7 +192,7 @@ export function demoAudit(): AuditEnvelope {
         claimsTruncated: false,
         topContradictions: contradicted.slice(1, 2).map(fix),
       },
-      { id: '123458', untrustedTitle: 'On-call checklist', version: 2, counts: { claims: 4, verified: 4, contradicted: 0, unknown: 0 }, driftRatio: 0, claimsTruncated: true, topContradictions: [] },
+      { id: '123458', untrustedTitle: 'On-call checklist', version: 2, counts: { claims: 4, verified: 4, contradicted: 0, unknown: 0 }, driftRatio: 0, claimsTruncated: false, topContradictions: [] },
     ],
   };
 }
