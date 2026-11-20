@@ -57,17 +57,12 @@ export function toSpacePage(raw: ListedPage): SpacePage | undefined {
 }
 
 /**
- * Both requests run as the invoking user, so Confluence returns only pages that user can view.
- * `pageId` is digits only (validated by the caller). Logs ids and statuses, never titles or text.
+ * Lists the most recently edited pages of a space as the invoking user, so Confluence returns only pages
+ * that user can view. `spaceId` is digits only (validated by the caller). Logs ids and statuses, never
+ * titles or text.
  */
-export const readSpaceAsUser: SpaceReader = async (pageId) => {
+export async function readSpacePagesAsUser(spaceId: string): Promise<SpaceReadResult> {
   try {
-    const first = await api.asUser().requestConfluence(route`/wiki/api/v2/pages/${pageId}`, { headers: { Accept: 'application/json' } });
-    log({ evt: 'audit_page_read', pageId, status: first.status });
-    if (!first.ok) return failure(first.status);
-    const spaceId = ((await first.json()) as { spaceId?: unknown }).spaceId;
-    if (typeof spaceId !== 'string' || !/^\d{1,20}$/.test(spaceId)) return { ok: false, error: 'internal_error' };
-
     const listed = await api
       .asUser()
       .requestConfluence(route`/wiki/api/v2/spaces/${spaceId}/pages?status=current&sort=-modified-date&limit=${String(MAX_AUDIT_PAGES)}&body-format=atlas_doc_format`, {
@@ -79,6 +74,21 @@ export const readSpaceAsUser: SpaceReader = async (pageId) => {
     const results = Array.isArray(json.results) ? (json.results as ListedPage[]) : [];
     const pages = results.slice(0, MAX_AUDIT_PAGES).map(toSpacePage).filter((page): page is SpacePage => page !== undefined);
     return { ok: true, spaceId, pages, more: typeof json._links?.next === 'string' };
+  } catch (error) {
+    log({ evt: 'audit_space_threw', spaceId, name: error instanceof Error ? error.name : 'unknown' });
+    return { ok: false, error: 'internal_error' };
+  }
+}
+
+/** Finds the space of `pageId` (digits only, validated by the caller), then lists that space. */
+export const readSpaceAsUser: SpaceReader = async (pageId) => {
+  try {
+    const first = await api.asUser().requestConfluence(route`/wiki/api/v2/pages/${pageId}`, { headers: { Accept: 'application/json' } });
+    log({ evt: 'audit_page_read', pageId, status: first.status });
+    if (!first.ok) return failure(first.status);
+    const spaceId = ((await first.json()) as { spaceId?: unknown }).spaceId;
+    if (typeof spaceId !== 'string' || !/^\d{1,20}$/.test(spaceId)) return { ok: false, error: 'internal_error' };
+    return await readSpacePagesAsUser(spaceId);
   } catch (error) {
     log({ evt: 'audit_read_threw', pageId, name: error instanceof Error ? error.name : 'unknown' });
     return { ok: false, error: 'internal_error' };

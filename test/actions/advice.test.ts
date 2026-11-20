@@ -5,6 +5,7 @@ import { createExplainClaimHandler } from '../../src/actions/explainClaim';
 import type { ExplainEnvelope } from '../../src/actions/explainClaim';
 import { createSuggestFixHandler } from '../../src/actions/suggestFix';
 import type { FixEnvelope } from '../../src/actions/suggestFix';
+import { cleanName, contactIds } from '../../src/actions/contacts';
 import type { PageReader } from '../../src/actions/pageReader';
 import type { CheckService, ServiceOutcome } from '../../src/actions/service';
 import type { SpaceReader } from '../../src/actions/spaceReader';
@@ -155,5 +156,35 @@ describe('audit-space handler', () => {
     expect(toSpacePage({ id: '12', body: { atlas_doc_format: { value: 'x'.repeat(500_000) } } })?.adf).toBeUndefined();
     expect(toSpacePage({ id: '../x' })).toBeUndefined();
     expect(toSpacePage({ id: 12 })).toBeUndefined();
+  });
+});
+
+describe('who to ask', () => {
+  it('orders owner, last editor, creator and lists each person once', () => {
+    expect(contactIds({ ownerId: 'a1', authorId: 'a1', version: { authorId: 'a2' } })).toEqual([
+      { role: 'owner', accountId: 'a1' },
+      { role: 'last_editor', accountId: 'a2' },
+    ]);
+    expect(contactIds({ authorId: '712020:0f3c-11', version: {} })).toEqual([{ role: 'creator', accountId: '712020:0f3c-11' }]);
+    expect(contactIds({ ownerId: '../x', authorId: 7 })).toEqual([]);
+  });
+
+  it('cleans profile names', () => {
+    expect(cleanName('  Asha\n Rao\u0007 ')).toBe('Asha Rao');
+    expect(cleanName(undefined)).toBe('');
+    expect(cleanName('x'.repeat(200))).toHaveLength(80);
+  });
+
+  it('suggest-fix adds whoToAsk for a page with contradictions, and omits it otherwise', async () => {
+    const readContacts = vi.fn(() => Promise.resolve([{ role: 'owner' as const, accountId: 'a1', displayName: 'Asha Rao' }]));
+    const withFix = createSuggestFixHandler({ service: () => service({ ok: true, report: makeReport([contradicted()]) }), readPage: okPage, readContacts });
+    expect(((await withFix(ctx)) as FixEnvelope).whoToAsk).toEqual([{ role: 'owner', accountId: 'a1', untrustedDisplayName: 'Asha Rao' }]);
+
+    const clean = createSuggestFixHandler({ service: () => service({ ok: true, report: makeReport([verified()]) }), readPage: okPage, readContacts });
+    expect(((await clean(ctx)) as FixEnvelope).whoToAsk).toBeUndefined();
+    expect(readContacts).toHaveBeenCalledTimes(1);
+
+    const failing = createSuggestFixHandler({ service: () => service({ ok: true, report: makeReport([contradicted()]) }), readPage: okPage, readContacts: () => Promise.reject(new Error('x')) });
+    expect(await failing(ctx)).toMatchObject({ schema: 'pil.agent.fix.v1' });
   });
 });

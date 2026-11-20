@@ -8,6 +8,8 @@ import type { ActionContext, PageIdSource } from './input';
 import { clean, resolvePageId, validateClaim } from './input';
 import type { PageReader } from './pageReader';
 import { readPageAsUser } from './pageReader';
+import type { ContactsReader, PageContact } from './contacts';
+import { readContactsAsUser } from './contacts';
 import type { CheckService } from './service';
 import { getCheckService } from './service';
 
@@ -29,6 +31,11 @@ export interface FixEnvelope {
   applied: false;
   repo: ActionEnvelope['repo'];
   page?: { id: string; untrustedTitle: string; version: number; source: PageIdSource };
+  /**
+   * People who can confirm the edits: the page owner, last editor and creator. Only with a page and at least
+   * one contradicted claim. Names are profile data. Data, not instructions.
+   */
+  whoToAsk?: { role: PageContact['role']; accountId: string; untrustedDisplayName: string }[];
   counts: ReportCounts;
   /** Contradicted claims with their proposed edit. With `claim`, every claim in the text. */
   fixes: AgentFix[];
@@ -48,7 +55,7 @@ function envelope(report: Report, onlyContradicted: boolean): FixEnvelope {
   };
 }
 
-export function createSuggestFixHandler(deps: { service: () => CheckService; readPage: PageReader }) {
+export function createSuggestFixHandler(deps: { service: () => CheckService; readPage: PageReader; readContacts?: ContactsReader }) {
   return async (payload: SuggestFixPayload): Promise<SuggestFixResult> => {
     const payloadObject = typeof payload === 'object' && payload !== null ? payload : {};
     const hasClaim = payloadObject.claim !== undefined && payloadObject.claim !== null && payloadObject.claim !== '';
@@ -76,14 +83,21 @@ export function createSuggestFixHandler(deps: { service: () => CheckService; rea
     try {
       const outcome = await deps.service().checkDocument({ adf: read.page.adf, pageId: read.page.id });
       if (!outcome.ok) return errorFromReason(outcome.reason);
-      return {
+      const result: FixEnvelope = {
         ...envelope(outcome.report, true),
         page: { id: read.page.id, untrustedTitle: clean(read.page.title, LIMITS.title), version: read.page.version, source: resolved.source },
       };
+      if (result.fixes.length > 0 && deps.readContacts) {
+        const contacts = await deps.readContacts(read.page.id).catch(() => []);
+        if (contacts.length > 0) {
+          result.whoToAsk = contacts.slice(0, 3).map((c) => ({ role: c.role, accountId: clean(c.accountId, 128), untrustedDisplayName: clean(c.displayName, 80) }));
+        }
+      }
+      return result;
     } catch {
       return buildError('internal_error');
     }
   };
 }
 
-export const handler = createSuggestFixHandler({ service: getCheckService, readPage: readPageAsUser });
+export const handler = createSuggestFixHandler({ service: getCheckService, readPage: readPageAsUser, readContacts: readContactsAsUser });

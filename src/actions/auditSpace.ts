@@ -8,7 +8,7 @@ import type { ActionContext, PageIdSource } from './input';
 import { clean, resolvePageId } from './input';
 import type { CheckService } from './service';
 import { getCheckService } from './service';
-import type { SpacePage, SpaceReader } from './spaceReader';
+import type { SpacePage, SpaceReadResult, SpaceReader } from './spaceReader';
 import { MAX_AUDIT_PAGES, readSpaceAsUser } from './spaceReader';
 
 /**
@@ -84,7 +84,11 @@ export function rankAudited(pages: AuditedPage[]): AuditedPage[] {
 }
 
 export async function auditSpace(deps: AuditSpaceDeps, pageId: string, source: PageIdSource): Promise<AuditSpaceResult> {
-  const read = await deps.readSpace(pageId);
+  return auditPages(deps.service, await deps.readSpace(pageId), source);
+}
+
+/** Checks and ranks pages that were already read. Shared by the action and the space page in Confluence. */
+export async function auditPages(getService: () => CheckService, read: SpaceReadResult, source: PageIdSource): Promise<AuditSpaceResult> {
   if (!read.ok) return buildError(read.error);
 
   const audited: AuditedPage[] = [];
@@ -93,7 +97,7 @@ export async function auditSpace(deps: AuditSpaceDeps, pageId: string, source: P
   let skipped = 0;
   let withoutClaims = 0;
   try {
-    const service = deps.service();
+    const service = getService();
     for (const page of read.pages.slice(0, MAX_AUDIT_PAGES)) {
       if (page.adf === undefined) {
         skipped++;
