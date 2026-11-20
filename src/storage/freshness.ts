@@ -42,6 +42,11 @@ export async function getHeadSha(args: {
   now: () => number;
   /** Cache window. Defaults to 10 minutes; a manual "Index now" uses 1 minute. */
   maxAgeMs?: number;
+  /**
+   * Ask the host again even when a failed lookup is cached. The index job sets it: its source can read the
+   * commit from the archive, which a failure cached by a page view (whose source cannot) would otherwise hide.
+   */
+  retryCachedError?: boolean;
 }): Promise<HeadResult> {
   const { kvs, source, repoKey, now } = args;
   const maxAge = args.maxAgeMs ?? HEAD_TTL_MS;
@@ -49,7 +54,7 @@ export async function getHeadSha(args: {
   const cached = await kvs.get<HeadEntry>(headKey(repoKey));
   if (cached && t - cached.checkedAt < maxAge && cached.ref === (args.ref ?? 'HEAD')) {
     if (cached.sha) return { sha: cached.sha, ref: cached.ref, checkedAt: cached.checkedAt, fromCache: true };
-    if (cached.error) throw new RepoError(cached.error.reason, cached.error.message, cached.error.resetAt);
+    if (cached.error && args.retryCachedError !== true) throw new RepoError(cached.error.reason, cached.error.message, cached.error.resetAt);
   }
   try {
     const r = await source.resolveRef(args.ref);

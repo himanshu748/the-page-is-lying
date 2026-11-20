@@ -3,7 +3,7 @@ import { runIndexJob } from '../../src/consumers/indexJob';
 import type { IndexJobDeps } from '../../src/consumers/indexJob';
 import { DEFAULT_LIMITS } from '../../src/repo/source';
 import { clearIndexCache, loadIndex, readPointer } from '../../src/storage/indexStore';
-import { pointerKey, repoKeyOf } from '../../src/storage/keys';
+import { headKey, pointerKey, repoKeyOf } from '../../src/storage/keys';
 import { saveSettings, setToken } from '../../src/storage/settings';
 import { getStatus } from '../../src/storage/status';
 import { buildTarGz, fakeFetch, filesToEntries, loadFixture } from '../repo/helpers';
@@ -88,6 +88,15 @@ describe('runIndexJob', () => {
     expect(r).toEqual({ outcome: 'error', reason: 'rate_limited', resetAt: new Date(1794766704 * 1000).toISOString() });
     expect(await getStatus(kvs, KEY)).toMatchObject({ state: 'error', reason: 'rate_limited', sha: SHA1, resetAt: new Date(1794766704 * 1000).toISOString() });
     expect((await loadIndex(kvs, KEY))?.index.repo.sha).toBe(SHA1);
+  });
+
+  it('still tries the archive when a page view cached the rate-limit failure a moment ago', async () => {
+    const ARCHIVE_SHA = '0123456789abcdef0123456789abcdef01234567';
+    const limitedApi: Route = (r) => (r.url.startsWith('https://api.github.com/') ? { status: 403, headers: { 'x-ratelimit-remaining': '0' } } : undefined);
+    const { kvs, deps } = await setup([limitedApi, code(tarball(ARCHIVE_SHA))]);
+    await kvs.set(headKey(KEY), { ref: 'main', checkedAt: deps.now() - 30_000, error: { reason: 'rate_limited', message: 'GitHub rate limit reached.' } });
+    const r = await runIndexJob(deps, { body: { repoKey: KEY, reason: 'missing' } });
+    expect(r).toMatchObject({ outcome: 'indexed', sha: ARCHIVE_SHA });
   });
 
   it('builds the first index from the archive when the REST API rate limit blocks the commit lookup', async () => {
