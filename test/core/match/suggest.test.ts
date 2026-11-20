@@ -68,8 +68,13 @@ describe('fix suggestions on contradicted results', () => {
     expect(flag.reason).toBe('cli_flag_not_defined');
     expect(flag.suggestion).toMatchObject({
       replacement: 'payments refund <paymentId> --amount 500',
-      alternatives: ['payments refund <paymentId> --amount 500 --confirm', 'payments refund <paymentId> --amount 500 --amount'],
+      alternatives: ['payments refund <paymentId> --amount 500 --confirm'],
     });
+    // Every flag the code does not define is removed, so the proposed command is not itself contradicted.
+    const several = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund'], flags: ['--force', '--old', '--amount'] }, 'payments refund --force --old=1 --amount 5'), index);
+    expect(several.suggestion).toMatchObject({ replacement: 'payments refund --amount 5', alternatives: ['payments refund --confirm --amount 5'] });
+    const fixed = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund'], flags: ['--amount'] }, several.suggestion?.replacement ?? ''), index);
+    expect(fixed.verdict).toBe('verified');
     const valued = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund', '<id>'], flags: ['--force'] }, 'payments refund <id> --force=true'), index);
     expect(valued.suggestion?.replacement).toBe('payments refund <id>');
     const sub = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refnd', '<paymentId>'], flags: ['--confirm'] }, 'payments refnd <paymentId> --confirm'), index);

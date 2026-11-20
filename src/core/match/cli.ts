@@ -182,9 +182,13 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   }
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   const definition = makeEvidence(index, 'nearest', target);
-  // The command without the flag the code does not define. The flags it does define are the alternatives.
-  const withoutFlag = editCommand(claim.raw, n.program, [missing], '') ?? [n.program, ...n.subcommands, ...n.flags.filter((flag) => flag !== missing)].join(' ');
-  const withFlag = (flag: string): string => editCommand(claim.raw, n.program, [missing], flag) ?? [n.program, ...n.subcommands, flag].join(' ');
+  // The command without any flag the code does not define, so the proposed edit is not itself contradicted.
+  // The defined flags the page does not already use are the alternatives.
+  const undefinedFlags = n.flags.filter((flag) => !known.has(flag) && !ALWAYS_DEFINED_FLAGS.has(flag));
+  const kept = [n.program, ...n.subcommands, ...n.flags.filter((flag) => !undefinedFlags.includes(flag))];
+  const withoutFlag = editCommand(claim.raw, n.program, undefinedFlags, '') ?? kept.join(' ');
+  const withFlag = (flag: string): string => editCommand(claim.raw, n.program, undefinedFlags, flag) ?? [...kept, flag].join(' ');
+  const unused = target.flags.filter((flag) => !n.flags.includes(flag));
   return toResult(
     claim,
     'contradicted',
@@ -198,7 +202,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       line: target.line,
     }),
     [definition, ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
-    makeSuggestion([withoutFlag, ...target.flags.map(withFlag)], definition),
+    makeSuggestion([withoutFlag, ...unused.map(withFlag)], definition),
   );
 }
 
