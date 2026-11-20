@@ -102,7 +102,37 @@ export function rankAudited(pages: AuditedPage[]): AuditedPage[] {
 }
 
 export async function auditSpace(deps: AuditSpaceDeps, pageId: string, source: PageIdSource): Promise<AuditSpaceResult> {
-  return auditPages(deps.service, await deps.readSpace(pageId), source, deps.clock);
+  return readAndAudit(deps.service, () => deps.readSpace(pageId), source, deps.clock);
+}
+
+type AuditClock = { now: () => number; budgetMs: number };
+const DEFAULT_CLOCK: AuditClock = { now: Date.now, budgetMs: AUDIT_BUDGET_MS };
+
+/** Reads the space and audits it inside one time budget, so a slow read leaves less time for the checks. */
+export async function readAndAudit(
+  getService: () => CheckService,
+  readSpace: () => Promise<SpaceReadResult>,
+  source: PageIdSource,
+  clock: AuditClock = DEFAULT_CLOCK,
+): Promise<AuditSpaceResult> {
+  const deadline = clock.now() + clock.budgetMs;
+  return auditPages(getService, await readSpace(), source, clock, deadline);
+}
+
+const TIMED_OUT = Symbol('timed out');
+
+/** Resolves with `TIMED_OUT` when `work` takes longer than `ms`. The work is left to finish on its own. */
+async function within<T>(work: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), ms);
+  });
+  try {
+    return await Promise.race([work, timeout]);
+  } finally {
+    clearTimeout(timer);
+    work.catch(() => undefined);
+  }
 }
 
 /** Checks and ranks pages that were already read. Shared by the action and the space page in Confluence. */
@@ -110,7 +140,8 @@ export async function auditPages(
   getService: () => CheckService,
   read: SpaceReadResult,
   source: PageIdSource,
-  clock: { now: () => number; budgetMs: number } = { now: Date.now, budgetMs: AUDIT_BUDGET_MS },
+  clock: AuditClock = DEFAULT_CLOCK,
+  deadline: number = clock.now() + clock.budgetMs,
 ): Promise<AuditSpaceResult> {
   if (!read.ok) return buildError(read.error);
 
@@ -125,11 +156,11 @@ export async function auditPages(
   const listed = read.pages.slice(0, MAX_AUDIT_PAGES);
   const pages = listed.filter((page) => page.adf === undefined || hasRunbookMacro(page.adf));
   const withoutMacro = listed.length - pages.length;
-  const deadline = clock.now() + clock.budgetMs;
   try {
     const service = getService();
     for (const [position, page] of pages.entries()) {
-      if (clock.now() > deadline) {
+      const remaining = deadline - clock.now();
+      if (remaining < 0) {
         notReached = pages.length - position;
         break;
       }
@@ -137,7 +168,12 @@ export async function auditPages(
         skipped++;
         continue;
       }
-      const outcome = await service.checkDocument({ adf: page.adf, pageId: page.id });
+      // A check that outlasts the budget is given up, so the pages already checked are still returned.
+      const outcome = await within(service.checkDocument({ adf: page.adf, pageId: page.id }), remaining);
+      if (outcome === TIMED_OUT) {
+        notReached = pages.length - position;
+        break;
+      }
       if (!outcome.ok) {
         // An oversized or unreadable body is a skipped page. Anything else (no index, rate limit) stops the audit.
         if (outcome.reason === 'invalid_input') {

@@ -20,7 +20,7 @@ const contradicted = (id = 'c_00000001'): ClaimResult => ({
 const verified = (id = 'c_00000002'): ClaimResult => makeResult(id, 'verified', { raw: 'GET /v2/payments/{id}' });
 const unknown = (id = 'c_00000003'): ClaimResult => makeResult(id, 'unknown', { raw: 'ledgerctl reconcile' });
 
-function service(outcome: ServiceOutcome | ((input: { pageId?: string }) => ServiceOutcome)) {
+function service(outcome: ServiceOutcome | ((input: { pageId?: string }) => ServiceOutcome | Promise<ServiceOutcome>)) {
   const run = (input: { pageId?: string }) => Promise.resolve(typeof outcome === 'function' ? outcome(input) : outcome);
   const svc = { checkDocument: vi.fn(run), checkClaim: vi.fn(run) };
   return svc as CheckService & typeof svc;
@@ -163,6 +163,28 @@ describe('audit-space handler', () => {
     const out = (await createAuditSpaceHandler({ service: svc, readSpace, clock })(ctx)) as AuditEnvelope;
     expect(out.scope).toMatchObject({ pagesRead: 5, pagesChecked: 2, pagesNotReached: 3 });
     expect(out.pages.map((p) => p.id)).toEqual(['2', '1']);
+  });
+
+  it('gives up a check that outlasts the budget and still returns the pages already checked', async () => {
+    const real = Date.now;
+    const slow = () =>
+      service(({ pageId }) =>
+        pageId === '2' ? new Promise<ServiceOutcome>(() => undefined) : { ok: true, report: makeReport(reports[pageId ?? ''] ?? []) },
+      );
+    const out = (await createAuditSpaceHandler({ service: slow, readSpace, clock: { now: real, budgetMs: 60 } })(ctx)) as AuditEnvelope;
+    expect(out.pages.map((p) => p.id)).toEqual(['1']);
+    expect(out.scope).toMatchObject({ pagesChecked: 1, pagesNotReached: 4 });
+  });
+
+  it('counts the time spent reading the space against the budget', async () => {
+    let t = 0;
+    const clock = { now: () => t, budgetMs: 1000 };
+    const slowRead: SpaceReader = () => {
+      t = 2000;
+      return Promise.resolve({ ok: true, spaceId: '98', pages, more: false });
+    };
+    const out = (await createAuditSpaceHandler({ service: svc, readSpace: slowRead, clock })(ctx)) as AuditEnvelope;
+    expect(out.scope).toMatchObject({ pagesChecked: 0, pagesNotReached: 5 });
   });
 
   it('flags a page whose claims were cut at the limit, in the audit and in suggest-fix', async () => {

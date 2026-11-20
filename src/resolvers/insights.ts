@@ -20,7 +20,7 @@ export function setInsights(insights: Insights | undefined): void {
 
 export async function getInsights(): Promise<Insights> {
   if (current) return current;
-  const [{ readContactsAsUser }, { auditPages }, { readSpacePagesAsUser }, { getCheckService }] = await Promise.all([
+  const [{ readContactsAsUser }, { readAndAudit }, { readSpacePagesAsUser }, { getCheckService }] = await Promise.all([
     import('../actions/contacts'),
     import('../actions/auditSpace'),
     import('../actions/spaceReader'),
@@ -28,7 +28,7 @@ export async function getInsights(): Promise<Insights> {
   ]);
   current = {
     pageContacts: readContactsAsUser,
-    auditSpace: async (spaceId) => auditPages(getCheckService, await readSpacePagesAsUser(spaceId), 'context'),
+    auditSpace: (spaceId) => readAndAudit(getCheckService, () => readSpacePagesAsUser(spaceId), 'context'),
   };
   return current;
 }
