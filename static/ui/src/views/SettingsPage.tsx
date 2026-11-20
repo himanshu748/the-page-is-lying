@@ -18,6 +18,10 @@ const KINDS: IndexKind[] = ['routes', 'env', 'cli', 'config', 'files', 'packages
 export const ACCESS_HELP = (what: string): string =>
   `${what}. The app could not confirm that you are a Confluence administrator. This usually means access has not been allowed yet: reload this page, choose Allow access if asked, and try again. If it keeps failing, check the app's permissions under Manage apps.`;
 
+/** Public demo repository. Its runbook page gives 2 verified, 3 contradicted and 1 claim with no evidence. */
+export const DEMO_REPO_URL = 'https://github.com/himanshu748/payments-api';
+export const DEMO_REPO_REF = 'main';
+
 type Message = { kind: 'ok' | 'error'; text: string } | null;
 
 export function SettingsPage() {
@@ -69,14 +73,14 @@ export function SettingsPage() {
     return () => clearTimeout(timer);
   }, [status, refreshStatus]);
 
-  const save = async (event: FormEvent) => {
-    event.preventDefault();
+  const save = async (event: FormEvent | null, demo = false) => {
+    event?.preventDefault();
     setBusy(true);
     setMessage(null);
     try {
       const response = await invoke<SaveSettingsResponse>('saveSettings', {
-        repoUrl,
-        ref,
+        repoUrl: demo ? DEMO_REPO_URL : repoUrl,
+        ref: demo ? DEMO_REPO_REF : ref,
         serviceHosts: hosts.split(/[\s,]+/).filter((h) => h !== ''),
         jiraProjectId: project,
         jiraIssueTypeId: issueType,
@@ -85,7 +89,7 @@ export function SettingsPage() {
       });
       if (response.ok) {
         apply(response.settings);
-        setMessage({ kind: 'ok', text: 'Settings saved. Indexing started.' });
+        setMessage({ kind: 'ok', text: demo ? 'Demo repository saved. Indexing started.' : 'Settings saved. Indexing started.' });
         void refreshStatus();
       } else {
         setMessage({ kind: 'error', text: response.message });
@@ -124,6 +128,7 @@ export function SettingsPage() {
   return (
     <main className="view settings" data-testid="view-runbook-settings">
       <h1>The Page Is Lying settings</h1>
+      {settings !== null && <GetStarted repoSaved={settings.repoUrl !== ''} status={status} busy={busy} onUseDemo={() => void save(null, true)} />}
       <form onSubmit={(event) => void save(event)}>
         <div className="field">
           <label htmlFor="repo-url">Repository URL</label>
@@ -187,6 +192,67 @@ export function SettingsPage() {
       <h2>Index status</h2>
       <IndexTable status={status} />
     </main>
+  );
+}
+
+/** First-run guide. Stays visible, with each step marked done, until the first index is ready. */
+function GetStarted({ repoSaved, status, busy, onUseDemo }: { repoSaved: boolean; status: IndexStatus; busy: boolean; onUseDemo: () => void }) {
+  const indexed = status.state === 'ready';
+  if (repoSaved && indexed) {
+    return (
+      <section className="start start-done" aria-labelledby="start-title" data-testid="get-started">
+        <h2 id="start-title">You are set up</h2>
+        <p>
+          Open any page and choose <strong>Runbook check</strong> under the title, or add the <strong>Runbook check</strong> macro around a section. The space sidebar has <strong>Doc drift</strong>, which ranks the pages of a space by contradicted claims.
+        </p>
+      </section>
+    );
+  }
+  const steps: { done: boolean; title: string; body: string }[] = [
+    {
+      done: repoSaved,
+      title: 'Connect a repository',
+      body: 'Enter a public GitHub or Bitbucket repository below, or use the demo repository to see a result in about a minute.',
+    },
+    {
+      done: indexed,
+      title: 'Wait for the first index',
+      body:
+        status.state === 'indexing'
+          ? 'Indexing now. This page updates on its own.'
+          : status.state === 'error'
+            ? 'The last index run failed. See Index status below, then choose Index now.'
+            : 'The app reads the repository once and stores routes, variables, commands, config keys, paths and package versions.',
+    },
+    {
+      done: false,
+      title: 'Check a page',
+      body: 'Open a runbook page and choose Runbook check under the title. Each claim gets a verdict with file and line.',
+    },
+  ];
+  return (
+    <section className="start" aria-labelledby="start-title" data-testid="get-started">
+      <h2 id="start-title">Get started</h2>
+      <ol className="start-steps">
+        {steps.map((step) => (
+          <li key={step.title} className={step.done ? 'start-step start-step-done' : 'start-step'}>
+            <strong>
+              {step.title}
+              {step.done && <span className="start-tick"> (done)</span>}
+            </strong>
+            <span>{step.body}</span>
+          </li>
+        ))}
+      </ol>
+      {!repoSaved && (
+        <div className="row">
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={onUseDemo}>
+            Use the demo repository
+          </button>
+          <span className="muted">Saves {DEMO_REPO_URL.replace('https://', '')} ({DEMO_REPO_REF}) and starts indexing.</span>
+        </div>
+      )}
+    </section>
   );
 }
 

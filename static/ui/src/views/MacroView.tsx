@@ -9,7 +9,7 @@ import { asDoc, placeClaims } from '../render/adf';
 import type { AdfNode } from '../render/adf';
 import { STATUS_LABEL, StatusIcon } from '../status';
 import { useJiraDraft } from '../useJiraDraft';
-import { ReportHeader, StateNotice, useCheck } from './common';
+import { ReportHeader, StateNotice, useCheck, useContacts } from './common';
 
 interface MacroContext {
   body: unknown;
@@ -70,17 +70,18 @@ export function MacroView() {
           Checking against code…
         </p>
       ) : (
-        <MacroResult response={loaded.response} pollingStopped={loaded.pollingStopped} doc={doc} title={context?.title} />
+        <MacroResult response={loaded.response} pollingStopped={loaded.pollingStopped} doc={doc} title={context?.title} contentId={context?.contentId} />
       )}
       {loaded.phase === 'loading' && doc && <AdfRenderer doc={doc} placements={{ byBlock: new Map(), unplaced: [] }} />}
     </section>
   );
 }
 
-function MacroResult({ response, pollingStopped, doc, title }: { response: CheckResponse; pollingStopped: boolean; doc: AdfNode | null; title: string | undefined }) {
+function MacroResult({ response, pollingStopped, doc, title, contentId }: { response: CheckResponse; pollingStopped: boolean; doc: AdfNode | null; title: string | undefined; contentId: string | undefined }) {
   const report: Report | undefined = 'report' in response ? response.report : undefined;
   const pageTitle = response.state === 'ready' && response.page ? response.page.title : (title ?? 'this page');
   const { draftJira, modal } = useJiraDraft(report, pageTitle);
+  const contacts = useContacts(contentId, report);
   const placements = useMemo(() => (doc && report ? placeClaims(doc, report.results) : { byBlock: new Map(), unplaced: [] }), [doc, report]);
   const actions = useMemo(
     () =>
@@ -91,9 +92,10 @@ function MacroResult({ response, pollingStopped, doc, title }: { response: Check
               void router.open(url);
             },
             draftJira,
+            contacts,
           }
         : null,
-    [report, draftJira],
+    [report, draftJira, contacts],
   );
 
   const empty = doc === null ? <p className="notice">This macro has no body to check. Put the runbook text inside it.</p> : null;

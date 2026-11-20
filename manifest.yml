@@ -56,6 +56,14 @@ modules:
         function: ui-resolver
       useAsConfig: true
 
+  confluence:spacePage:
+    - key: runbook-drift
+      title: Doc drift
+      route: doc-drift
+      resource: ui
+      resolver:
+        function: ui-resolver
+
   rovo:agent:
     - key: runbook-checker
       name: Runbook checker

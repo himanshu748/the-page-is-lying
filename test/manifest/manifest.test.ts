@@ -21,6 +21,7 @@ describe('manifest.yml contract', () => {
     expect(keys('macro')).toEqual(['runbook-check']);
     expect(keys('confluence:contentBylineItem')).toEqual(['runbook-byline']);
     expect(keys('confluence:globalSettings')).toEqual(['runbook-settings']);
+    expect(keys('confluence:spacePage')).toEqual(['runbook-drift']);
     expect(keys('rovo:agent')).toEqual(['runbook-checker']);
     expect(keys('action').sort()).toEqual(ACTION_KEYS);
     expect(keys('rovo:skill')).toEqual(['runbook-checker-skill']);

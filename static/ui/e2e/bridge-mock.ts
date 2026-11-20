@@ -2,7 +2,9 @@
  * Mock of the parts of @forge/bridge the UI uses. Selected through vite.config.e2e.ts.
  *
  * Query parameters:
- *   module=runbook-check (default) | runbook-byline | runbook-settings
+ *   module=runbook-check (default) | runbook-byline | runbook-settings | runbook-drift
+ *   repo=none starts the settings page without a saved repository (first run)
+ *   contacts=none returns no page contacts      drift=empty | no_repo | error for the space page
  *   scenario=ready (default) | indexing | indexing-then-ready | stale | rate_limited | rate_limited_stale
  *            | repo_not_found | no_repo | no_claims | error
  *   theme=light (default) | dark      rovo=1 enables Rovo      jira=1 configures the Jira target
@@ -13,14 +15,15 @@
  * Every call is recorded on window.__pilCalls, __pilRouter and __pilRovo for assertions.
  * Tests can set window.__pilInvoke to stub resolver calls.
  */
-import type { CheckResponse, IndexStatus, SaveSettingsPayload } from '../../../src/resolvers/contract';
-import { demoAdf, demoReport } from './fixtures';
+import type { CheckResponse, DriftResponse, IndexStatus, SaveSettingsPayload } from '../../../src/resolvers/contract';
+import { demoAdf, demoAudit, demoContacts, demoReport } from './fixtures';
 
 declare global {
   interface Window {
     __pilInvoke?: (name: string, payload?: unknown) => unknown;
     __pilCalls?: { name: string; payload: unknown }[];
     __pilRouter?: unknown[];
+    __pilNavigations?: unknown[];
     __pilRovo?: unknown[];
   }
 }
@@ -32,6 +35,7 @@ const theme = params.get('theme') ?? 'light';
 
 window.__pilCalls = [];
 window.__pilRouter = [];
+window.__pilNavigations = [];
 window.__pilRovo = [];
 
 export const view = {
@@ -85,12 +89,12 @@ function checkResponse(name: string): CheckResponse {
 }
 
 let settings = {
-  repoUrl: 'https://github.com/himanshu748/payments-api',
-  ref: 'main',
+  repoUrl: params.get('repo') === 'none' ? '' : 'https://github.com/himanshu748/payments-api',
+  ref: params.get('repo') === 'none' ? '' : 'main',
   serviceHosts: [] as string[],
   jiraProjectId: params.get('jira') === '1' ? '10000' : '',
   jiraIssueTypeId: params.get('jira') === '1' ? '10001' : '',
-  tokenSaved: true,
+  tokenSaved: params.get('repo') !== 'none',
 };
 
 const status = params.get('status') ?? 'none';
@@ -112,6 +116,19 @@ const indexStatus = (): IndexStatus =>
         ? { state: 'error', lastError: 'rate_limited' }
         : { state: 'none' };
 
+function driftResponse(): DriftResponse {
+  switch (params.get('drift')) {
+    case 'empty':
+      return { state: 'ready', audit: { ...demoAudit(), totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 }, pages: [] } };
+    case 'no_repo':
+      return { state: 'no_repo' };
+    case 'error':
+      return { state: 'error', message: 'The space audit failed. Try again in a minute.' };
+    default:
+      return { state: 'ready', audit: demoAudit() };
+  }
+}
+
 export const invoke = async <T = unknown>(name: string, payload?: unknown): Promise<T> => {
   window.__pilCalls?.push({ name, payload });
   if (window.__pilInvoke) return (await window.__pilInvoke(name, payload)) as T;
@@ -119,6 +136,10 @@ export const invoke = async <T = unknown>(name: string, payload?: unknown): Prom
     case 'checkBody':
     case 'checkPage':
       return checkResponse(name) as T;
+    case 'getPageContacts':
+      return { contacts: params.get('contacts') === 'none' ? [] : demoContacts } as T;
+    case 'auditSpace':
+      return driftResponse() as T;
     case 'getJiraTarget':
       return (settings.jiraProjectId ? { projectId: settings.jiraProjectId, issueTypeId: settings.jiraIssueTypeId } : null) as T;
     case 'getSettings':
@@ -154,7 +175,9 @@ export const router = {
   open: async (target: unknown) => {
     window.__pilRouter?.push(target);
   },
-  navigate: async (_target: unknown) => undefined,
+  navigate: async (target: unknown) => {
+    window.__pilNavigations?.push(target);
+  },
 };
 
 export const rovo = {
