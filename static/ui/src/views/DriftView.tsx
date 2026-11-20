@@ -81,11 +81,11 @@ function DriftResult({ audit }: { audit: AuditEnvelope }) {
         {scope.pagesWithoutClaims > 0 ? `, ${scope.pagesWithoutClaims} without checkable claims` : ''}
         {scope.pagesSkipped > 0 ? `, ${scope.pagesSkipped} skipped because the body could not be read` : ''}
         {scope.pagesNotReached > 0 ? `, ${scope.pagesNotReached} not reached in the time allowed` : ''}
-        {audit.repo ? `. Code: ${audit.repo.fullName}@${shortSha(audit.repo.sha)}, indexed ${formatIndexTime(audit.repo.indexedAt)}${audit.repo.stale ? ', index may be stale' : ''}` : ''}.
+        {audit.repo ? `. Code: ${audit.repo.fullName}@${shortSha(audit.repo.sha)}, indexed ${formatIndexTime(audit.repo.indexedAt)}${audit.repo.stale ? ', index may be stale' : audit.repo.freshnessUnchecked === true ? ', could not be compared with the latest commit' : ''}` : ''}.
       </p>
       {audit.pages.length === 0 ? (
         <p className="notice" role="status" data-testid="drift-empty">
-          {scope.pagesChecked === 0 && scope.pagesWithoutMacro > 0
+          {scope.pagesRead > 0 && scope.pagesWithoutMacro === scope.pagesRead
             ? `None of the ${scope.pagesRead} most recently edited pages has the Runbook check macro. Add the macro to a runbook page and it is checked here.`
             : 'No checkable claims were found in the checked pages. The check looks for endpoints, environment variables, commands, config keys, file paths and package versions.'}
         </p>
