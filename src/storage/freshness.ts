@@ -69,10 +69,11 @@ export type IndexLookup =
       state: 'ready';
       index: RepoIndex;
       pointer: IndexPointer;
+      /** True only when a newer commit was seen on the branch. */
       stale: boolean;
-      /** Why the index may be old: the branch moved (`undefined`) or the refresh check failed. */
+      /** Set when the check for a newer commit failed (rate limit, repository unreachable). `stale` is then false: the index could not be compared, which is not the same as the repository having changed. */
       staleReason?: ReasonCode;
-      /** The newer commit that was seen, when stale because the branch moved. */
+      /** The newer commit that was seen, when stale. */
       headSha?: string;
       resetAt?: string;
       reindexQueued: boolean;
@@ -137,7 +138,8 @@ export async function getIndexForCheck(deps: FreshnessDeps, repoKey: string, ref
     return { state: 'ready', ...base, stale: true, headSha: head.sha, reindexQueued: queued };
   } catch (e) {
     if (isRepoError(e)) {
-      return { state: 'ready', ...base, stale: true, staleReason: toReasonCode(e.reason), ...(e.resetAt !== undefined ? { resetAt: e.resetAt } : {}), reindexQueued: false };
+      // The refresh check failed, so nothing says the branch moved: the index is not reported as stale.
+      return { state: 'ready', ...base, stale: false, staleReason: toReasonCode(e.reason), ...(e.resetAt !== undefined ? { resetAt: e.resetAt } : {}), reindexQueued: false };
     }
     throw e;
   }
