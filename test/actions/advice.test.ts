@@ -20,7 +20,7 @@ const contradicted = (id = 'c_00000001'): ClaimResult => ({
 const verified = (id = 'c_00000002'): ClaimResult => makeResult(id, 'verified', { raw: 'GET /v2/payments/{id}' });
 const unknown = (id = 'c_00000003'): ClaimResult => makeResult(id, 'unknown', { raw: 'ledgerctl reconcile' });
 
-function service(outcome: ServiceOutcome | ((input: { pageId?: string }) => ServiceOutcome)) {
+function service(outcome: ServiceOutcome | ((input: { pageId?: string }) => ServiceOutcome | Promise<ServiceOutcome>)) {
   const run = (input: { pageId?: string }) => Promise.resolve(typeof outcome === 'function' ? outcome(input) : outcome);
   const svc = { checkDocument: vi.fn(run), checkClaim: vi.fn(run) };
   return svc as CheckService & typeof svc;
@@ -109,12 +109,16 @@ describe('suggest-fix handler', () => {
 });
 
 describe('audit-space handler', () => {
+  const withMacro = {
+    type: 'doc',
+    content: [{ type: 'bodiedExtension', attrs: { extensionType: 'com.atlassian.ecosystem', extensionKey: 'app-id/env-id/static/runbook-check' }, content: [] }],
+  };
   const pages = [
-    { id: '1', title: 'Clean page', version: 1, adf: {} },
-    { id: '2', title: 'Worst page', version: 3, adf: {} },
-    { id: '3', title: 'No claims', version: 1, adf: {} },
+    { id: '1', title: 'Clean page', version: 1, adf: withMacro },
+    { id: '2', title: 'Worst page', version: 3, adf: withMacro },
+    { id: '3', title: 'No claims', version: 1, adf: withMacro },
     { id: '4', title: 'Too large', version: 1 },
-    { id: '5', title: 'One contradiction', version: 2, adf: {} },
+    { id: '5', title: 'One contradiction', version: 2, adf: withMacro },
   ];
   const reports: Record<string, ClaimResult[]> = {
     '1': [verified('c_10000001'), verified('c_10000002')],
@@ -129,7 +133,7 @@ describe('audit-space handler', () => {
     const out = (await createAuditSpaceHandler({ service: svc, readSpace })(ctx)) as AuditEnvelope;
     expect(out.schema).toBe('pil.agent.audit.v1');
     expect(out.space).toEqual({ id: '98', source: 'context' });
-    expect(out.scope).toEqual({ pagesRead: 5, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, pagesNotReached: 0, maxPages: 25, morePagesInSpace: true });
+    expect(out.scope).toEqual({ pagesRead: 5, pagesWithoutMacro: 0, pagesChecked: 4, pagesSkipped: 1, pagesWithoutClaims: 1, pagesNotReached: 0, maxPages: 25, morePagesInSpace: true });
     expect(out.totals).toEqual({ claims: 9, verified: 3, contradicted: 5, unknown: 1 });
     expect(out.pages.map((p) => [p.id, p.counts.contradicted, p.driftRatio])).toEqual([['2', 4, 0.8], ['5', 1, 0.5], ['1', 0, 0]]);
     expect(out.pages[0]?.untrustedTitle).toBe('Worst page');
@@ -138,12 +142,49 @@ describe('audit-space handler', () => {
     expect(out.repo).toMatchObject({ fullName: 'acme/payments-api' });
   });
 
+  it('leaves out pages without the Runbook check macro and never sends them to the check', async () => {
+    const unrelated = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Call POST /v1/other on the billing service.' }] }] };
+    const otherMacro = { type: 'doc', content: [{ type: 'extension', attrs: { extensionKey: 'app-id/env-id/static/some-other-macro' } }] };
+    const mixed = [...pages, { id: '6', title: 'Another service', version: 1, adf: unrelated }, { id: '7', title: 'Another app', version: 1, adf: otherMacro }];
+    const checked: string[] = [];
+    const out = (await createAuditSpaceHandler({
+      service: () => service(({ pageId }) => (checked.push(pageId ?? ''), { ok: true, report: makeReport(reports[pageId ?? ''] ?? [contradicted('c_60000001')]) })),
+      readSpace: () => Promise.resolve({ ok: true, spaceId: '98', pages: mixed, more: false }),
+    })(ctx)) as AuditEnvelope;
+    expect(checked).toEqual(['1', '2', '3', '5']);
+    expect(out.scope).toMatchObject({ pagesRead: 7, pagesWithoutMacro: 2, pagesChecked: 4, pagesSkipped: 1 });
+    expect(out.pages.map((p) => p.id)).toEqual(['2', '5', '1']);
+    expect(out.totals.contradicted).toBe(5);
+  });
+
   it('stops when the time budget runs out and reports the pages it did not reach', async () => {
     let t = 0;
     const clock = { now: () => (t += 400), budgetMs: 1000 };
     const out = (await createAuditSpaceHandler({ service: svc, readSpace, clock })(ctx)) as AuditEnvelope;
     expect(out.scope).toMatchObject({ pagesRead: 5, pagesChecked: 2, pagesNotReached: 3 });
     expect(out.pages.map((p) => p.id)).toEqual(['2', '1']);
+  });
+
+  it('gives up a check that outlasts the budget and still returns the pages already checked', async () => {
+    const real = Date.now;
+    const slow = () =>
+      service(({ pageId }) =>
+        pageId === '2' ? new Promise<ServiceOutcome>(() => undefined) : { ok: true, report: makeReport(reports[pageId ?? ''] ?? []) },
+      );
+    const out = (await createAuditSpaceHandler({ service: slow, readSpace, clock: { now: real, budgetMs: 60 } })(ctx)) as AuditEnvelope;
+    expect(out.pages.map((p) => p.id)).toEqual(['1']);
+    expect(out.scope).toMatchObject({ pagesChecked: 1, pagesNotReached: 4 });
+  });
+
+  it('counts the time spent reading the space against the budget', async () => {
+    let t = 0;
+    const clock = { now: () => t, budgetMs: 1000 };
+    const slowRead: SpaceReader = () => {
+      t = 2000;
+      return Promise.resolve({ ok: true, spaceId: '98', pages, more: false });
+    };
+    const out = (await createAuditSpaceHandler({ service: svc, readSpace: slowRead, clock })(ctx)) as AuditEnvelope;
+    expect(out.scope).toMatchObject({ pagesChecked: 0, pagesNotReached: 5 });
   });
 
   it('flags a page whose claims were cut at the limit, in the audit and in suggest-fix', async () => {

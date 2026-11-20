@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { matchClaim } from '../../../src/core/match';
 import { makeSuggestion } from '../../../src/core/match/evidence';
-import type { ClaimResult, NormalizedClaim, RepoIndex } from '../../../src/core/model';
+import { declaredAs } from '../../../src/core/match/package';
+import type { ClaimResult, NormalizedClaim, PackageEntry, RepoIndex } from '../../../src/core/model';
 import { makeClaim, makeIndex } from '../../fixtures/match/builders';
 
 const loc = (file: string, line: number) => ({ file, line, snippet: 'x' });
@@ -68,8 +69,13 @@ describe('fix suggestions on contradicted results', () => {
     expect(flag.reason).toBe('cli_flag_not_defined');
     expect(flag.suggestion).toMatchObject({
       replacement: 'payments refund <paymentId> --amount 500',
-      alternatives: ['payments refund <paymentId> --amount 500 --confirm', 'payments refund <paymentId> --amount 500 --amount'],
+      alternatives: ['payments refund <paymentId> --amount 500 --confirm'],
     });
+    // Every flag the code does not define is removed, so the proposed command is not itself contradicted.
+    const several = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund'], flags: ['--force', '--old', '--amount'] }, 'payments refund --force --old=1 --amount 5'), index);
+    expect(several.suggestion).toMatchObject({ replacement: 'payments refund --amount 5', alternatives: ['payments refund --confirm --amount 5'] });
+    const fixed = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund'], flags: ['--amount'] }, several.suggestion?.replacement ?? ''), index);
+    expect(fixed.verdict).toBe('verified');
     const valued = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refund', '<id>'], flags: ['--force'] }, 'payments refund <id> --force=true'), index);
     expect(valued.suggestion?.replacement).toBe('payments refund <id>');
     const sub = matchClaim(makeClaim({ type: 'cli', program: 'payments', subcommands: ['refnd', '<paymentId>'], flags: ['--confirm'] }, 'payments refnd <paymentId> --confirm'), index);
@@ -97,6 +103,21 @@ describe('fix suggestions on contradicted results', () => {
     const script = check({ type: 'cli', program: 'npm', subcommands: ['run', 'migrate'], flags: [] }, index);
     expect(script.reason).toBe('script_not_defined');
     expect(script.suggestion).toMatchObject({ kind: 'replace', replacement: 'npm run db:migrate' });
+  });
+
+  it('package version: the proposed text uses the notation of its ecosystem', () => {
+    const entry = (ecosystem: PackageEntry['ecosystem'], name: string, range: string): PackageEntry => ({ ...loc('manifest', 3), ecosystem, name, range, dev: false });
+    expect(declaredAs(entry('npm', 'express', '^5.1.0'))).toBe('express@^5.1.0');
+    expect(declaredAs(entry('go', 'github.com/gin-gonic/gin', 'v1.9.1'))).toBe('github.com/gin-gonic/gin@v1.9.1');
+    expect(declaredAs(entry('pypi', 'requests', '>=2.31,<3'))).toBe('requests>=2.31,<3');
+    expect(declaredAs(entry('pypi', 'requests', '2.31.0'))).toBe('requests==2.31.0');
+    expect(declaredAs(entry('maven', 'org.slf4j:slf4j-api', '2.0.9'))).toBe('org.slf4j:slf4j-api:2.0.9');
+    expect(declaredAs(entry('runtime', 'node', '>=20'))).toBe('Node.js >=20');
+    expect(declaredAs(entry('runtime', 'python', '>=3.11'))).toBe('Python >=3.11');
+    expect(declaredAs(entry('pypi', 'requests', '*'))).toBeUndefined();
+    const pip = check({ type: 'package_version', ecosystem: 'pypi', name: 'requests', range: '==1.2.0' }, makeIndex({ packages: [entry('pypi', 'requests', '==2.31.0')] }));
+    expect(pip.verdict).toBe('contradicted');
+    expect(pip.suggestion).toMatchObject({ kind: 'replace', replacement: 'requests==2.31.0' });
   });
 
   it('config key, package version and moved file', () => {

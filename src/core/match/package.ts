@@ -10,6 +10,27 @@ function normalizeName(ecosystem: string, name: string): string {
   return ecosystem === 'pypi' ? lower.replace(/[-_.]+/g, '-') : lower;
 }
 
+/** The declared version in the notation of its ecosystem, so the proposed text reads like the claim it replaces. */
+const RUNTIME_LABEL: Record<string, string> = { node: 'Node.js', python: 'Python', go: 'Go' };
+
+export function declaredAs(entry: PackageEntry): string | undefined {
+  const range = entry.range.trim();
+  // An unpinned dependency has no version to quote.
+  if (range === '' || range === '*') return undefined;
+  switch (entry.ecosystem) {
+    case 'pypi':
+      // requirements.txt and pyproject.toml carry the operator in the range ("==2.1", ">=1.2,<2").
+      return /^[=<>~!]/.test(range) ? `${entry.name}${range}` : `${entry.name}==${range}`;
+    case 'maven':
+      return `${entry.name}:${range}`;
+    case 'runtime':
+      return `${RUNTIME_LABEL[entry.name] ?? entry.name} ${range}`;
+    case 'npm':
+    case 'go':
+      return `${entry.name}@${range}`;
+  }
+}
+
 export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchContext): ClaimResult {
   const { index } = ctx;
   const wanted = normalizeName(n.ecosystem, n.name);
@@ -42,6 +63,7 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
   const first: PackageEntry | undefined = ordered[0];
   if (!first) return unknownResult(claim, ctx, 'package_not_direct_dependency', 'packages');
   const declared = makeEvidence(index, 'nearest', first);
+  const quoted = declaredAs(first);
   return toResult(
     claim,
     'contradicted',
@@ -51,6 +73,6 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
       detail: `The manifest declares ${sanitizeUntrusted(first.name)}@${sanitizeUntrusted(first.range)} at ${first.file}:${first.line}.`,
     }),
     [declared, absenceEvidence(ctx, 'packages')],
-    makeSuggestion([`${first.name}@${first.range}`], declared),
+    quoted === undefined ? undefined : makeSuggestion([quoted], declared),
   );
 }

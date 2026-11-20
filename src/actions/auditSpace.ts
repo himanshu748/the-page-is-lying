@@ -1,3 +1,4 @@
+import { hasRunbookMacro } from '../core/adf/macro';
 import type { AgentError, Report, ReportCounts } from '../core/model';
 import { AGENT_DATA_NOTICE } from '../core/wording';
 import type { AgentFix } from './advice';
@@ -13,8 +14,10 @@ import { MAX_AUDIT_PAGES, readSpaceAsUser } from './spaceReader';
 
 /**
  * Rovo action and MCP tool `audit-space` (actionVerb GET, read-only).
- * Checks the most recently edited pages of the space that contains the given page and ranks them by
- * contradicted claims, worst first. Each page carries its top contradictions with the proposed edit.
+ * Reads the most recently edited pages of the space that contains the given page, checks the ones that have
+ * the Runbook check macro and ranks them by contradicted claims, worst first. Each page carries its top
+ * contradictions with the proposed edit. Pages without the macro are counted and left unchecked: the space
+ * may document other services, and their claims are not about the configured repository.
  */
 export interface AuditSpacePayload {
   page?: unknown;
@@ -51,6 +54,9 @@ export interface AuditEnvelope {
   scope: {
     /** Most recently edited pages that were read (at most `maxPages`). */
     pagesRead: number;
+    /** Read pages without the Runbook check macro. They are not checked: nothing says they describe this repository. */
+    pagesWithoutMacro: number;
+    /** Pages with the macro that were checked. */
     pagesChecked: number;
     /** Pages without a readable body or over the size limit. No verdict was produced for them. */
     pagesSkipped: number;
@@ -96,7 +102,37 @@ export function rankAudited(pages: AuditedPage[]): AuditedPage[] {
 }
 
 export async function auditSpace(deps: AuditSpaceDeps, pageId: string, source: PageIdSource): Promise<AuditSpaceResult> {
-  return auditPages(deps.service, await deps.readSpace(pageId), source, deps.clock);
+  return readAndAudit(deps.service, () => deps.readSpace(pageId), source, deps.clock);
+}
+
+type AuditClock = { now: () => number; budgetMs: number };
+const DEFAULT_CLOCK: AuditClock = { now: Date.now, budgetMs: AUDIT_BUDGET_MS };
+
+/** Reads the space and audits it inside one time budget, so a slow read leaves less time for the checks. */
+export async function readAndAudit(
+  getService: () => CheckService,
+  readSpace: () => Promise<SpaceReadResult>,
+  source: PageIdSource,
+  clock: AuditClock = DEFAULT_CLOCK,
+): Promise<AuditSpaceResult> {
+  const deadline = clock.now() + clock.budgetMs;
+  return auditPages(getService, await readSpace(), source, clock, deadline);
+}
+
+const TIMED_OUT = Symbol('timed out');
+
+/** Resolves with `TIMED_OUT` when `work` takes longer than `ms`. The work is left to finish on its own. */
+async function within<T>(work: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), ms);
+  });
+  try {
+    return await Promise.race([work, timeout]);
+  } finally {
+    clearTimeout(timer);
+    work.catch(() => undefined);
+  }
 }
 
 /** Checks and ranks pages that were already read. Shared by the action and the space page in Confluence. */
@@ -104,7 +140,8 @@ export async function auditPages(
   getService: () => CheckService,
   read: SpaceReadResult,
   source: PageIdSource,
-  clock: { now: () => number; budgetMs: number } = { now: Date.now, budgetMs: AUDIT_BUDGET_MS },
+  clock: AuditClock = DEFAULT_CLOCK,
+  deadline: number = clock.now() + clock.budgetMs,
 ): Promise<AuditSpaceResult> {
   if (!read.ok) return buildError(read.error);
 
@@ -114,12 +151,16 @@ export async function auditPages(
   let skipped = 0;
   let withoutClaims = 0;
   let notReached = 0;
-  const deadline = clock.now() + clock.budgetMs;
+  // Only pages that carry the macro are about this repository. A page without a readable body stays in the list,
+  // so it is reported as skipped rather than as lacking the macro.
+  const listed = read.pages.slice(0, MAX_AUDIT_PAGES);
+  const pages = listed.filter((page) => page.adf === undefined || hasRunbookMacro(page.adf));
+  const withoutMacro = listed.length - pages.length;
   try {
     const service = getService();
-    const pages = read.pages.slice(0, MAX_AUDIT_PAGES);
     for (const [position, page] of pages.entries()) {
-      if (clock.now() > deadline) {
+      const remaining = deadline - clock.now();
+      if (remaining < 0) {
         notReached = pages.length - position;
         break;
       }
@@ -127,7 +168,12 @@ export async function auditPages(
         skipped++;
         continue;
       }
-      const outcome = await service.checkDocument({ adf: page.adf, pageId: page.id });
+      // A check that outlasts the budget is given up, so the pages already checked are still returned.
+      const outcome = await within(service.checkDocument({ adf: page.adf, pageId: page.id }), remaining);
+      if (outcome === TIMED_OUT) {
+        notReached = pages.length - position;
+        break;
+      }
       if (!outcome.ok) {
         // An oversized or unreadable body is a skipped page. Anything else (no index, rate limit) stops the audit.
         if (outcome.reason === 'invalid_input') {
@@ -159,7 +205,8 @@ export async function auditPages(
     repo,
     scope: {
       pagesRead: read.pages.length,
-      pagesChecked: read.pages.length - skipped - notReached,
+      pagesWithoutMacro: withoutMacro,
+      pagesChecked: read.pages.length - withoutMacro - skipped - notReached,
       pagesSkipped: skipped,
       pagesWithoutClaims: withoutClaims,
       pagesNotReached: notReached,

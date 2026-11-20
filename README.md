@@ -14,9 +14,9 @@ Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the R
 - **Five `rovo:mcp` tools** for Claude Code, Cursor or any MCP client, all read-only: `check-page`, `check-claim`, `explain-claim` (which rule decided, what was searched and how complete that index is), `suggest-fix` (the proposed edit for a contradicted claim, read from the code) and `audit-space` (the pages of a space ranked by contradicted claims). They return the same claim ids and evidence ids the Confluence panel shows.
 - **`rovo:skill` "runbook-checker"**: the same instructions as `skills/runbook-checker/SKILL.md`, packaged as a Forge skill and bound to the Runbook checker agent, which loads it for checks and the multi-step space audit.
 - **Suggested edit on every contradiction.** The nearest route, variable, flag, key, path or declared version, with the evidence id it came from. A proposal for a person to review: the app never edits a page.
-- **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has.
-- **Space page "Doc drift"** in the space sidebar: the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
-- **Get started guide** on the settings page, with a button that connects the public demo repository and starts indexing.
+- **"Who to ask" on every contradiction**: the page owner, last editor and creator, read with the scopes the app already has. App accounts are left out. A person whose account was deactivated is still listed, because telling that apart needs the `read:user:confluence` scope.
+- **Space page "Doc drift"** in the space sidebar: the pages with the Runbook check macro among the 25 most recently edited pages of the space, ranked by contradicted claims, with the top contradictions and proposed edits for each page.
+- **Get started page**, linked from the dialog shown after install and from Manage apps (`useAsGetStarted`), with a button that connects the public demo repository and starts indexing, and a sample runbook to copy into the macro. The same guide is on the settings page.
 - **Optional Jira draft.** For a contradicted claim the app shows the exact issue text first. Nothing is written without a click.
 - **Admin settings page** for the repository URL, branch, optional read-only token, service hosts and Jira ids, with index status and an "Index now" button.
 
@@ -105,7 +105,7 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 - Index limits: size, file count and per-kind entry caps; a truncated or dynamic repo makes coverage `partial`, which turns would-be red claims into "No evidence found" instead of a false contradiction.
 - Supported source for the index: JavaScript and TypeScript, Python, Go, Java; other languages mark coverage `partial`.
 - Claims per page: at most 200 (the report says when it was truncated). Page body limit 400 KB for the macro and byline.
-- Space audit: the 25 most recently edited pages of a space that the calling user can view, within a 15 second time budget. The result says how many pages were read, checked, skipped and not reached.
+- Space audit: the 25 most recently edited pages of a space that the calling user can view, within a 15 second time budget. Only pages that have the Runbook check macro are checked, because other pages may describe other services. The result says how many pages were read, had no macro, were checked, skipped and not reached.
 - First index under the GitHub rate limit: when the REST API refuses the commit lookup, the index job reads the commit id from the archive it downloads anyway, so the first index does not depend on the hourly limit.
 - GitHub unauthenticated rate limit: 60 requests per hour. The app asks for the commit at most once every 10 minutes and serves a stale index (marked stale) when the host rate-limits it.
 - Freshness: an index younger than 15 minutes is used as is; after that a changed branch head triggers a background reindex.
@@ -136,8 +136,8 @@ The link installs the production version on any Confluence Cloud site where you 
 ### Setup for judges (about 5 minutes)
 
 1. Open the install link, choose **Get app**, pick your Confluence site and accept the permissions.
-2. Open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Enter repository URL `https://github.com/himanshu748/payments-api` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
-3. Create a page, type `/Runbook check` to insert the macro, and type these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks):
+2. Choose **Get started** in the dialog shown after install, or open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Choose **Use the demo repository**, or enter repository URL `https://github.com/himanshu748/payments-api` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
+3. Create a page, type `/Runbook check` to insert the macro, and put these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks). **Copy sample runbook** on the Get started page copies them with the inline code in place:
    1. To take a payment, call `POST /v1/charge` with the amount in cents.
    2. To look up a payment, call `GET /v2/payments/{id}`.
    3. Set `STRIPE_KEY` before starting the service.

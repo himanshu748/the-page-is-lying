@@ -114,6 +114,7 @@ export function toRepo(report: Report): ActionEnvelope['repo'] {
     sha: safeId(report.repo.sha),
     indexedAt: clean(report.repo.indexedAt, 40),
     stale: report.stale === true,
+    ...(report.freshnessUnchecked === true ? { freshnessUnchecked: true } : {}),
   };
 }
 

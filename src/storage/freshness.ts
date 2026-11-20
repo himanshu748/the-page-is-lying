@@ -42,6 +42,11 @@ export async function getHeadSha(args: {
   now: () => number;
   /** Cache window. Defaults to 10 minutes; a manual "Index now" uses 1 minute. */
   maxAgeMs?: number;
+  /**
+   * Ask the host again even when a failed lookup is cached. The index job sets it: its source can read the
+   * commit from the archive, which a failure cached by a page view (whose source cannot) would otherwise hide.
+   */
+  retryCachedError?: boolean;
 }): Promise<HeadResult> {
   const { kvs, source, repoKey, now } = args;
   const maxAge = args.maxAgeMs ?? HEAD_TTL_MS;
@@ -49,7 +54,7 @@ export async function getHeadSha(args: {
   const cached = await kvs.get<HeadEntry>(headKey(repoKey));
   if (cached && t - cached.checkedAt < maxAge && cached.ref === (args.ref ?? 'HEAD')) {
     if (cached.sha) return { sha: cached.sha, ref: cached.ref, checkedAt: cached.checkedAt, fromCache: true };
-    if (cached.error) throw new RepoError(cached.error.reason, cached.error.message, cached.error.resetAt);
+    if (cached.error && args.retryCachedError !== true) throw new RepoError(cached.error.reason, cached.error.message, cached.error.resetAt);
   }
   try {
     const r = await source.resolveRef(args.ref);
@@ -69,10 +74,11 @@ export type IndexLookup =
       state: 'ready';
       index: RepoIndex;
       pointer: IndexPointer;
+      /** True only when a newer commit was seen on the branch. */
       stale: boolean;
-      /** Why the index may be old: the branch moved (`undefined`) or the refresh check failed. */
+      /** Set when the check for a newer commit failed (rate limit, repository unreachable). `stale` is then false: the index could not be compared, which is not the same as the repository having changed. */
       staleReason?: ReasonCode;
-      /** The newer commit that was seen, when stale because the branch moved. */
+      /** The newer commit that was seen, when stale. */
       headSha?: string;
       resetAt?: string;
       reindexQueued: boolean;
@@ -137,7 +143,8 @@ export async function getIndexForCheck(deps: FreshnessDeps, repoKey: string, ref
     return { state: 'ready', ...base, stale: true, headSha: head.sha, reindexQueued: queued };
   } catch (e) {
     if (isRepoError(e)) {
-      return { state: 'ready', ...base, stale: true, staleReason: toReasonCode(e.reason), ...(e.resetAt !== undefined ? { resetAt: e.resetAt } : {}), reindexQueued: false };
+      // The refresh check failed, so nothing says the branch moved: the index is not reported as stale.
+      return { state: 'ready', ...base, stale: false, staleReason: toReasonCode(e.reason), ...(e.resetAt !== undefined ? { resetAt: e.resetAt } : {}), reindexQueued: false };
     }
     throw e;
   }

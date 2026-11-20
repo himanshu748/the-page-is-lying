@@ -197,6 +197,13 @@ describe('getSettings, getIndexStatus, indexNow', () => {
     expect(await call('getIndexStatus', undefined, settingsCtx)).toEqual({ state: 'ready' });
   });
 
+  it('answers the Get started page, which shows the same settings', async () => {
+    const startCtx = { moduleKey: 'runbook-get-started', accountId: 'acc-1' };
+    expect(await call('getSettings', undefined, startCtx)).toMatchObject({ repoUrl: 'https://github.com/o/r' });
+    expect(await call('getIndexStatus', undefined, startCtx)).toEqual({ state: 'ready' });
+    expect(await call('saveSettings', validSave, startCtx)).toMatchObject({ ok: true });
+  });
+
   it('indexNow needs the settings module and an admin', async () => {
     expect(await call('indexNow', undefined, macroCtx)).toMatchObject({ ok: false, error: 'forbidden' });
     setBackend((backend = makeBackend({ admin: false })));
@@ -269,7 +276,7 @@ describe('getPageContacts and auditSpace', () => {
     dataNotice: 'n',
     space: { id: '98', source: 'context' as const },
     repo: null,
-    scope: { pagesRead: 0, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
+    scope: { pagesRead: 0, pagesWithoutMacro: 0, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0, pagesNotReached: 0, maxPages: 25, morePagesInSpace: false },
     totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 },
     pages: [],
   };

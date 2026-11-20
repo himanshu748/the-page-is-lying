@@ -3,7 +3,7 @@ import api, { route } from '@forge/api';
 /**
  * "Who to ask" for a page: its owner, its last editor and its creator, read as the invoking user with the
  * scopes the app already has (`read:page:confluence`, `read:confluence-user`). Best effort: any failure
- * yields an empty list and never blocks a check.
+ * yields an empty list and never blocks a check. Deactivated accounts cannot be told apart with these scopes.
  */
 export type ContactRole = 'owner' | 'last_editor' | 'creator';
 
@@ -62,7 +62,9 @@ export const readContactsAsUser: ContactsReader = async (pageId) => {
       const user = await api.asUser().requestConfluence(route`/wiki/rest/api/user?accountId=${accountId}`, { headers: { Accept: 'application/json' } });
       if (!user.ok) continue;
       const json = (await user.json()) as { displayName?: unknown; publicName?: unknown; accountType?: unknown };
-      // Apps and deactivated accounts are not people to ask.
+      // App accounts, and accounts whose type Confluence does not give, are not people to ask. A deactivated
+      // person is still listed: this endpoint has no account status, and the one that has it
+      // (`POST /wiki/api/v2/users-bulk`) needs the `read:user:confluence` scope, which the app does not request.
       if (json.accountType !== undefined && json.accountType !== 'atlassian') continue;
       const displayName = cleanName(json.displayName) || cleanName(json.publicName);
       if (displayName !== '') contacts.push({ role, accountId, displayName });

@@ -77,6 +77,7 @@ export async function runIndexJob(deps: IndexJobDeps, event: IndexRepoEvent = {}
       repoKey,
       ref: settings.ref,
       now,
+      retryCachedError: true,
       ...(reason === 'manual' ? { maxAgeMs: MANUAL_HEAD_TTL_MS } : {}),
     });
     if (lastGood && lastGood.repo.sha === head.sha && reason !== 'manual') {

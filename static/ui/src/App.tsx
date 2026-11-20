@@ -22,6 +22,7 @@ export function App() {
   if (moduleKey.endsWith('runbook-check')) return <MacroView />;
   if (moduleKey.endsWith('runbook-byline')) return <BylinePopup />;
   if (moduleKey.endsWith('runbook-settings')) return <SettingsPage />;
+  if (moduleKey.endsWith('runbook-get-started')) return <SettingsPage intro />;
   if (moduleKey.endsWith('runbook-drift')) return <DriftView />;
   return <p role="alert" className="notice notice-error">Unknown module: {moduleKey}</p>;
 }

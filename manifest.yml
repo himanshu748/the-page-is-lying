@@ -55,6 +55,13 @@ modules:
       resolver:
         function: ui-resolver
       useAsConfig: true
+    # Linked from the dialog shown after install and from Manage apps. Same page as the settings, with the guide on top.
+    - key: runbook-get-started
+      title: Get started with The Page Is Lying
+      resource: ui
+      resolver:
+        function: ui-resolver
+      useAsGetStarted: true
 
   confluence:spacePage:
     - key: runbook-drift
@@ -165,8 +172,9 @@ modules:
       function: audit-space-fn
       actionVerb: GET
       description: >
-        Read-only. Checks the 25 most recently edited pages of the space that contains the given page and
-        ranks them by contradicted claims, with top contradictions, evidence IDs and proposed edits.
+        Read-only. Of the 25 most recently edited pages of the space that contains the given page, checks
+        the ones that have the Runbook check macro and ranks them by contradicted claims, with top
+        contradictions, evidence IDs and proposed edits.
         Never writes.
       inputs:
         page:

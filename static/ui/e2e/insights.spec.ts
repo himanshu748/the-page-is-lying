@@ -49,7 +49,7 @@ test.describe('get started', () => {
     await page.goto('/?module=runbook-settings&repo=none');
     const start = page.getByTestId('get-started');
     await expect(start.getByRole('heading', { level: 2, name: 'Get started' })).toBeVisible();
-    await expect(start.getByRole('listitem')).toHaveCount(3);
+    await expect(start.locator('.start-steps').getByRole('listitem')).toHaveCount(3);
     await start.getByRole('button', { name: 'Use the demo repository' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
     await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
@@ -75,6 +75,45 @@ test.describe('get started', () => {
     await expect(page.getByTestId('get-started')).toContainText('Doc drift');
   });
 
+  test('the page opened after install shows the guide and the same settings', async ({ page }) => {
+    await page.goto('/?module=runbook-get-started&repo=none');
+    await expect(page.getByRole('heading', { level: 1, name: 'Get started with The Page Is Lying' })).toBeVisible();
+    await page.getByTestId('get-started').getByRole('button', { name: 'Use the demo repository' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
+    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
+  });
+
+  test('the sample runbook lists the six demo claims as inline code and can be copied', async ({ page }) => {
+    await page.goto('/?module=runbook-get-started&status=ready');
+    const sample = page.getByTestId('sample-runbook');
+    await expect(sample.getByRole('listitem')).toHaveCount(6);
+    await expect(sample.locator('ol code')).toHaveText([
+      'POST /v1/charge',
+      'GET /v2/payments/{id}',
+      'STRIPE_KEY',
+      'npm run db:migrate',
+      'payments refund <paymentId> --force',
+      'ledgerctl reconcile --since 24h',
+    ]);
+    await page.evaluate(() => {
+      document.addEventListener('copy', (event) => {
+        (window as unknown as { __copied?: string }).__copied = window.getSelection()?.toString() ?? '';
+        event.preventDefault();
+      });
+    });
+    await sample.getByRole('button', { name: 'Copy sample runbook' }).click();
+    await expect(sample.getByRole('status')).toContainText(/Copied|The lines are selected/);
+    const copied = await page.evaluate(() => (window as unknown as { __copied?: string }).__copied);
+    if (copied !== undefined) expect(copied).toContain('payments refund <paymentId> --force');
+  });
+
+  test('on the settings page the sample is folded away once setup is done', async ({ page }) => {
+    await page.goto('/?module=runbook-settings&status=ready');
+    const sample = page.getByTestId('sample-runbook');
+    await expect(sample.getByText('Sample runbook for the demo repository')).toBeVisible();
+    await expect(sample.getByRole('button', { name: 'Copy sample runbook' })).toBeHidden();
+  });
+
   for (const theme of ['light', 'dark']) {
     test(`axe finds no violations on first run (${theme})`, async ({ page }) => {
       await page.goto(`/?module=runbook-settings&repo=none&theme=${theme}`);
@@ -98,7 +137,7 @@ test.describe('space doc drift page', () => {
     await expect(pages.nth(0)).toContainText('Suggested edit: replace POST /v1/charge with POST /v2/payments.');
     await expect(pages.nth(1)).toContainText('Deploy guide');
     await expect(pages.nth(2)).toContainText('0 contradicted of 4 claims');
-    await expect(page.getByTestId('drift-scope')).toContainText('Checked the 5 most recently edited pages, 2 without checkable claims, 1 skipped');
+    await expect(page.getByTestId('drift-scope')).toContainText('Checked 5 of the 9 most recently edited pages, 3 left out because they have no Runbook check macro, 2 without checkable claims, 1 skipped');
     await expect(page.getByTestId('drift-scope')).toContainText('himanshu748/payments-api@3f2c1a9');
     await expect(page.getByLabel('Space totals')).toContainText('2 of 3 pages with claims have a contradiction');
   });
@@ -132,7 +171,10 @@ test.describe('space doc drift page', () => {
 
   test('empty space, missing repository and failure show a notice and no ranking', async ({ page }) => {
     await page.goto('/?module=runbook-drift&drift=empty');
-    await expect(page.getByText('No checkable claims were found in the pages of this space.')).toBeVisible();
+    await expect(page.getByTestId('drift-empty')).toContainText('No checkable claims were found in the checked pages.');
+    await page.goto('/?module=runbook-drift&drift=no_macro');
+    await expect(page.getByTestId('drift-empty')).toContainText('None of the 12 most recently edited pages has the Runbook check macro.');
+    await expect(page.getByTestId('drift-page')).toHaveCount(0);
     await page.goto('/?module=runbook-drift&drift=no_repo');
     await expect(page.getByRole('alert')).toContainText('No repository is connected yet.');
     await page.goto('/?module=runbook-drift&drift=error');

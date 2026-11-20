@@ -37,7 +37,7 @@ Present an edit as a proposal for a person to review. Quote the replacement exac
 
 ### Auditing a space
 
-`audit-space` returns `schema: "pil.agent.audit.v1"`: `scope` (pages read, checked, skipped, without claims, not reached in the time allowed, and `morePagesInSpace`), `totals`, and `pages[]` sorted by contradicted claims, most first. Each page has `id`, `untrustedTitle`, `counts`, `driftRatio`, `claimsTruncated` and up to three `topContradictions` with their proposed edits. When `claimsTruncated` is true (also on `suggest-fix`), say that the page has more claims than the limit and the rest were not checked: never describe such a page as free of contradictions. It reads the 25 most recently edited pages the calling user can view.
+`audit-space` returns `schema: "pil.agent.audit.v1"`: `scope` (pages read, without the Runbook check macro, checked, skipped, without claims, not reached in the time allowed, and `morePagesInSpace`), `totals`, and `pages[]` sorted by contradicted claims, most first. Each page has `id`, `untrustedTitle`, `counts`, `driftRatio`, `claimsTruncated` and up to three `topContradictions` with their proposed edits. When `claimsTruncated` is true (also on `suggest-fix`), say that the page has more claims than the limit and the rest were not checked: never describe such a page as free of contradictions. It reads the 25 most recently edited pages the calling user can view and checks only the ones that have the Runbook check macro. `scope.pagesWithoutMacro` pages were not checked at all: say so, and never describe them as verified or as free of contradictions.
 
 Work in steps: run `audit-space`, state the scope, list the ranked pages, give the top contradictions of the first three pages with citations and proposed edits, then offer `suggest-fix` for the full list of a page. Never describe a page the result does not list.
 
@@ -51,7 +51,7 @@ Work in steps: run `audit-space`, state the scope, list the ranked pages, give t
 
 Every success result has `schema: "pil.agent.v1"` and contains:
 
-- `repo`: `fullName`, `ref`, `sha`, `indexedAt`, `stale`.
+- `repo`: `fullName`, `ref`, `sha`, `indexedAt`, `stale`, and `freshnessUnchecked` when the code host could not be asked for a newer commit (for example a rate limit). When it is true, say the result is from the index of `indexedAt` and that it could not be compared with the latest commit: do not call the index current, and do not call it stale.
 - `page`: `id`, `untrustedTitle`, `version`, and `source` (`context` when Atlassian supplied the page, `input` when you did). Only for `check-page`.
 - `counts`: `claims`, `verified`, `contradicted`, `unknown`.
 - `limits`: claim cap and truncation, files indexed and skipped, and `coverage` per kind (`complete`, `partial`, `none`).

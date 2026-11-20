@@ -136,7 +136,7 @@ describe('getIndexForCheck', () => {
     const { source } = fakeSource([failing('rate_limited', '2026-11-15T11:00:00.000Z')]);
     const q: unknown[] = [];
     const r = await getIndexForCheck(deps(kvs, source, q), REPO_KEY, 'main');
-    expect(r).toMatchObject({ state: 'ready', stale: true, staleReason: 'rate_limited', resetAt: '2026-11-15T11:00:00.000Z', reindexQueued: false });
+    expect(r).toMatchObject({ state: 'ready', stale: false, staleReason: 'rate_limited', resetAt: '2026-11-15T11:00:00.000Z', reindexQueued: false });
     expect(q).toEqual([]);
   });
 
@@ -145,7 +145,7 @@ describe('getIndexForCheck', () => {
     await seed(kvs, t - FRESH_MS - 1000);
     const { source } = fakeSource([failing('repo_not_found_or_private')]);
     const r = await getIndexForCheck(deps(kvs, source, []), REPO_KEY, 'main');
-    expect(r).toMatchObject({ state: 'ready', stale: true, staleReason: 'repo_not_found_or_private' });
+    expect(r).toMatchObject({ state: 'ready', stale: false, staleReason: 'repo_not_found_or_private' });
   });
 
   it('without an index it queues a build once and reports indexing', async () => {

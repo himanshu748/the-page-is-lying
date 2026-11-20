@@ -31,6 +31,8 @@ import {
  * Settings resolvers accept calls only from the settings module; writes also need a Confluence admin.
  */
 export const SETTINGS_MODULE_KEY = 'runbook-settings';
+/** The page opened after install. It shows the same settings, so it may call the same resolvers. */
+export const GET_STARTED_MODULE_KEY = 'runbook-get-started';
 
 interface Ctx {
   moduleKey?: unknown;
@@ -46,7 +48,10 @@ export function moduleKeyOf(context: Ctx): string {
 const accountIdOf = (context: Ctx): string | undefined =>
   typeof context.accountId === 'string' ? context.accountId : undefined;
 
-const fromSettingsModule = (context: Ctx): boolean => moduleKeyOf(context).endsWith(SETTINGS_MODULE_KEY);
+const fromSettingsModule = (context: Ctx): boolean => {
+  const key = moduleKeyOf(context);
+  return key.endsWith(SETTINGS_MODULE_KEY) || key.endsWith(GET_STARTED_MODULE_KEY);
+};
 
 function toView(settings: StoredSettings, tokenSaved: boolean): SettingsView {
   return { ...settings, tokenSaved };

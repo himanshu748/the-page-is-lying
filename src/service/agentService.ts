@@ -7,7 +7,8 @@ import type { CheckService, ServiceOutcome } from '../actions/service';
 import { checkClaim, checkDocument, type CheckDeps, type CheckOutcome } from './check';
 
 function toServiceOutcome(outcome: CheckOutcome): ServiceOutcome {
-  if (outcome.ok) return { ok: true, report: outcome.report };
+  // A failed check for a newer commit is not a stale index, but the agent must be able to say it was not compared.
+  if (outcome.ok) return { ok: true, report: outcome.staleReason !== undefined ? { ...outcome.report, freshnessUnchecked: true } : outcome.report };
   if (outcome.error === 'indexing' || outcome.error === 'no_repo') return { ok: false, reason: 'index_missing' };
   return { ok: false, reason: outcome.error };
 }

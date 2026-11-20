@@ -2,9 +2,9 @@
  * Mock of the parts of @forge/bridge the UI uses. Selected through vite.config.e2e.ts.
  *
  * Query parameters:
- *   module=runbook-check (default) | runbook-byline | runbook-settings | runbook-drift
+ *   module=runbook-check (default) | runbook-byline | runbook-settings | runbook-get-started | runbook-drift
  *   repo=none starts the settings page without a saved repository (first run)
- *   contacts=none returns no page contacts      drift=empty | no_repo | error | truncated for the space page
+ *   contacts=none returns no page contacts      drift=empty | no_macro | no_repo | error | truncated for the space page
  *   scenario=ready (default) | indexing | indexing-then-ready | stale | rate_limited | rate_limited_stale
  *            | repo_not_found | no_repo | no_claims | error
  *   theme=light (default) | dark      rovo=1 enables Rovo      jira=1 configures the Jira target
@@ -120,6 +120,18 @@ function driftResponse(): DriftResponse {
   switch (params.get('drift')) {
     case 'empty':
       return { state: 'ready', audit: { ...demoAudit(), totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 }, pages: [] } };
+    case 'no_macro': {
+      const audit = demoAudit();
+      return {
+        state: 'ready',
+        audit: {
+          ...audit,
+          scope: { ...audit.scope, pagesRead: 12, pagesWithoutMacro: 12, pagesChecked: 0, pagesSkipped: 0, pagesWithoutClaims: 0 },
+          totals: { claims: 0, verified: 0, contradicted: 0, unknown: 0 },
+          pages: [],
+        },
+      };
+    }
     case 'truncated': {
       const audit = demoAudit();
       return { state: 'ready', audit: { ...audit, pages: audit.pages.map((p) => ({ ...p, claimsTruncated: true })) } };
