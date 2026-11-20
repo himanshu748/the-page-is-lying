@@ -66,9 +66,13 @@ modules:
         - Is this page still true?
         - Can I still call POST /v1/charge?
         - Which claims on this page are contradicted by code?
+        - Audit this space and rank the pages that drifted most
       actions:
         - check-page
         - check-claim
+        - explain-claim
+        - suggest-fix
+        - audit-space
 
   action:
     - key: check-page
@@ -107,6 +111,60 @@ modules:
           type: string
           required: false
           description: Optional page whose repository setting should be used.
+    - key: explain-claim
+      name: Explain a claim's verdict
+      function: explain-claim-fn
+      actionVerb: GET
+      description: >
+        Read-only. Explains a check-claim verdict: how the text was parsed, which rule decided, which part
+        of the code index was searched and how complete it is. Same evidence IDs. Never writes.
+      inputs:
+        claim:
+          title: Claim
+          type: string
+          required: true
+          description: One endpoint, env var, CLI command or flag, config key, file path
+            or package version.
+        page:
+          title: Page ID or URL
+          type: string
+          required: false
+          description: Optional page whose repository setting should be used.
+    - key: suggest-fix
+      name: Suggest an edit for contradicted claims
+      function: suggest-fix-fn
+      actionVerb: GET
+      description: >
+        Read-only. Proposes the edit for contradicted claims from the code (nearest route, variable, flag,
+        key, path or version) with its evidence ID. Pass a claim, or only a page for all of its
+        contradictions. Never edits a page.
+      inputs:
+        claim:
+          title: Claim
+          type: string
+          required: false
+          description: One claim to get an edit for. Leave empty to cover the whole page.
+        page:
+          title: Page ID or URL
+          type: string
+          required: false
+          description: Confluence page ID or URL. Leave empty to use the page the user is
+            viewing.
+    - key: audit-space
+      name: Audit a space for doc drift
+      function: audit-space-fn
+      actionVerb: GET
+      description: >
+        Read-only. Checks the 25 most recently edited pages of the space that contains the given page and
+        ranks them by contradicted claims, with top contradictions, evidence IDs and proposed edits.
+        Never writes.
+      inputs:
+        page:
+          title: Page ID or URL
+          type: string
+          required: false
+          description: Any page in the space to audit. Leave empty to use the page the user
+            is viewing.
 
   rovo:mcp:
     - key: runbook-checker-mcp
@@ -114,6 +172,21 @@ modules:
       tools:
         - check-page
         - check-claim
+        - explain-claim
+        - suggest-fix
+        - audit-space
+
+  rovo:skill:
+    - key: runbook-checker-skill
+      source:
+        dir: skills/runbook-checker
+      dependencies:
+        tools:
+          - check-page
+          - check-claim
+          - explain-claim
+          - suggest-fix
+          - audit-space
 
   consumer:
     - key: repo-index-consumer
@@ -129,6 +202,13 @@ modules:
       handler: actions/checkPage.handler
     - key: check-claim-fn
       handler: actions/checkClaim.handler
+    - key: explain-claim-fn
+      handler: actions/explainClaim.handler
+    - key: suggest-fix-fn
+      handler: actions/suggestFix.handler
+    - key: audit-space-fn
+      handler: actions/auditSpace.handler
+      timeoutSeconds: 55
     - key: index-repo-fn
       handler: consumers/indexRepo.handler
       timeoutSeconds: 300

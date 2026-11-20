@@ -14,17 +14,20 @@ const manifest = parse(readFileSync(join(import.meta.dirname, '..', '..', 'manif
 const mod = (name: string) => manifest.modules[name] ?? [];
 const keys = (name: string) => mod(name).map((m) => m['key'] as string);
 
+const ACTION_KEYS = ['audit-space', 'check-claim', 'check-page', 'explain-claim', 'suggest-fix'];
+
 describe('manifest.yml contract', () => {
   it('declares every module key from PLAN.md section 4', () => {
     expect(keys('macro')).toEqual(['runbook-check']);
     expect(keys('confluence:contentBylineItem')).toEqual(['runbook-byline']);
     expect(keys('confluence:globalSettings')).toEqual(['runbook-settings']);
     expect(keys('rovo:agent')).toEqual(['runbook-checker']);
-    expect(keys('action').sort()).toEqual(['check-claim', 'check-page']);
+    expect(keys('action').sort()).toEqual(ACTION_KEYS);
+    expect(keys('rovo:skill')).toEqual(['runbook-checker-skill']);
     expect(keys('rovo:mcp')).toEqual(['runbook-checker-mcp']);
     expect(keys('consumer')).toEqual(['repo-index-consumer']);
     expect(keys('function').sort()).toEqual(
-      ['byline-props', 'check-claim-fn', 'check-page-fn', 'index-repo-fn', 'ui-resolver'].sort(),
+      ['audit-space-fn', 'byline-props', 'check-claim-fn', 'check-page-fn', 'explain-claim-fn', 'index-repo-fn', 'suggest-fix-fn', 'ui-resolver'].sort(),
     );
   });
 
@@ -99,7 +102,7 @@ describe('manifest.yml contract', () => {
     const mcpTools = new Set(mod('rovo:mcp').flatMap((s) => s['tools'] as string[]));
     const agentActions = new Set(mod('rovo:agent').flatMap((a) => a['actions'] as string[]));
     expect([...mcpTools].sort()).toEqual([...agentActions].sort());
-    expect([...mcpTools].sort()).toEqual(['check-claim', 'check-page']);
+    expect([...mcpTools].sort()).toEqual(ACTION_KEYS);
     for (const action of mod('action')) {
       expect(typeof action['description']).toBe('string');
       expect(typeof action['inputs']).toBe('object');
