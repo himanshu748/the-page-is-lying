@@ -87,6 +87,10 @@ describe('validateRepoUrl', () => {
     expect(validateRepoUrl('https://github.com/himanshu748/payments-api')).toEqual({ ok: true, value: 'https://github.com/himanshu748/payments-api' });
     expect(validateRepoUrl(' https://github.com/o/r.git/ ')).toEqual({ ok: true, value: 'https://github.com/o/r' });
   });
+  it('accepts and canonicalises Bitbucket Cloud URLs', () => {
+    expect(validateRepoUrl('https://bitbucket.org/acme/payments-api')).toEqual({ ok: true, value: 'https://bitbucket.org/acme/payments-api' });
+    expect(validateRepoUrl(' https://bitbucket.org/acme/repo.git/ ')).toEqual({ ok: true, value: 'https://bitbucket.org/acme/repo' });
+  });
   it.each([
     'http://github.com/o/r',
     'https://evil.com/o/r',

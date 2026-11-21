@@ -19,7 +19,7 @@ import type { FetchFn, FetchResponse, RepoFile, RepoSource, ResolvedRef, Snapsho
 export const GITHUB_API_HOST = 'api.github.com';
 export const GITHUB_CODELOAD_HOST = 'codeload.github.com';
 
-export const GITHUB_OWNER_RE = /^[A-Za-z0-9-]{1,39}$/;
+export const GITHUB_OWNER_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
 export const GITHUB_REPO_RE = /^[A-Za-z0-9._-]{1,100}$/;
 
 export interface GitHubSourceOptions {
