@@ -1,6 +1,6 @@
 # Devpost write-up draft: The Page Is Lying
 
-Draft for the Codegeist 2026 submission (category: Apps for Software Teams; bonuses: Rovo agent and Atlassian MCP). Check every number and link again before submitting. The only placeholder left is the demo video link (TODO).
+Draft for the Codegeist 2026 submission (category: Apps for Software Teams; bonuses: Rovo agent and Atlassian MCP). Check every number and link again before submitting.
 
 ## Elevator pitch
 
@@ -91,7 +91,7 @@ Forge (Custom UI, KVS, Queue, external fetch, Rovo agent, Rovo actions, `rovo:mc
 
 ## Links
 
-- Demo video (public YouTube, under 5 minutes): TODO, paste the link after uploading `video/out/the-page-is-lying-demo.mp4` (3:53, 1920x1080). Upload `video/out/the-page-is-lying-demo.srt` as English subtitles; steps are in `video/README.md`.
+- Demo video (public YouTube, under 5 minutes): https://youtu.be/SWDnk6JEffo (3:53, 1920x1080, English subtitles from `video/out/the-page-is-lying-demo.srt`).
 - Image gallery: `video/out/still-1-page-contradicted.png`, `still-2-evidence-card.png` (local test build, labelled), `still-3-rovo-answer.png`, `still-4-mcp-results.png`, `still-5-fixed-green.png`.
 - Public code repository: https://github.com/himanshu748/the-page-is-lying
 - Demo repo: https://github.com/himanshu748/payments-api
