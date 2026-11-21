@@ -27,8 +27,10 @@ describe('manifest.yml contract', () => {
     expect(keys('rovo:skill')).toEqual(['runbook-checker-skill']);
     expect(keys('rovo:mcp')).toEqual(['runbook-checker-mcp']);
     expect(keys('consumer')).toEqual(['repo-index-consumer']);
+    expect(keys('scheduledTrigger')).toEqual(['reindex-hourly']);
+    expect(keys('webtrigger')).toEqual(['repo-push']);
     expect(keys('function').sort()).toEqual(
-      ['audit-space-fn', 'byline-props', 'check-claim-fn', 'check-page-fn', 'explain-claim-fn', 'index-repo-fn', 'suggest-fix-fn', 'ui-resolver'].sort(),
+      ['audit-space-fn', 'byline-props', 'check-claim-fn', 'check-page-fn', 'explain-claim-fn', 'index-repo-fn', 'repo-push-fn', 'scheduled-reindex-fn', 'suggest-fix-fn', 'ui-resolver'].sort(),
     );
   });
 
@@ -62,6 +64,7 @@ describe('manifest.yml contract', () => {
     const fnKeys = new Set(keys('function'));
     for (const a of mod('action')) expect(fnKeys.has(a['function'] as string)).toBe(true);
     for (const c of mod('consumer')) expect(fnKeys.has(c['function'] as string)).toBe(true);
+    for (const c of [...mod('scheduledTrigger'), ...mod('webtrigger')]) expect(fnKeys.has(c['function'] as string)).toBe(true);
     for (const m of [...mod('macro'), ...mod('confluence:contentBylineItem'), ...mod('confluence:globalSettings')]) {
       const resolver = m['resolver'] as { function: string };
       expect(fnKeys.has(resolver.function)).toBe(true);

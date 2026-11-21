@@ -109,6 +109,8 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 - First index under the GitHub rate limit: when the REST API refuses the commit lookup, the index job reads the commit id from the archive it downloads anyway, so the first index does not depend on the hourly limit.
 - GitHub unauthenticated rate limit: 60 requests per hour. The app asks for the commit at most once every 10 minutes and serves a stale index (marked stale) when the host rate-limits it.
 - Freshness: an index younger than 15 minutes is used as is; after that a changed branch head triggers a background reindex.
+- Scheduled reindex: a `scheduledTrigger` (`reindex-hourly`, interval `hour`) runs the index job periodically, so merged work refreshes the index even when nobody checks a page. It is a no-op when the branch head is unchanged.
+- Push reindex: the `repo-push` webtrigger enqueues the same job on every verified push event. It only accepts calls after a `WEBHOOK_SECRET` forge variable is set (`forge variables set WEBHOOK_SECRET <value>`); GitHub hooks authenticate with `X-Hub-Signature-256`, other senders pass the secret as a `secret` query parameter. The repo key always comes from the saved settings, never from the event.
 - No LLM in the check. The Rovo agent and MCP client only phrase what the action returned.
 
 ## Security model
