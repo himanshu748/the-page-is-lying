@@ -211,6 +211,15 @@ modules:
       queue: repo-index
       function: index-repo-fn
 
+  scheduledTrigger:
+    - key: reindex-hourly
+      interval: hour
+      function: scheduled-reindex-fn
+
+  webtrigger:
+    - key: repo-push
+      function: repo-push-fn
+
   function:
     - key: ui-resolver
       handler: resolvers/ui.handler
@@ -229,6 +238,11 @@ modules:
     - key: index-repo-fn
       handler: consumers/indexRepo.handler
       timeoutSeconds: 300
+    - key: scheduled-reindex-fn
+      handler: consumers/reindex.handler
+      timeoutSeconds: 300
+    - key: repo-push-fn
+      handler: consumers/repoPush.handler
 
 resources:
   - key: ui
