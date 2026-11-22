@@ -52,11 +52,11 @@ test.describe('get started', () => {
     await expect(start.locator('.start-steps').getByRole('listitem')).toHaveCount(3);
     await start.getByRole('button', { name: 'Use the demo repository' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
-    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
+    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api-demo');
     await expect(page.getByLabel('Branch or tag (optional)')).toHaveValue('main');
     const calls = await page.evaluate(() => window.__pilCalls);
     const save = calls?.find((c) => c.name === 'saveSettings');
-    expect(save?.payload).toMatchObject({ repoUrl: 'https://github.com/himanshu748/payments-api', ref: 'main' });
+    expect(save?.payload).toMatchObject({ repoUrl: 'https://github.com/himanshu748/payments-api-demo', ref: 'main' });
     expect(save?.payload).not.toHaveProperty('token');
     await expect(start.getByRole('button', { name: 'Use the demo repository' })).toHaveCount(0);
     await expect(start).toContainText('Connect a repository (done)');
@@ -80,7 +80,7 @@ test.describe('get started', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Get started with The Page Is Lying' })).toBeVisible();
     await page.getByTestId('get-started').getByRole('button', { name: 'Use the demo repository' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Demo repository saved. Indexing started.' })).toBeVisible();
-    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api');
+    await expect(page.getByLabel('Repository URL')).toHaveValue('https://github.com/himanshu748/payments-api-demo');
   });
 
   test('the sample runbook lists the six demo claims as inline code and can be copied', async ({ page }) => {

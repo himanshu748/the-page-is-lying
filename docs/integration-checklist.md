@@ -2,7 +2,7 @@
 
 Everything the agent could verify without a login is done (see the integration report in `.agents/tasks/task-page-is-lying/task.json` and `git log`). These steps need a signed-in browser. Do them in order, tick each box, and record what you see. The development version deployed from `feat/integration` is **3.0.0** (adds the scope `read:confluence-user`) on `https://one-atlas-obka.atlassian.net` (installation `a3b0e75c-f080-4961-a81f-eb286ec6761d`, up to date).
 
-Values used below: repository `https://github.com/himanshu748/payments-api` (branch `main`, commit `0383355`), page "Payments API runbook" `https://one-atlas-obka.atlassian.net/wiki/spaces/EO/pages/6815745`, app id `49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`.
+Values used below: repository `https://github.com/himanshu748/payments-api-demo` (branch `main`, commit `44c8112`), page "Payments API runbook" `https://one-atlas-obka.atlassian.net/wiki/spaces/EO/pages/6815745`, app id `49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`.
 
 Terminal setup for every `forge` command (the `forge` on `PATH` is Foundry's, not Atlassian's):
 
@@ -16,12 +16,12 @@ cd /Users/himanshujha/.t3/projects/atlassian   # or your checkout of feat/integr
 
 1. [ ] Sign in at `https://one-atlas-obka.atlassian.net/wiki` as the site admin (jhahimanshu653@gmail.com).
 2. [ ] Open the settings page. Because the module uses `useAsConfig: true`, it has no link in the Confluence admin sidebar. Use admin.atlassian.com > Apps > Sites > one-atlas-obka > **Connected apps** > The Page Is Lying > "..." > **Configure**, or go straight to `https://one-atlas-obka.atlassian.net/wiki/admin/forge/apps/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0/0c74f1a8-63ff-4d71-a7f4-8a956c65c6dd/runbook-settings`. Record: page opens yes or no.
-3. [ ] Enter repository URL `https://github.com/himanshu748/payments-api`, branch `main`. Leave the GitHub token empty (the repo is public; 60 unauthenticated requests per hour are enough). Leave service hosts and Jira ids empty for now. Click **Save**.
+3. [ ] Enter repository URL `https://github.com/himanshu748/payments-api-demo`, branch `main`. Leave the GitHub token empty (the repo is public; 60 unauthenticated requests per hour are enough). Leave service hosts and Jira ids empty for now. Click **Save**.
    - Expected: "saved" and the status line changes to indexing, then ready.
    - In 2.2.0 this failed: the admin lookup `GET /wiki/rest/api/user/current?expand=operations` needs `read:confluence-user`, which the manifest lacked, and `forge logs` showed `NEEDS_AUTHENTICATION_ERR` (401) on every Save and Index now. 3.0.0 adds the scope. If Forge shows an "Allow access" prompt on the first Save, accept it (it is the app's consent for its manifest scopes) and record its exact wording.
    - If the page says "Settings could not be saved. The app could not confirm that you are a Confluence administrator...", reload, allow access when asked, and retry; then check `$FORGE logs -e development` for `NEEDS_AUTHENTICATION_ERR`.
 4. [ ] Click **Index now**. Wait up to a minute; the status polls on its own.
-   - Expected: ready, branch `main`, commit `0383355`, a file count, and coverage `complete` for routes, env and CLI.
+   - Expected: ready, branch `main`, commit `44c8112`, a file count, and coverage `complete` for routes, env and CLI.
    - If it shows an error, record the reason code (for example `rate_limited` or `repo_not_found_or_private`).
 5. [ ] In a terminal run `$FORGE logs -e development` and confirm there is no error line from `index-repo-fn`.
 
@@ -72,7 +72,7 @@ cd /Users/himanshujha/.t3/projects/atlassian   # or your checkout of feat/integr
 
 ## F. Stale index and limits (optional, 3 minutes)
 
-27. [ ] Push a trivial commit to `himanshu748/payments-api`, then within 15 minutes open the page and ask Rovo again. Expected: the answer says the index is stale and gives the indexed commit; after the background reindex a reload shows the new commit.
+27. [ ] Push a trivial commit to `himanshu748/payments-api-demo`, then within 15 minutes open the page and ask Rovo again. Expected: the answer says the index is stale and gives the indexed commit; after the background reindex a reload shows the new commit.
 28. [ ] Open the settings page and confirm the token field shows only "saved" or "not saved", never the token.
 
 ## Record results
