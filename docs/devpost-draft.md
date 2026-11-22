@@ -91,7 +91,7 @@ Forge (Custom UI, KVS, Queue, external fetch, Rovo agent, Rovo actions, `rovo:mc
 
 ## Links
 
-- Demo video (public YouTube, under 5 minutes): https://youtu.be/SWDnk6JEffo (3:53, 1920x1080, English subtitles from `video/out/the-page-is-lying-demo.srt`).
+- Demo video (public YouTube, under 5 minutes): https://youtu.be/mx-D4WvYj9E (3:53, 1920x1080, silent, captions from `video/out/the-page-is-lying-demo.srt` burned in).
 - Image gallery: `video/out/still-1-page-contradicted.png`, `still-2-evidence-card.png` (local test build, labelled), `still-3-rovo-answer.png`, `still-4-mcp-results.png`, `still-5-fixed-green.png`.
 - Public code repository: https://github.com/himanshu748/the-page-is-lying
 - Demo repo: https://github.com/himanshu748/payments-api-demo
