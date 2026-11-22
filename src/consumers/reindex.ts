@@ -9,5 +9,5 @@ import { forgeFetch, forgeKvs } from '../storage/forge';
 import { runIndexJob } from './indexJob';
 
 export const handler = async (): Promise<void> => {
-  await runIndexJob({ kvs: forgeKvs(), fetch: forgeFetch, now: Date.now }, { body: { reason: 'manual' } });
+  await runIndexJob({ kvs: forgeKvs(), fetch: forgeFetch, now: Date.now }, { body: { reason: 'stale' } });
 };
