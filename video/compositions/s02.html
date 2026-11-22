@@ -29,8 +29,8 @@
     #s02-title h1 { margin-top: 36px; font: 900 96px/1 var(--sans); letter-spacing: -0.03em; }
     #s02-title p { margin-top: 24px; font: 500 40px/1 var(--sans); color: var(--muted); }
     #s02-frame { position: absolute; left: 100px; top: 170px; width: 989px; height: 840px; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 30px 80px rgba(0,0,0,0.5); }
-    #s02-pan { position: absolute; left: 0; top: 0; width: 989px; height: 1259px; }
-    #s02-pan img { position: absolute; left: 0; top: 0; width: 989px; height: 1259px; }
+    #s02-pan { position: absolute; left: 0; top: 0; width: 989px; height: 1452px; }
+    #s02-pan img { position: absolute; left: 0; top: 0; width: 989px; height: 1452px; }
     #s02-badge { left: 100px; top: 96px; }
     .pt { position: absolute; left: 1170px; width: 650px; padding: 30px 34px; border-radius: 20px; background: var(--panel); border: 1.5px solid var(--line); }
     .pt h3 { font: 800 40px/1.1 var(--sans); }
@@ -52,11 +52,11 @@
         <div id="s02-frame" data-layout-allow-overflow>
           <div id="s02-pan">
             <img src="assets/testbuild/tb-settings.png" alt="" />
-            <div id="s02-r1" class="ring" style="left: 4px; top: 90px; width: 636px; height: 48px"></div>
-            <div id="s02-r2" class="ring" style="left: 4px; top: 862px; width: 486px; height: 48px"></div>
+            <div id="s02-r1" class="ring" style="left: 4px; top: 283px; width: 636px; height: 48px"></div>
+            <div id="s02-r2" class="ring" style="left: 4px; top: 1056px; width: 479px; height: 48px"></div>
           </div>
         </div>
-        <div class="pt" id="s02-p0"><h3 class="mono" style="font-size: 32px">himanshu748/payments-api</h3><p>Public GitHub repository, branch main, indexed at commit <span class="mono" style="color: var(--ink)">0383355</span></p></div>
+        <div class="pt" id="s02-p0"><h3 class="mono" style="font-size: 32px">himanshu748/payments-api-demo</h3><p>Public GitHub repository, branch main, indexed at commit <span class="mono" style="color: var(--ink)">44c8112</span></p></div>
         <div class="pt" id="s02-p1"><h3>Read-only</h3><p>It reads the page and the repository. Nothing is written.</p></div>
         <div class="pt" id="s02-p2"><h3>Forge free tier</h3><p>Runs inside Atlassian Forge.</p></div>
         <div class="pt" id="s02-p3"><h3>No language model in the check</h3><p>Regular expressions and a code index.</p></div>
@@ -75,7 +75,7 @@
       tl.fromTo("#s02-p0", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, 7.9);
       tl.fromTo("#s02-r1", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 6.2);
       tl.to("#s02-r1", { opacity: 0, duration: 0.3 }, 9.2);
-      tl.fromTo("#s02-pan", { y: 0 }, { y: -419, duration: 1.4, ease: "power2.inOut" }, 9.4);
+      tl.fromTo("#s02-pan", { y: 0 }, { y: -612, duration: 1.4, ease: "power2.inOut" }, 9.4);
       tl.fromTo("#s02-r2", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 10.7);
       [["#s02-p1", 12.0], ["#s02-p2", 13.9], ["#s02-p3", 15.8]].forEach(([id, t]) => {
         tl.fromTo(id, { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power3.out" }, t);

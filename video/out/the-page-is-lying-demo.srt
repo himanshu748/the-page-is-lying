@@ -194,7 +194,7 @@ commit, the counts and the coverage limits.
 
 42
 00:02:37,500 --> 00:02:42,660
-The app also exposes two read-only
+The app also exposes five read-only
 tools through a Forge MCP server.
 
 43

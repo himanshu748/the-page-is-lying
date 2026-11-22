@@ -9,6 +9,7 @@
     "preview": "hyperframes preview",
     "render": "hyperframes render --quality delivery -o out/the-page-is-lying-demo.mp4",
     "captions": "node tools/captions.mjs",
+    "silent": "node tools/silent-cut.mjs",
     "capture:testbuild": "node tools/capture-testbuild.mjs"
   },
   "devDependencies": {

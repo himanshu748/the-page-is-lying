@@ -24,11 +24,11 @@ The problem is common. In the State of the Developer Nation Q1 2025 survey (over
 
 Demo: the "Payments API runbook" page has six claims. Two are green, three red and one grey. `POST /v1/charge` is red (the code has `POST /v2/payments` at `src/routes.ts:88`), `STRIPE_KEY` is red (the code reads `PAYMENTS_API_KEY` at `src/config.ts:8`), and `payments refund <paymentId> --force` is red (the refund command defines `--confirm` and `--reason`). `npm run db:migrate` (`package.json:18`) and `GET /v2/payments/{id}` (`src/routes.ts:92`) are green. `ledgerctl reconcile --since 24h` is grey: no evidence found, which is explicitly not a confirmation. Fix the page and the first claim turns green.
 
-### Screenshots (live demo site)
+### Screenshots (production install on the live demo site)
 
 | Screenshot | What it shows |
 |---|---|
-| [page-counts-2-3-1.png](screenshots/page-counts-2-3-1.png) | The macro on the runbook page: 2 Verified, 3 Contradicted, 1 No evidence at `himanshu748/payments-api@0383355` |
+| [page-counts-2-3-1.png](screenshots/page-counts-2-3-1.png) | The macro on the runbook page: 2 Verified, 3 Contradicted, 1 No evidence at `himanshu748/payments-api-demo@44c8112` |
 | [page-fixed-green.png](screenshots/page-fixed-green.png) | After the fix: `POST /v2/payments` verified in code, 3 Verified, 2 Contradicted, 1 No evidence |
 | [rovo-v1-charge-answer.png](screenshots/rovo-v1-charge-answer.png) | Runbook checker answering "Can I still call POST /v1/charge?" |
 | [rovo-no-repo-answer.png](screenshots/rovo-no-repo-answer.png) | Before a repository is configured, the agent says no verdict was produced instead of guessing |
@@ -40,11 +40,11 @@ Demo: the "Payments API runbook" page has six claims. Two are green, three red a
 
 Asked "Can I still call POST /v1/charge?" on the broken page:
 
-> No, contradicted by code: no route matches POST /v1/charge. The repo has POST /v2/payments at src/routes.ts:88 [ev_39dd3751].
-> Repository: himanshu748/payments-api
-> Commit: 0383355
-> Counts: 1 claim, 0 verified, 1 contradicted, 0 unknown
-> Limits: Coverage is complete for routes, env, cli, files, and packages; config coverage is none. Index is not stale.
+> No, contradicted by code: no route matches POST /v1/charge. The repository has POST /v2/payments at src/routes.ts:88 [ev_c81e6689].
+> Repository: himanshu748/payments-api-demo
+> Commit: 44c8112
+> Counts: 1 claim checked, 1 contradicted, 0 verified, 0 no evidence found.
+> Limits: Coverage is complete for routes, env, cli, files, and packages; config coverage is none. No claims or files were truncated.
 
 Asked "Is this page still true?", the answer opens with "This page is partially out of date. Out of 6 claims, 3 are contradicted by the code, 1 has no evidence, and 2 are verified." and then lists each claim with its file, line and evidence id. An MCP client (MCP Inspector) calling `check-claim` got the same statement, evidence ids and commit.
 
@@ -91,7 +91,7 @@ Forge (Custom UI, KVS, Queue, external fetch, Rovo agent, Rovo actions, `rovo:mc
 
 ## Links
 
-- Demo video (public YouTube, under 5 minutes): https://youtu.be/SWDnk6JEffo (3:53, 1920x1080, English subtitles from `video/out/the-page-is-lying-demo.srt`).
+- Demo video (public YouTube, under 5 minutes): https://youtu.be/mx-D4WvYj9E (3:53, 1920x1080, silent, captions from `video/out/the-page-is-lying-demo.srt` burned in).
 - Image gallery: `video/out/still-1-page-contradicted.png`, `still-2-evidence-card.png` (local test build, labelled), `still-3-rovo-answer.png`, `still-4-mcp-results.png`, `still-5-fixed-green.png`.
 - Public code repository: https://github.com/himanshu748/the-page-is-lying
 - Demo repo: https://github.com/himanshu748/payments-api-demo

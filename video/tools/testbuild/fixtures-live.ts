@@ -1,6 +1,6 @@
 /**
  * Fixture override for the demo video: the same six claims as the e2e fixtures, but with the values
- * the live check returned for himanshu748/payments-api@0383355 (MCP check-page output, 2026-11-16),
+ * the live check returned for himanshu748/payments-api-demo@44c8112 (MCP check-page output, 2026-11-22),
  * so the card and the Jira draft captured from the local test build cite the real files, lines and ids.
  */
 import type { Evidence, Report } from '../../../src/core/model';
@@ -13,10 +13,10 @@ import {
 } from '../../../src/core/wording';
 import { demoReport as baseReport } from '../../../static/ui/e2e/fixtures';
 
-export { demoAdf } from '../../../static/ui/e2e/fixtures';
+export * from '../../../static/ui/e2e/fixtures';
 
-const SHA = '0383355b12b30050b85cb6b914e970660b92bc2a';
-const REPO = 'himanshu748/payments-api';
+const SHA = '44c8112e1bc0f3be63fe45fbcb70bfaf6bfb03a5';
+const REPO = 'himanshu748/payments-api-demo';
 const ev = (id: string, kind: Evidence['kind'], file: string, line: number, snippet: string): Evidence => ({
   id,
   kind,
@@ -34,22 +34,22 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
     {
       ...r1,
       statement: contradictedRouteStatement({ claim: 'POST /v1/charge', nearest: { text: 'POST /v2/payments', file: 'src/routes.ts', line: 88 } }),
-      evidence: [ev('ev_39dd3751', 'nearest', 'src/routes.ts', 88, "router.post('/v2/payments', createPayment);")],
+      evidence: [ev('ev_c81e6689', 'nearest', 'src/routes.ts', 88, "router.post('/v2/payments', createPayment);")],
     },
     {
       ...r2,
       statement: verifiedStatement({ claim: 'GET /v2/payments/:param', file: 'src/routes.ts', line: 92 }),
-      evidence: [ev('ev_96b0428d', 'match', 'src/routes.ts', 92, "router.get('/v2/payments/:id', getPayment);")],
+      evidence: [ev('ev_fad6765b', 'match', 'src/routes.ts', 92, "router.get('/v2/payments/:id', getPayment);")],
     },
     {
       ...r3,
       statement: contradictedEnvStatement({ name: 'STRIPE_KEY', repo: REPO, sha: SHA, nearest: { name: 'PAYMENTS_API_KEY', file: 'src/config.ts', line: 8 } }),
-      evidence: [ev('ev_7659c2e1', 'nearest', 'src/config.ts', 8, 'const apiKey = process.env.PAYMENTS_API_KEY;')],
+      evidence: [ev('ev_1f8e6a5f', 'nearest', 'src/config.ts', 8, 'const apiKey = process.env.PAYMENTS_API_KEY;')],
     },
     {
       ...r4,
       statement: verifiedStatement({ claim: 'npm run db:migrate', file: 'package.json', line: 18 }),
-      evidence: [ev('ev_bf48965b', 'match', 'package.json', 18, '"db:migrate": "node dist/migrate.js"')],
+      evidence: [ev('ev_8f535e9d', 'match', 'package.json', 18, '"db:migrate": "node dist/migrate.js"')],
     },
     {
       ...r5,
@@ -61,13 +61,13 @@ export function demoReport(overrides: Partial<Report> = {}): Report {
         file: 'src/cli.ts',
         line: 10,
       }),
-      evidence: [ev('ev_af6bf648', 'nearest', 'src/cli.ts', 10, ".command('refund <paymentId>')")],
+      evidence: [ev('ev_8162c96f', 'nearest', 'src/cli.ts', 10, ".command('refund <paymentId>')")],
     },
     { ...r6, statement: unknownStatement({ reason: 'the program is not defined in this repository' }), evidence: [] },
   ];
   return {
     ...base,
-    repo: { ...base.repo, sha: SHA, indexedAt: '2026-11-16T17:14:07Z' },
+    repo: { ...base.repo, fullName: REPO, sha: SHA, indexedAt: '2026-11-22T19:07:47Z' },
     limits: {
       ...base.limits,
       filesIndexed: 9,

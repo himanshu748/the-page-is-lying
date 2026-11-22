@@ -34,10 +34,10 @@
         <div id="s05-cam" class="cam" style="height: 1200px">
           <img src="assets/live/rovo-v1-charge-answer.png" alt="" />
           <div id="s05-r-agent" class="ring" style="left: 1392px; top: 94px; width: 276px; height: 50px"></div>
-          <div id="s05-r-q" class="ring" style="left: 1535px; top: 177px; width: 369px; height: 84px"></div>
-          <div id="s05-r-a" class="ring" style="left: 1300px; top: 407px; width: 535px; height: 121px"></div>
-          <div id="s05-r-cite" class="ring" style="left: 1304px; top: 483px; width: 334px; height: 42px"></div>
-          <div id="s05-r-d" class="ring" style="left: 1300px; top: 532px; width: 570px; height: 231px"></div>
+          <div id="s05-r-q" class="ring" style="left: 1532px; top: 184px; width: 329px; height: 46px"></div>
+          <div id="s05-r-a" class="ring" style="left: 1305px; top: 397px; width: 545px; height: 118px"></div>
+          <div id="s05-r-cite" class="ring" style="left: 1311px; top: 471px; width: 352px; height: 42px"></div>
+          <div id="s05-r-d" class="ring" style="left: 1305px; top: 524px; width: 566px; height: 330px"></div>
         </div>
       </div>
       <div id="s05-badge" class="badge live"><span class="dot"></span>LIVE · Rovo chat, Runbook checker agent</div>
@@ -62,13 +62,13 @@
       tl.fromTo("#s05-cam", { transformOrigin: "0 0", ...cam(1, 960, 540) }, { transformOrigin: "0 0", ...cam(1.08, 1200, 500), duration: 2.6, ease: "sine.inOut" }, 0.3);
       move(3.0, 1.55, 1560, 360, 470);
       ring("#s05-r-agent", 3.7, 7.9);
-      move(8.2, 2.0, 1720, 219, 320);
+      move(8.2, 2.0, 1700, 207, 320);
       ring("#s05-r-q", 9.0, 12.8);
-      move(12.9, 2.0, 1568, 468, 430);
-      tl.to("#s05-cam", { ...cam(2.15, 1568, 468, 960, 430), duration: 12.5, ease: "none" }, 13.9);
+      move(12.9, 2.0, 1580, 456, 430);
+      tl.to("#s05-cam", { ...cam(2.15, 1580, 456, 960, 430), duration: 12.5, ease: "none" }, 13.9);
       ring("#s05-r-a", 14.2, 26.4);
       ring("#s05-r-cite", 21.9, 26.4);
-      move(26.5, 1.85, 1585, 648, 540);
+      move(26.5, 1.85, 1588, 689, 540);
       ring("#s05-r-d", 27.0, 31.8);
       tl.to("#s05-wrap", { opacity: 0, duration: 0.35, ease: "none" }, D - 0.4);
       window.__timelines["s05"] = tl;

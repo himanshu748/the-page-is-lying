@@ -35,32 +35,32 @@
       <div class="viewport" data-layout-allow-overflow>
         <div id="s03-cam" class="cam">
           <video id="s03-vid" class="clip" src="assets/live/page-broken.mp4" data-start="0" data-duration="60" data-playback-rate="0.46" data-track-index="1" muted playsinline style="position: absolute; left: 0; top: 0; width: 1920px; height: 1080px"></video>
-          <div id="s03-r-repo" class="ring" style="left: 1226px; top: 548px; width: 418px; height: 44px"></div>
-          <div id="s03-r-v" class="ring" style="left: 653px; top: 548px; width: 152px; height: 44px"></div>
-          <div id="s03-r-c" class="ring" style="left: 808px; top: 548px; width: 202px; height: 44px"></div>
-          <div id="s03-r-u" class="ring" style="left: 1016px; top: 548px; width: 200px; height: 44px"></div>
-          <div id="s03-r-l1" class="ring" style="left: 864px; top: 664px; width: 374px; height: 42px"></div>
-          <div id="s03-r-l2" class="ring" style="left: 894px; top: 708px; width: 380px; height: 42px"></div>
-          <div id="s03-r-l3" class="ring" style="left: 674px; top: 752px; width: 316px; height: 42px"></div>
-          <div id="s03-r-l4" class="ring" style="left: 674px; top: 796px; width: 354px; height: 42px"></div>
-          <div id="s03-r-l5" class="ring" style="left: 856px; top: 839px; width: 602px; height: 42px"></div>
-          <div id="s03-r-l6" class="ring" style="left: 782px; top: 883px; width: 540px; height: 42px"></div>
+          <div id="s03-r-repo" class="ring" style="left: 1195px; top: 548px; width: 480px; height: 42px"></div>
+          <div id="s03-r-v" class="ring" style="left: 638px; top: 547px; width: 151px; height: 45px"></div>
+          <div id="s03-r-c" class="ring" style="left: 789px; top: 547px; width: 200px; height: 45px"></div>
+          <div id="s03-r-u" class="ring" style="left: 989px; top: 547px; width: 197px; height: 45px"></div>
+          <div id="s03-r-l1" class="ring" style="left: 845px; top: 662px; width: 367px; height: 45px"></div>
+          <div id="s03-r-l2" class="ring" style="left: 873px; top: 706px; width: 380px; height: 45px"></div>
+          <div id="s03-r-l3" class="ring" style="left: 662px; top: 749px; width: 309px; height: 45px"></div>
+          <div id="s03-r-l4" class="ring" style="left: 669px; top: 793px; width: 345px; height: 45px"></div>
+          <div id="s03-r-l5" class="ring" style="left: 830px; top: 836px; width: 600px; height: 45px"></div>
+          <div id="s03-r-l6" class="ring" style="left: 766px; top: 880px; width: 535px; height: 45px"></div>
         </div>
       </div>
       <div id="s03-badge" class="badge live"><span class="dot"></span>LIVE · Confluence Cloud · Payments API runbook</div>
 
       <div id="s03-a1" class="ann clip" data-start="18" data-duration="9.3" data-track-index="2">
-        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p>No route matches <code>POST /v1/charge</code>. The repo has <code>POST /v2/payments</code> at <code>src/routes.ts:88</code><span class="ev">[ev_39dd3751]</span></p></div>
+        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p>No route matches <code>POST /v1/charge</code>. The repo has <code>POST /v2/payments</code> at <code>src/routes.ts:88</code><span class="ev">[ev_c81e6689]</span></p></div>
       </div>
       <div id="s03-a3" class="ann clip" data-start="30.4" data-duration="7.9" data-track-index="2">
-        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p><code>STRIPE_KEY</code> is not read anywhere. The code reads <code>PAYMENTS_API_KEY</code> at <code>src/config.ts:8</code><span class="ev">[ev_7659c2e1]</span></p></div>
+        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p><code>STRIPE_KEY</code> is not read anywhere. The code reads <code>PAYMENTS_API_KEY</code> at <code>src/config.ts:8</code><span class="ev">[ev_1f8e6a5f]</span></p></div>
       </div>
       <div id="s03-a5" class="ann clip" data-start="41" data-duration="3.5" data-track-index="2">
-        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p><code>payments refund</code> does not define <code>--force</code>. It defines <code>--confirm</code>, <code>--reason</code>, <code>--help</code>, <code>-h</code> at <code>src/cli.ts:10</code><span class="ev">[ev_af6bf648]</span></p></div>
+        <div class="row"><span class="chip c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>Contradicted by code</span><p><code>payments refund</code> does not define <code>--force</code>. It defines <code>--confirm</code>, <code>--reason</code>, <code>--help</code>, <code>-h</code> at <code>src/cli.ts:10</code><span class="ev">[ev_8162c96f]</span></p></div>
       </div>
       <div id="s03-a24" class="ann clip" data-start="45.6" data-duration="3" data-track-index="2">
-        <div class="row"><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span><p><code>GET /v2/payments/{id}</code> matches <code>src/routes.ts:92</code><span class="ev">[ev_96b0428d]</span></p></div>
-        <div class="row"><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span><p><code>npm run db:migrate</code> matches <code>package.json:18</code><span class="ev">[ev_bf48965b]</span></p></div>
+        <div class="row"><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span><p><code>GET /v2/payments/{id}</code> matches <code>src/routes.ts:92</code><span class="ev">[ev_fad6765b]</span></p></div>
+        <div class="row"><span class="chip v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Verified in code</span><p><code>npm run db:migrate</code> matches <code>package.json:18</code><span class="ev">[ev_8f535e9d]</span></p></div>
       </div>
       <div id="s03-a6" class="ann clip" data-start="51.6" data-duration="3.8" data-track-index="2">
         <div class="row"><span class="chip u"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 9a3 3 0 1 1 4.2 2.75c-.75.33-1.2 1.05-1.2 1.87V14.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="18.5" r="1.5" fill="currentColor"/></svg>No evidence found</span><p><code>ledgerctl</code> is not defined in this repository. This is not a confirmation that the claim holds.</p></div>
