@@ -28,7 +28,7 @@ Demo: the "Payments API runbook" page has six claims. Two are green, three red a
 
 | Screenshot | What it shows |
 |---|---|
-| [page-counts-2-3-1.png](screenshots/page-counts-2-3-1.png) | The macro on the runbook page: 2 Verified, 3 Contradicted, 1 No evidence at `himanshu748/payments-api-demo@0383355` |
+| [page-counts-2-3-1.png](screenshots/page-counts-2-3-1.png) | The macro on the runbook page: 2 Verified, 3 Contradicted, 1 No evidence at `himanshu748/payments-api@0383355` |
 | [page-fixed-green.png](screenshots/page-fixed-green.png) | After the fix: `POST /v2/payments` verified in code, 3 Verified, 2 Contradicted, 1 No evidence |
 | [rovo-v1-charge-answer.png](screenshots/rovo-v1-charge-answer.png) | Runbook checker answering "Can I still call POST /v1/charge?" |
 | [rovo-no-repo-answer.png](screenshots/rovo-no-repo-answer.png) | Before a repository is configured, the agent says no verdict was produced instead of guessing |
@@ -41,7 +41,7 @@ Demo: the "Payments API runbook" page has six claims. Two are green, three red a
 Asked "Can I still call POST /v1/charge?" on the broken page:
 
 > No, contradicted by code: no route matches POST /v1/charge. The repo has POST /v2/payments at src/routes.ts:88 [ev_39dd3751].
-> Repository: himanshu748/payments-api-demo
+> Repository: himanshu748/payments-api
 > Commit: 0383355
 > Counts: 1 claim, 0 verified, 1 contradicted, 0 unknown
 > Limits: Coverage is complete for routes, env, cli, files, and packages; config coverage is none. Index is not stale.

@@ -138,7 +138,7 @@ The link installs the production version on any Confluence Cloud site where you 
 ### Setup for judges (about 5 minutes)
 
 1. Open the install link, choose **Get app**, pick your Confluence site and accept the permissions.
-2. Choose **Get started** in the dialog shown after install, or open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Choose **Use the demo repository**, or enter repository URL `https://github.com/himanshu748/payments-api-demo` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`0383355`) and file count. If Forge asks you to allow access, accept it.
+2. Choose **Get started** in the dialog shown after install, or open the settings page: Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", "...", **Configure**. Choose **Use the demo repository**, or enter repository URL `https://github.com/himanshu748/payments-api-demo` and branch `main`. Leave the token empty (the repository is public). Choose **Save settings**, then **Index now**, and wait until the status shows a commit (`44c8112`) and file count. If Forge asks you to allow access, accept it.
 3. Create a page, type `/Runbook check` to insert the macro, and put these six lines inside it, with each claim as inline code (Ctrl/Cmd+Shift+M or backticks). **Copy sample runbook** on the Get started page copies them with the inline code in place:
    1. To take a payment, call `POST /v1/charge` with the amount in cents.
    2. To look up a payment, call `GET /v2/payments/{id}`.
@@ -146,7 +146,7 @@ The link installs the production version on any Confluence Cloud site where you 
    4. Run `npm run db:migrate` before each deploy.
    5. To force a refund, run `payments refund <paymentId> --force`.
    6. Reconcile with `ledgerctl reconcile --since 24h`.
-4. Publish. Expected: **2 Verified, 3 Contradicted, 1 No evidence** at `himanshu748/payments-api-demo@0383355`. `POST /v1/charge` is contradicted by code (the repo has `POST /v2/payments` at `src/routes.ts:88`).
+4. Publish. Expected: **2 Verified, 3 Contradicted, 1 No evidence** at `himanshu748/payments-api-demo@44c8112`. `POST /v1/charge` is contradicted by code (the repo has `POST /v2/payments` at `src/routes.ts:88`).
 5. Rovo (needs Rovo turned on for your site): choose **Ask Rovo**, pick the agent **Runbook checker**, and ask "Is this page still true?" or "Can I still call POST /v1/charge?". The answer cites file, line and evidence ids.
 6. Fix the page: change claim 1 to `POST /v2/payments` and publish. Expected: 3 Verified, 2 Contradicted, 1 No evidence.
 7. Optional, MCP: enable the tools (site admins, step 6 above), then connect a client to the endpoint in [External MCP clients](#external-mcp-clients). The OAuth screen wording is explained there.

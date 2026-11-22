@@ -1,6 +1,6 @@
 /**
  * Fixture override for the demo video: the same six claims as the e2e fixtures, but with the values
- * the live check returned for himanshu748/payments-api-demo@0383355 (MCP check-page output, 2026-11-16),
+ * the live check returned for himanshu748/payments-api@0383355 (MCP check-page output, 2026-11-16),
  * so the card and the Jira draft captured from the local test build cite the real files, lines and ids.
  */
 import type { Evidence, Report } from '../../../src/core/model';
@@ -16,7 +16,7 @@ import { demoReport as baseReport } from '../../../static/ui/e2e/fixtures';
 export { demoAdf } from '../../../static/ui/e2e/fixtures';
 
 const SHA = '0383355b12b30050b85cb6b914e970660b92bc2a';
-const REPO = 'himanshu748/payments-api-demo';
+const REPO = 'himanshu748/payments-api';
 const ev = (id: string, kind: Evidence['kind'], file: string, line: number, snippet: string): Evidence => ({
   id,
   kind,
