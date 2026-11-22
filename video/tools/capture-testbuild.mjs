@@ -75,12 +75,12 @@ try {
   console.log('summary:', await page.getByTestId('jira-summary').textContent());
   console.log('description:', await page.getByTestId('jira-description').textContent());
 
-  // Settings page with the saved repository and the index the live site reported (commit 0383355).
+  // Settings page with the saved repository and the index the live site reported (commit 44c8112).
   const settingsPage = await browser.newPage({ viewport: { width: 860, height: 900 }, deviceScaleFactor: 2 });
   await settingsPage.addInitScript(() => {
-    const settings = { repoUrl: 'https://github.com/himanshu748/payments-api', ref: 'main', serviceHosts: [], jiraProjectId: '', jiraIssueTypeId: '', tokenSaved: false };
+    const settings = { repoUrl: 'https://github.com/himanshu748/payments-api-demo', ref: 'main', serviceHosts: [], jiraProjectId: '', jiraIssueTypeId: '', tokenSaved: false };
     const status = {
-      state: 'ready', ref: 'main', sha: '0383355b12b30050b85cb6b914e970660b92bc2a', indexedAt: '2026-11-16T17:14:07Z',
+      state: 'ready', ref: 'main', sha: '44c8112e1bc0f3be63fe45fbcb70bfaf6bfb03a5', indexedAt: '2026-11-22T19:07:47Z',
       filesIndexed: 9, filesSkipped: 1, truncated: false,
       coverage: { routes: 'complete', env: 'complete', cli: 'complete', config: 'none', files: 'complete', packages: 'complete' },
     };

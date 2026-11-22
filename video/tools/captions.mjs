@@ -22,6 +22,8 @@ const DISPLAY = [
   [/thirty-one percent/g, '31%'],
   [/forty-six percent/g, '46%'],
   [/fifty-five percent/g, '55%'],
+  // The app now exposes five MCP tools; the spoken clip still says two.
+  [/two read-only tools/g, 'five read-only tools'],
 ];
 const display = (s) => DISPLAY.reduce((t, [re, to]) => t.replace(re, to), s);
 const letters = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '').length;

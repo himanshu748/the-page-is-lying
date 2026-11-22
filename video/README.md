@@ -6,6 +6,7 @@ A HyperFrames project (HTML rendered to video). The narration is Deepgram Aura-2
 |---|---|---|
 | Video, 1920x1080, 30 fps, H.264 + AAC | `out/the-page-is-lying-demo.mp4` | no (see `.gitignore`); re-render below |
 | Captions (SRT) | `out/the-page-is-lying-demo.srt` | yes |
+| Silent cut: no audio track, captions burned in under the picture | `out/the-page-is-lying-demo-silent.mp4` | no; `npm run silent` after a render |
 | Devpost gallery stills | `out/still-*.png` | yes |
 
 ## Scenes
@@ -16,10 +17,10 @@ Scene length follows the narration audio; each clip starts 0.5 s into its scene.
 |---|---|---|---|
 | s01 Problem | 0:00.0 | 33.0 s | Graphics. Sources on screen: SlashData Developer Nation Q1 2025; Atlassian State of Teams 2024 |
 | s02 Setup | 0:33.0 | 21.6 s | Settings page from the local test build (labelled), filled with the live index values |
-| s03 The page | 0:54.6 | 60.0 s | Live recording of "Payments API runbook" (2 verified, 3 contradicted, 1 no evidence found), with citation overlays |
+| s03 The page | 0:54.6 | 60.0 s | Live recording of "Payments API runbook (production)" (2 verified, 3 contradicted, 1 no evidence found), with citation overlays |
 | s04 Evidence card | 1:54.6 | 10.0 s | Local test build (labelled): hover, Tab, permalink, Escape |
 | s05 Rovo | 2:04.6 | 32.4 s | Live screenshot of the Rovo answer to "Can I still call POST /v1/charge?" |
-| s06 MCP | 2:37.0 | 21.8 s | Live OAuth consent screenshot; MCP Inspector results from 16 Nov 2026 set as text (labelled) |
+| s06 MCP | 2:37.0 | 21.8 s | Live OAuth consent screenshot; MCP client results from 22 Nov 2026 (development install) set as text (labelled) |
 | s07 Fix | 2:58.8 | 23.2 s | Live recordings before and after the fix (3 verified, 2 contradicted, 1 no evidence found). The edit itself is not filmed; the video says so |
 | s08 Jira | 3:22.0 | 16.0 s | Local test build (labelled): Jira draft dialog |
 | s09 Close | 3:38.0 | 15.0 s | Graphics |
@@ -43,6 +44,7 @@ npx hyperframes lint
 npx hyperframes check --json
 npm run render              # out/the-page-is-lying-demo.mp4, about 15 to 25 minutes on a laptop
 npm run captions            # out/the-page-is-lying-demo.srt
+npm run silent              # out/the-page-is-lying-demo-silent.mp4 (needs ffmpeg with libass; FONTS_DIR=dir holding Inter-Medium.ttf)
 ```
 
 Preview and edit in the browser with `npx hyperframes preview`, or in the HyperFrames desktop app.
@@ -80,4 +82,4 @@ Gallery: upload 3 to 5 of `out/still-*.png` to the Devpost image gallery: `still
 
 - Verdict words on screen and in audio: "verified in code", "contradicted by code", "no evidence found" (the app's own labels "Verified", "Contradicted", "No evidence" appear where the real UI is shown).
 - Every status has an icon and a label, not only a colour.
-- Every number and citation matches the live check at commit `0383355`; see `docs/integration-results.md` (C14, C15, D21).
+- Every number and citation matches the production check of `himanshu748/payments-api-demo` at commit `44c8112` (22 Nov 2026). The live recordings and the Rovo screenshot are from the production install; `tools/capture-live.mjs` re-shoots the page recordings.
