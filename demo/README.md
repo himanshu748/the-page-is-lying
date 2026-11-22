@@ -8,7 +8,7 @@
 
 ## Public demo repo
 
-- URL: https://github.com/himanshu748/payments-api
+- URL: https://github.com/himanshu748/payments-api-demo
 - Branch `main`, commit `0383355b12b30050b85cb6b914e970660b92bc2a` (own history; this app repo is not pushed).
 - Line 88 re-checked on GitHub after the push.
 

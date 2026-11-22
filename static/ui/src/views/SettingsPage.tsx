@@ -19,7 +19,7 @@ export const ACCESS_HELP = (what: string): string =>
   `${what}. The app could not confirm that you are a Confluence administrator. This usually means access has not been allowed yet: reload this page, choose Allow access if asked, and try again. If it keeps failing, check the app's permissions under Manage apps.`;
 
 /** Public demo repository. Its runbook page gives 2 verified, 3 contradicted and 1 claim with no evidence. */
-export const DEMO_REPO_URL = 'https://github.com/himanshu748/payments-api';
+export const DEMO_REPO_URL = 'https://github.com/himanshu748/payments-api-demo';
 export const DEMO_REPO_REF = 'main';
 
 /**

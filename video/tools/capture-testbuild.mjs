@@ -78,7 +78,7 @@ try {
   // Settings page with the saved repository and the index the live site reported (commit 0383355).
   const settingsPage = await browser.newPage({ viewport: { width: 860, height: 900 }, deviceScaleFactor: 2 });
   await settingsPage.addInitScript(() => {
-    const settings = { repoUrl: 'https://github.com/himanshu748/payments-api', ref: 'main', serviceHosts: [], jiraProjectId: '', jiraIssueTypeId: '', tokenSaved: false };
+    const settings = { repoUrl: 'https://github.com/himanshu748/payments-api-demo', ref: 'main', serviceHosts: [], jiraProjectId: '', jiraIssueTypeId: '', tokenSaved: false };
     const status = {
       state: 'ready', ref: 'main', sha: '0383355b12b30050b85cb6b914e970660b92bc2a', indexedAt: '2026-11-16T17:14:07Z',
       filesIndexed: 9, filesSkipped: 1, truncated: false,
