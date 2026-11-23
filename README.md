@@ -24,6 +24,8 @@ Wording is fixed: "Verified in code", "Contradicted by code", "No evidence found
 
 ## Architecture
 
+![One check service behind Confluence, Rovo and MCP clients](docs/screenshots/architecture.png)
+
 ```
 Confluence page ──ADF──> macro / byline resolver ─┐
 Rovo agent ── action ──> check-page / check-claim ─┼─> check service ──> index loader ──> Forge KVS (sharded index)
@@ -105,7 +107,7 @@ Then ask, for example, "Is https://your-site.atlassian.net/wiki/spaces/OPS/pages
 
 Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module, so the details can change.
 
-**About the OAuth consent screen.** When a client connects, Atlassian's consent page says the app "will have these permissions on your behalf in Atlassian products: Read, Write, and Search". That wording, and the scopes it lists, come from Atlassian's MCP gateway client registration, not from this app. The app's manifest asks only for `storage:app`, `read:page:confluence` and `read:confluence-user`, and both tools are read-only (`GET`). Screenshot: [docs/screenshots/mcp-oauth-consent.png](docs/screenshots/mcp-oauth-consent.png).
+**About the OAuth consent screen.** When a client connects, Atlassian's consent page says the app "will have these permissions on your behalf in Atlassian products: Read, Write, and Search". That wording, and the scopes it lists, come from Atlassian's MCP gateway client registration, not from this app. The app's manifest asks only for `storage:app`, `read:page:confluence` and `read:confluence-user`, and all five tools are read-only (`GET`). Screenshot from the production install: [docs/screenshots/mcp-oauth-consent-production.png](docs/screenshots/mcp-oauth-consent-production.png).
 
 ## Limits
 

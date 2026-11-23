@@ -36,7 +36,7 @@
     #s06-t2 { left: 1044px; }
     #s06-more { position: absolute; left: 96px; top: 850px; font: 500 34px/1 var(--mono); color: var(--muted); }
     #s06-consent { position: absolute; inset: 0; background: #fff; }
-    #s06-consent img { position: absolute; left: 0; top: 0; width: 1920px; height: 1200px; }
+    #s06-consent img { position: absolute; left: 0; top: 0; width: 1920px; height: 1262px; }
     #s06-b1 { left: 40px; top: 990px; }
     #s06-b2 { left: 96px; top: 52px; }
     #s06-panel { position: absolute; left: 96px; top: 140px; width: 1728px; padding: 36px 44px; border-radius: 22px; background: #0d1426; border: 1.5px solid var(--line); }
@@ -55,19 +55,19 @@
       <div id="s06-intro">
         <div class="kicker">Forge MCP server</div>
         <h1>Five read-only tools</h1>
-        <div class="tool" id="s06-t1"><h2>check-page</h2><div class="sub">check-page_development</div><p>Checks every claim on a Confluence page.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
-        <div class="tool" id="s06-t2"><h2>check-claim</h2><div class="sub">check-claim_development</div><p>Checks one claim against the indexed repository.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
+        <div class="tool" id="s06-t1"><h2>check-page</h2><p>Checks every claim on a Confluence page.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
+        <div class="tool" id="s06-t2"><h2>check-claim</h2><p>Checks one claim against the indexed repository.</p><div class="tags"><span class="tag">READ-ONLY</span><span class="tag">IDEMPOTENT</span></div></div>
         <div id="s06-more">Also: explain-claim · suggest-fix · audit-space</div>
       </div>
       <div id="s06-consent">
         <img src="assets/live/mcp-oauth-consent.png" alt="" />
-        <div id="s06-b1" class="badge live"><span class="dot"></span>LIVE · OAuth consent for MCP Inspector</div>
+        <div id="s06-b1" class="badge live"><span class="dot"></span>LIVE · OAuth consent for the MCP client</div>
       </div>
       <div id="s06-result">
-        <div id="s06-b2" class="badge rec"><span class="dot"></span>Recorded MCP client output (22 Nov 2026, development install), set as text</div>
+        <div id="s06-b2" class="badge rec"><span class="dot"></span>Recorded MCP client output (23 Nov 2026, production install), set as text</div>
         <div id="s06-panel">
-          <div class="cmd">tools/list → <b>check-page</b>, <b>check-claim</b>, explain-claim, suggest-fix, audit-space (each + _development)</div>
-          <div class="cmd">tools/call <b>check-page_development</b> { page: 6815745 }</div>
+          <div class="cmd">tools/list → <b>check-page</b>, <b>check-claim</b>, explain-claim, suggest-fix, audit-space</div>
+          <div class="cmd">tools/call <b>check-page</b> { page: 8617986 }</div>
           <table>
             <thead><tr><th>Claim</th><th>Verdict</th><th>File and line</th><th>Evidence id</th></tr></thead>
             <tbody>
