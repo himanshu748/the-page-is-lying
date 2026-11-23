@@ -6,7 +6,7 @@ license: MIT
 
 # Runbook checker
 
-"The Page Is Lying" is a Forge app for Confluence. It compares claims written on a page with an indexed code repository and cites the file and line. The check is deterministic: no model decides a verdict. This skill explains how to call its two tools and how to report their results.
+"The Page Is Lying" is a Forge app for Confluence. It compares claims written on a page with an indexed code repository and cites the file and line. The check is deterministic: no model decides a verdict. This skill explains how to call its five tools and how to report their results.
 
 ## Tools
 
@@ -14,7 +14,6 @@ license: MIT
 |---|---|---|
 | `check-page` | The question is about a whole page: "is this page still true?", "what in this runbook is out of date?" | `page`: a Confluence page URL or numeric page ID. Optional inside Rovo when the user is viewing the page. Required from an external client. |
 | `check-claim` | The question is about one thing: "can I still call POST /v1/charge?", "is STRIPE_KEY still read?", "does `payments refund --force` exist?" | `claim`: the text as the user wrote it, at most 300 characters. `page`: optional. |
-
 | `explain-claim` | The user asks why a claim got its verdict. | `claim` (required), `page` (optional). |
 | `suggest-fix` | The user asks how to fix a contradicted claim or a page. | `claim` for one edit, or only `page` for every contradicted claim on it. |
 | `audit-space` | The user asks which pages in a space drifted from the code. | `page`: any page in the space. Optional inside Rovo when the user is viewing a page. |
@@ -94,7 +93,7 @@ These tools cannot create Jira issues or edit pages. If a user wants a task for 
 
 ## Setup for external MCP clients
 
-The app exposes both tools through the `rovo:mcp` module "Runbook checker" (Preview). The endpoint is `https://mcp.atlassian.com/forge/<appId>`, where `<appId>` is the UUID in the app's `manifest.yml`. For this app:
+The app exposes all five tools through the `rovo:mcp` module "Runbook checker" (Preview). The endpoint is `https://mcp.atlassian.com/forge/<appId>`, where `<appId>` is the UUID in the app's `manifest.yml`. For this app:
 
 ```
 claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0
@@ -107,7 +106,7 @@ Before a client can connect, a site or org admin must enable the tools. External
 1. In Atlassian Administration, select the organization.
 2. Open Apps, expand Sites, and select the site where the app is installed.
 3. Select Connected apps, find "The Page Is Lying", and choose View app details.
-4. Open the Tools tab and make sure `check-page` and `check-claim` are selected.
+4. Under "Tools: Expose tools to MCP-compatible apps", choose **Enable tools** and confirm. It is one switch for all five tools.
 
 Calls run with the signed-in user's own permissions on that site. Other MCP clients use the same URL in their remote MCP server settings.
 

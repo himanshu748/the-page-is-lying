@@ -38,6 +38,15 @@ describe('manifest.yml contract', () => {
     expect(mod('rovo:agent')[0]?.['skills']).toEqual(['runbook-checker-skill']);
   });
 
+  it('names every MCP tool in the skill and the README, so the docs cannot fall behind the manifest', () => {
+    const root = join(import.meta.dirname, '..', '..');
+    const tools = mod('rovo:mcp')[0]?.['tools'] as string[];
+    for (const doc of ['skills/runbook-checker/SKILL.md', 'README.md']) {
+      const text = readFileSync(join(root, doc), 'utf8');
+      for (const tool of tools) expect(text, `${doc} should name ${tool}`).toContain(`\`${tool}\``);
+    }
+  });
+
   it('uses a bodied macro and a settings page that acts as config', () => {
     expect(mod('macro')[0]?.['layout']).toBe('bodied');
     expect(mod('confluence:globalSettings')[0]?.['useAsConfig']).toBe(true);

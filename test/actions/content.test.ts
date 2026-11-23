@@ -41,7 +41,7 @@ describe('SKILL.md', () => {
       'claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0',
     );
     expect(skill).toContain('Connected apps');
-    expect(skill).toContain('Tools tab');
+    expect(skill).toContain('Enable tools');
   });
 
   it('states the wording and untrusted-data rules', () => {
