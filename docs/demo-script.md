@@ -24,7 +24,7 @@ Real values used below:
 - [ ] The LotZero-Judge app is out of shot (it is listed under Connected apps on the same site; do not show that list).
 - [ ] The settings page shows commit `44c8112`, and the token field shows no value.
 - [ ] Rovo is on for the site, and the Runbook checker agent appears in the picker.
-- [ ] MCP tools are enabled (Connected apps, The Page Is Lying, "Tools: Enable tools"), and the MCP client is connected and has listed both tools.
+- [ ] MCP tools are enabled (Connected apps, The Page Is Lying, "Tools: Enable tools"), and the MCP client is connected and has listed all five tools.
 - [ ] The evidence card was rehearsed: hover or focus `POST /v1/charge` and check that the card shows `src/routes.ts:88` and the permalink. The card has not been captured live yet, so check it before you record.
 - [ ] No API tokens, terminal history, email inbox or browser notifications are visible. The Jira draft is not confirmed.
 

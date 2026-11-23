@@ -13,6 +13,8 @@ A HyperFrames project (HTML rendered to video). The narration is Deepgram Aura-2
 
 Scene length follows the narration audio; each clip starts 0.5 s into its scene.
 
+The s06 voice clip still says "two read-only tools" and "MCP Inspector"; `tools/captions.mjs` shows "five read-only tools" and "an MCP client" instead, so the silent cut is the accurate one. Re-record `narration/s06.txt` before publishing the voiced file.
+
 | Scene | Start | Length | Source of the picture |
 |---|---|---|---|
 | s01 Problem | 0:00.0 | 33.0 s | Graphics. Sources on screen: SlashData Developer Nation Q1 2025; Atlassian State of Teams 2024 |
@@ -20,7 +22,7 @@ Scene length follows the narration audio; each clip starts 0.5 s into its scene.
 | s03 The page | 0:54.6 | 60.0 s | Live recording of "Payments API runbook (production)" (2 verified, 3 contradicted, 1 no evidence found), with citation overlays |
 | s04 Evidence card | 1:54.6 | 10.0 s | Local test build (labelled): hover, Tab, permalink, Escape |
 | s05 Rovo | 2:04.6 | 32.4 s | Live screenshot of the Rovo answer to "Can I still call POST /v1/charge?" |
-| s06 MCP | 2:37.0 | 21.8 s | Live OAuth consent screenshot; MCP client results from 22 Nov 2026 (development install) set as text (labelled) |
+| s06 MCP | 2:37.0 | 21.8 s | Live OAuth consent screenshot; MCP client results from 23 Nov 2026 (production install) set as text (labelled) |
 | s07 Fix | 2:58.8 | 23.2 s | Live recordings before and after the fix (3 verified, 2 contradicted, 1 no evidence found). The edit itself is not filmed; the video says so |
 | s08 Jira | 3:22.0 | 16.0 s | Local test build (labelled): Jira draft dialog |
 | s09 Close | 3:38.0 | 15.0 s | Graphics |
