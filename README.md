@@ -95,6 +95,14 @@ claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/
 { "mcpServers": { "runbook-checker": { "url": "https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0" } } }
 ```
 
+The agent skill is plain Markdown, so a coding agent can use the same instructions the Rovo agent loads. For Claude Code, copy it into the project (or `~/.claude/skills/` for every project):
+
+```sh
+mkdir -p .claude/skills && cp -r skills/runbook-checker .claude/skills/
+```
+
+Then ask, for example, "Is https://your-site.atlassian.net/wiki/spaces/OPS/pages/123 still true?". The skill tells the agent which tool to call, how to word each verdict and to cite the evidence ids.
+
 Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module, so the details can change.
 
 **About the OAuth consent screen.** When a client connects, Atlassian's consent page says the app "will have these permissions on your behalf in Atlassian products: Read, Write, and Search". That wording, and the scopes it lists, come from Atlassian's MCP gateway client registration, not from this app. The app's manifest asks only for `storage:app`, `read:page:confluence` and `read:confluence-user`, and both tools are read-only (`GET`). Screenshot: [docs/screenshots/mcp-oauth-consent.png](docs/screenshots/mcp-oauth-consent.png).
@@ -149,4 +157,4 @@ The link installs the production version on any Confluence Cloud site where you 
 4. Publish. Expected: **2 Verified, 3 Contradicted, 1 No evidence** at `himanshu748/payments-api-demo@44c8112`. `POST /v1/charge` is contradicted by code (the repo has `POST /v2/payments` at `src/routes.ts:88`).
 5. Rovo (needs Rovo turned on for your site): choose **Ask Rovo**, pick the agent **Runbook checker**, and ask "Is this page still true?" or "Can I still call POST /v1/charge?". The answer cites file, line and evidence ids.
 6. Fix the page: change claim 1 to `POST /v2/payments` and publish. Expected: 3 Verified, 2 Contradicted, 1 No evidence.
-7. Optional, MCP: enable the tools (site admins, step 6 above), then connect a client to the endpoint in [External MCP clients](#external-mcp-clients). The OAuth screen wording is explained there.
+7. Optional, MCP: first enable the tools, which are off by default (Atlassian Administration, Apps, Sites, your site, **Connected apps**, "The Page Is Lying", **View app details**, "Tools: Expose tools to MCP-compatible apps", **Enable tools**). Then connect a client to the endpoint in [External MCP clients](#external-mcp-clients). The OAuth screen wording is explained there.
