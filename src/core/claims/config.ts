@@ -31,22 +31,26 @@ function isPlausibleKey(token: string): boolean {
   return !FILE_EXTENSIONS.has(last) && !TLDS.has(last);
 }
 
-export function extractConfig(ctx: BlockContext): Candidate[] {
+export function findConfigFiles(text: string) {
+  return findFilePaths(text, urlRanges(text)).filter((file) => isConfigFile(file.path));
+}
+
+export function extractConfig(ctx: BlockContext, files = findConfigFiles(ctx.text), offset = 0): Candidate[] {
   const out: Candidate[] = [];
   const text = ctx.text;
   const urls = urlRanges(text);
-  const files = findFilePaths(text, urls).filter((f) => isConfigFile(f.path));
 
   const keyRe = /(?<![\w./@$-])[A-Za-z_][\w-]*(?:\.[A-Za-z_][\w-]*)+(?![\w\-/(@])/g;
   for (let m = keyRe.exec(text); m !== null; m = keyRe.exec(text)) {
     const token = m[0];
     const range = { start: m.index, end: m.index + token.length };
     if (!isPlausibleKey(token) || urls.some((u) => overlaps(u, range))) continue;
-    if (files.some((f) => overlaps(f, range))) continue;
+    const sourceRange = { start: offset + range.start, end: offset + range.end };
+    if (files.some((f) => overlaps(f, sourceRange))) continue;
 
     let nearest: { path: string; distance: number } | undefined;
     for (const f of files) {
-      const distance = f.start >= range.end ? f.start - range.end : range.start - f.end;
+      const distance = f.start >= sourceRange.end ? f.start - sourceRange.end : sourceRange.start - f.end;
       if (distance <= FILE_DISTANCE && (nearest === undefined || distance < nearest.distance)) {
         nearest = { path: f.path, distance };
       }

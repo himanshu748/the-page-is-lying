@@ -61,6 +61,29 @@ describe('extractClaimsFromText', () => {
     expect(input.slice(5, 15)).toBe('STRIPE_KEY');
   });
 
+  it('reserves a fresh claim budget for later paragraphs and fenced commands', () => {
+    const early = Array.from({ length: 30 }, (_v, i) => `\`EARLY_${i}\``).join(' ');
+    const input = `${early}\r\n\r\nSet \`LATE_TOKEN\`.\r\n~~~sh\r\n\r\njson-server db.json -s ./static\r\n~~~~\r\n`;
+    const { claims, claimsTruncated } = extractClaimsFromText(input);
+
+    expect(claims.filter(({ raw }) => raw.startsWith('EARLY_'))).toHaveLength(MAX_CLAIMS_PER_BLOCK);
+    expect(claims.map(({ raw }) => raw)).toContain('LATE_TOKEN');
+    expect(claims).toContainEqual(expect.objectContaining({ raw: 'json-server db.json -s ./static', type: 'cli', confidence: 'high' }));
+    for (const { raw, location } of claims) {
+      expect(location.blockIndex).toBe(0);
+      expect(input.slice(location.start, location.end)).toBe(raw);
+    }
+    expect(claimsTruncated).toBe(false);
+  });
+
+  it('shares the document cap across plain text paragraphs', () => {
+    const text = Array.from({ length: MAX_CLAIMS_PER_DOCUMENT + 1 }, (_v, i) => `Set \`DEMO_${i}\`.`).join('\n\n');
+    const { claims, claimsTruncated } = extractClaimsFromText(text);
+
+    expect(claims).toHaveLength(MAX_CLAIMS_PER_DOCUMENT);
+    expect(claimsTruncated).toBe(true);
+  });
+
   it('survives non-string input and huge text', () => {
     expect(extractClaimsFromText(42 as unknown as string).claims).toEqual([]);
     expect(extractClaimsFromText('a '.repeat(100_000)).claims).toEqual([]);

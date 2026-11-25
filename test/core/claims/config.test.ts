@@ -11,6 +11,8 @@ describe('config_key extraction', () => {
     ['key with file in the same span', 'Set `retry.maxAttempts in config/default.yaml`', [key('retry.maxAttempts', 'config/default.yaml')]],
     ['key in span, file in prose', 'Set `retry.maxAttempts` in config/default.yaml.', [key('retry.maxAttempts', 'config/default.yaml')]],
     ['key in prose next to a config file', 'The retry.maxAttempts key in `config/default.yaml` is 3.', [key('retry.maxAttempts', 'config/default.yaml')]],
+    ['key in a fence after the file reference', 'In `config/prod.yaml`:\n\n```yaml\nserver.port: 8080\n```', [key('server.port', 'config/prod.yaml')]],
+    ['key in a paragraph before the file reference', 'Set `server.port` to 8080.\n\nThe setting lives in `config/prod.yaml`.', [key('server.port', 'config/prod.yaml')]],
     ['nearest file wins', 'In `a.yaml` and later `b.yaml` set `xx.yy`', [key('xx.yy', 'b.yaml')]],
     ['hyphens and underscores', 'Use `feature_flags.new-ui`', [key('feature_flags.new-ui')]],
     ['deep key', 'Use `a1.b2.c3.d4`', [key('a1.b2.c3.d4')]],
