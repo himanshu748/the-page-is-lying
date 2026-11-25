@@ -172,6 +172,16 @@ describe('cli rules (7.2)', () => {
       verdict: 'contradicted',
       reason: 'cli_flag_not_defined',
     });
+    const mixed = check(cli('nodemon', [], ['--inspect', '--not-a-node-option']), wrapper);
+    expect(mixed).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'cli_flag_not_defined',
+      suggestion: { replacement: 'nodemon --inspect' },
+    });
+    expect(check(cli('nodemon', [], ['--not-a-node-option', '--inspect']), wrapper)).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'cli_flag_not_defined',
+    });
   });
   it('contradicted: subcommand not defined', () => {
     const r = check(cli('payments', ['refound']), index);
