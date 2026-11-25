@@ -21,7 +21,7 @@ The deployed handlers log one JSON line per step (ids and HTTP status only, neve
 ```
 
 - `status: 200` means `asUser().requestConfluence` works inside the action. Nothing more to do.
-- `status: 401` or `403` with a page the user can view means the user token is missing in actions. Then implement the PLAN.md section 11 fallback (see section 4) before the agent is shown to anyone.
+- `status: 401` or `403` with a page the user can view means the user token is missing in actions. Then implement the permission fallback (see section 4) before the agent is shown to anyone.
 - `page_read_threw` means `asUser()` threw (no user context). Same follow-up.
 
 The page is never read as the app when `asUser()` fails: the handler returns a typed `internal_error` or `forbidden`, not a verdict.
@@ -31,7 +31,7 @@ The page is never read as the app when `asUser()` fails: the handler returns a t
 1. Open `https://one-atlas-obka.atlassian.net/wiki` and sign in.
 2. Open the page "Payments API runbook" (or any page). Note the numeric page ID in the URL (`/pages/<id>/`).
 3. Click **Ask Rovo** (top bar). In the agent selector, look for **Runbook checker**. Record: visible yes or no.
-4. Select it and click the starter "Is this page still true?". The service is wired now, so after the repository is configured and indexed (see docs/integration-checklist.md) the answer is the cited verdicts. Before indexing the agent reports that no index is available and gives no verdict.
+4. Select it and click the starter "Is this page still true?". The service is wired now, so after the repository is configured and indexed (see [judge setup](setup.md#judge-setup)) the answer is the cited verdicts. Before indexing the agent reports that no index is available and gives no verdict.
 5. In a terminal:
    ```
    export PATH=$HOME/.nvm/versions/node/v24.22.1/bin:/Users/himanshujha/.rote/lib/node-runtimes/node-v22.14.0-IYQPZh/bin:$PATH
@@ -61,7 +61,7 @@ Steps for the user (needs admin consent in the browser):
 
 ## 4. If `asUser()` does not work in actions: fallback
 
-PLAN.md section 11 says to check the caller's view permission, then read as the app. That needs a new scope for the permission-check endpoint and a manifest change, so it is not built speculatively. If the logs show `asUser` failing:
+The fallback would check the caller's view permission before reading as the app. That needs a new scope for the permission-check endpoint and a manifest change, so it is not built speculatively. If the logs show `asUser` failing:
 
 1. Add the narrowest scope that allows `POST /wiki/rest/api/content/{id}/permission/check` (or `GET /wiki/api/v2/pages/{id}` as the user via `asUser` in the UI resolver and pass a signed result), confirm with `forge lint`, and bump a major version if scopes change.
 2. Take the caller's `accountId` from the action's second argument (`context.accountId`), never from inputs.
