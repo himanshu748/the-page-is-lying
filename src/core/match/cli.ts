@@ -22,6 +22,7 @@ const PACKAGE_MANAGER_BUILTINS = new Set([
   'install', 'i', 'ci', 'add', 'remove', 'update', 'upgrade', 'publish', 'pack', 'audit', 'init', 'link', 'login', 'exec', 'dlx', 'x',
 ]);
 const ALWAYS_DEFINED_FLAGS = new Set(['--help', '-h', '--version', '-V']);
+const NODE_RUNTIME_FLAGS = new Set(['--inspect', '--inspect-brk', '--require', '-r']);
 
 function isPlaceholder(token: string): boolean {
   return /^[<[${(]/.test(token) || token.includes('{') || token.includes('}');
@@ -190,6 +191,9 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
     return toResult(claim, 'verified', 'cli_defined', verifiedStatement({ claim: text, file: target.file, line: target.line }), [
       makeEvidence(index, 'match', target),
     ]);
+  }
+  if (target.passesUnknownFlags && NODE_RUNTIME_FLAGS.has(missing)) {
+    return unknownResult(claim, ctx, 'dynamic_definition', 'cli', [makeEvidence(index, 'nearest', target)]);
   }
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   const definition = makeEvidence(index, 'nearest', target);
