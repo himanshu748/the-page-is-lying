@@ -37,6 +37,7 @@ describe('file_path extraction', () => {
     ['path as a flag value', 'Run `node --config=config/app.toml`', ['config/app.toml']],
     ['case kept', 'Open `Src/Routes.TS`', ['Src/Routes.TS']],
     ['two in one sentence', 'Move a/b.ts to c/d.ts.', ['a/b.ts', 'c/d.ts']],
+    ['bare filename in code', 'Open `db.json`.', ['db.json']],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'file_path')).toEqual(expected.map(file));
   });
@@ -54,8 +55,22 @@ describe('file_path extraction', () => {
     ['unknown extension', 'Open `data/file.zzzz`'],
     ['home dir', 'Open ~/notes.md'],
     ['variable', 'Open $HOME/notes.md'],
+    ['bare filename in prose', 'The server looks for 404.html at runtime.'],
+    ['created bare filename', 'Create `db.json` with the sample data.'],
+    ['created nested path', 'Generate `fixtures/db.json` before starting the server.'],
+    ['written nested path', 'The command writes output/report.json when it finishes.'],
   ])('negative: %s', (_name, input) => {
     expect(fromText(input, 'file_path')).toEqual([]);
+  });
+
+  it('does not let a previous sentence suppress a repository path', () => {
+    expect(fromText('Create the fixture. Then open `src/routes.ts`.', 'file_path')).toEqual([
+      file('src/routes.ts'),
+    ]);
+  });
+
+  it('suppresses every generated path in the same sentence', () => {
+    expect(fromText('Generate `a.json` and `fixtures/b.json`.', 'file_path')).toEqual([]);
   });
 
   it('is high confidence in code and medium in prose', () => {
