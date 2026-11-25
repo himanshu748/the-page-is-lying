@@ -50,6 +50,8 @@ function explicitCue(text: string, start: number, end: number, code: boolean): b
   return code && after.startsWith('=') && !after.startsWith('==') && /(?:^|[\s`])$/.test(before);
 }
 
+const SINGLE_RE = /(?<![A-Za-z0-9_])[A-Z][A-Z0-9]{1,31}(?![A-Za-z0-9_])/g;
+
 export function extractEnv(ctx: BlockContext): Candidate[] {
   const out: Candidate[] = [];
   const text = ctx.text;
@@ -71,6 +73,18 @@ export function extractEnv(ctx: BlockContext): Candidate[] {
       accepted = segment !== undefined && segment.start === start && segment.end === end;
     }
     if (!accepted) continue;
+    out.push({ start, end, high, normalized: { type: 'env_var', name } });
+  }
+
+  // PORT, HOST, DEBUG: only with an explicit cue. A bare `STRIPE` span is not an env var.
+  SINGLE_RE.lastIndex = 0;
+  for (let m = SINGLE_RE.exec(text); m !== null; m = SINGLE_RE.exec(text)) {
+    const name = m[0];
+    const start = m.index;
+    const end = start + name.length;
+    if (out.some((candidate) => candidate.start < end && start < candidate.end)) continue;
+    const high = inCode(ctx, start, end);
+    if (!explicitCue(text, start, end, high)) continue;
     out.push({ start, end, high, normalized: { type: 'env_var', name } });
   }
   return out;

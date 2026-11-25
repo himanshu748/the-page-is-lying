@@ -256,6 +256,100 @@ describe('Java', () => {
   });
 });
 
+describe('parsers the demo fixture does not use', () => {
+  const repo = { provider: 'github' as const, fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: 'x' };
+  const finish = (files: { path: string; text: string }[]): RepoIndex =>
+    buildRepoIndex(files, { repo, stats: { filesIndexed: files.length, filesSkipped: 0, truncated: false } });
+
+  it('reads minimist flags from an extensionless node bin and names them from package.json', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "name": "http-server", "bin": { "http-server": "./bin/http-server" } }' },
+      {
+        path: 'bin/http-server',
+        text: [
+          '#!/usr/bin/env node',
+          "var argv = require('minimist')(process.argv.slice(2), { alias: { header: 'H' }, boolean: ['proxy-all'] });",
+          "var port = argv.p || argv.port || process.env.PORT;",
+          "var dir = argv['dir-overrides-404'];",
+          "var panic = argv['panic'] || process.env.NODE_HTTP_SERVER_NO_PANIC; // --no-panic",
+          'if (argv.header) {}',
+        ].join('\n'),
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command' && c.program === 'http-server');
+    expect(cmd?.flags).toEqual(expect.arrayContaining(['-p', '--port', '--dir-overrides-404', '-H', '--header', '--proxy-all', '--no-panic']));
+    expect(cmd?.flags).not.toContain('-dir-overrides-404');
+    expect(cmd?.flags).not.toContain('--slice');
+    expect(i.env.some((e) => e.name === 'PORT' && e.file === 'bin/http-server')).toBe(true);
+    expect(i.coverage.cli).toBe('complete');
+  });
+
+  it('reads node:util parseArgs options', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "bin": { "json-server": "src/bin.ts" } }' },
+      {
+        path: 'src/bin.ts',
+        text: [
+          "import { parseArgs } from 'node:util';",
+          'const { values } = parseArgs({ options: { port: { type: "string", short: "p" }, static: { type: "string", short: "s" }, help: { type: "boolean" } } });',
+          'void values;',
+        ].join('\n'),
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command' && c.program === 'json-server');
+    expect(cmd?.flags).toEqual(expect.arrayContaining(['--port', '-p', '--static', '-s']));
+  });
+
+  it('reads arg === flag comparisons', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "name": "nodemon", "bin": { "nodemon": "bin/nodemon.js" } }' },
+      {
+        path: 'bin/nodemon.js',
+        text: "var args = process.argv.slice(2);\nif (arg === '--dump') {}\nelse if (arg === '--legacy-watch' || arg === '-L') {}",
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command');
+    expect(cmd?.program).toBe('nodemon');
+    expect(cmd?.flags).toEqual(expect.arrayContaining(['--dump', '--legacy-watch', '-L']));
+    expect(cmd?.flags).not.toContain('--inspect');
+  });
+
+  it('indexes tinyhttp routes as express-style paths', () => {
+    const i = finish([
+      {
+        path: 'src/app.ts',
+        text: "import { App } from '@tinyhttp/app';\nexport function createApp() {\n  const app = new App();\n  app.get('/:name', handler);\n  app.post('/:name', handler);\n  app.delete('/:name/:id', handler);\n}\n",
+      },
+    ]);
+    expect(i.coverage.routes).toBe('complete');
+    expect(route(i, 'GET', '/:param')).toHaveLength(1);
+    expect(route(i, 'POST', '/:param')).toHaveLength(1);
+    expect(route(i, 'DELETE', '/:param/:param')).toHaveLength(1);
+  });
+
+  it('names a Go flag program from Usage and keeps both dash forms', () => {
+    const i = finish([
+      {
+        path: 'internal/cli/main.go',
+        text: [
+          'package cli',
+          'import "flag"',
+          'func Main() {',
+          '  flag.String("source", "", "")',
+          '  flag.String("database", "", "")',
+          '  flag.Usage = func() {',
+          '    fmt.Fprintf(os.Stderr, `Usage: migrate OPTIONS COMMAND`)',
+          '  }',
+          '}',
+        ].join('\n'),
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command');
+    expect(cmd?.program).toBe('migrate');
+    expect(cmd?.flags).toEqual(expect.arrayContaining(['--source', '-source', '--database', '-database']));
+  });
+});
+
 describe('truncation', () => {
   it('sets every populated kind to partial when the snapshot was cut', () => {
     const i = index('payments-api-mini', { truncated: true });

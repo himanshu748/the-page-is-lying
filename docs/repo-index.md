@@ -4,7 +4,7 @@
 (`src/core/model.ts`). Entry conventions the matcher can rely on:
 
 - **Routes.** `path` is normalized like `HttpEndpointClaim.path` (`normalizeRoutePath` in `paths.ts`: params become
-  `:param`, no query or trailing slash). Mount prefixes (Express `app.use('/api', router)` across files, FastAPI
+  `:param`, no query or trailing slash). Mount prefixes (Express `app.use('/api', router)` across files, `@tinyhttp/app` via `new App()`, FastAPI
   `include_router(prefix=)`, Flask blueprints, Fastify `register({prefix})`, Hono `route()` and `basePath`, Koa
   `prefix`, Gin groups) are already applied. A router whose mount cannot be found is dropped and `coverage.routes`
   becomes `partial`. `method: 'ANY'` means any method (`app.all`, `http.HandleFunc("/x")`, `@RequestMapping`
@@ -16,8 +16,11 @@
 - **CLI.** All commands have `--help` and `-h` in `flags`; commander and yargs roots also have `--version`
   (and `-V` for commander).
   - Source-defined commands: `kind: 'command'`, `program` is the CLI name (`.name()`, `prog=`, cobra root `Use`,
-    else the single `bin` name, else the package name, else the file name), `subcommands` is the path below the
+    a Go `flag` `Usage:` line, else the single `bin` name, else the package name, else the file name), `subcommands` is the path below the
     root (`['refund']`), `flags` lists long and short flags without values. Aliases get their own entry.
+    minimist (`argv.flag`, `argv['flag']`, `alias`, `boolean`), `node:util` `parseArgs`, and `arg === '--flag'`
+    comparisons are read. A `bin/` script with a node shebang and no extension is indexed. Go's `flag` package
+    records both `-name` and `--name`.
   - `package.json` `bin`: `kind: 'bin'`, `subcommands: []`, `flags: []`. pyproject scripts the same.
   - `package.json` script `db:migrate`: `program: 'npm'`, `subcommands: ['run', 'db:migrate']`, `kind: 'script'`,
     `flags: []`. Scripts named `test`, `start`, `stop`, `restart` also get `subcommands: [name]`. Treat

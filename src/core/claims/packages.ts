@@ -37,12 +37,14 @@ export function extractPackages(ctx: BlockContext): Candidate[] {
 
   // Runtime phrases: "Node.js 20 or later", "Python >=3.11", "Node 18+".
   const runtimeRe = new RegExp(
-    String.raw`(?<![\w@/.-])(Node\.js|NodeJS|Nodejs|Node|node|Python|python)(?![\w.])[ \t]+(?:v|version[ \t]+)?(>=|≥|>|<=|<|\^|~)?[ \t]*(${VERSION})(\+|[ \t]+or[ \t]+(?:later|newer|higher|above))?`,
+    String.raw`(?<![\w@/.-])(Node\.js|NodeJS|Nodejs|Node|node|Python|python)(?![\w.])[ \t]+(?:v|version[ \t]+)?(>=|≥|>|<=|<|\^|~)?[ \t]*(${VERSION})(\+|[ \t]+(?:or|and)[ \t]+(?:later|newer|higher|above))?`,
     'g',
   );
   for (let m = runtimeRe.exec(text); m !== null; m = runtimeRe.exec(text)) {
     const word = m[1] ?? '';
     const range = { start: m.index, end: m.index + m[0].length };
+    // `Python 3.10.0 (default, Oct 27 2021` is an interpreter banner, not a support claim.
+    if (/\(default\b/.test(text.slice(range.end, range.end + 12))) continue;
     const high = inCode(ctx, range.start, range.end);
     if (/^[a-z]/.test(word) && !high) continue;
     const op = m[2] === '≥' ? '>=' : (m[2] ?? '');
@@ -86,6 +88,8 @@ export function extractPackages(ctx: BlockContext): Candidate[] {
     const version = m[3] ?? '';
     const range = { start: m.index, end: m.index + m[0].length };
     if (NOT_PACKAGE_WORDS.has(name.toLowerCase()) || /\.[A-Za-z]{1,5}$/.test(name) && !/^[a-z0-9-]+\.js$/i.test(name)) continue;
+    if (/^[A-Z]{2,}$/.test(name) && text.charAt(range.start - 1) === '[') continue;
+    if (/\(default\b/.test(text.slice(range.end, range.end + 12))) continue;
     const high = inCode(ctx, range.start, range.end);
     const dotted = version.includes('.');
     const explicit = m[2] !== undefined || /\.(x|\*)/.test(version) || (version.match(/\./g)?.length ?? 0) >= 2;

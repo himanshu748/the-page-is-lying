@@ -9,10 +9,13 @@ import {
   finalizeCli,
   indexArgparse,
   indexClick,
+  indexArgEquals,
   indexCommander,
   indexGoCli,
   indexMakefile,
+  indexMinimist,
   indexPackageCli,
+  indexParseArgs,
   indexPicocli,
   indexYargs,
 } from './cli';
@@ -77,6 +80,8 @@ export function wantsContent(path: string): boolean {
   const base = baseName(path);
   if (CONTENT_NAMES.has(base) || isEnvExampleFile(base)) return true;
   if (/^requirements(?:[-_.][\w.-]*)?\.txt$/.test(base)) return true;
+  // `bin/http-server` has a node shebang and no extension.
+  if (/(^|\/)bin\/[^./]+$/.test(path)) return true;
   return CONTENT_EXT.has(extOf(path));
 }
 
@@ -97,7 +102,7 @@ function guard(acc: IndexAcc, kinds: IndexKind[], fn: () => void): void {
 function indexFile(acc: IndexAcc, file: RepoFile): void {
   const { path, text } = file;
   const base = baseName(path);
-  const ext = extOf(path);
+  let ext = extOf(path);
 
   if (base === 'package.json') {
     guard(acc, ['packages', 'cli'], () => {
@@ -187,6 +192,7 @@ function indexFile(acc: IndexAcc, file: RepoFile): void {
     return;
   }
 
+  if (ext === '' && /^#![^\n]*\bnode\b/.test(text)) ext = 'js';
   const code = JS_EXT.has(ext) || ext === 'py' || ext === 'go' || ext === 'java' || ext === 'kt' || ext === 'rb';
   if (!code) return;
   if (/\.d\.[mc]?ts$/.test(path)) return;
@@ -200,6 +206,9 @@ function indexFile(acc: IndexAcc, file: RepoFile): void {
       indexJsRoutes(acc, path, text, masked);
       indexCommander(acc, path, text, masked);
       indexYargs(acc, path, text, masked);
+      indexMinimist(acc, path, text, masked);
+      indexParseArgs(acc, path, text, masked);
+      indexArgEquals(acc, path, text, masked);
     } else if (ext === 'py') {
       indexPythonRoutes(acc, path, text, masked);
       indexArgparse(acc, path, text, masked);
