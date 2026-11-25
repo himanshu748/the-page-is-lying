@@ -59,6 +59,19 @@ export interface FileMatch {
   path: string;
 }
 
+function sentencePrefix(text: string, start: number): string {
+  const prefix = text.slice(0, start);
+  let boundary = prefix.lastIndexOf('\n');
+  for (const match of prefix.matchAll(/[.!?](?=\s|$)/g)) boundary = match.index;
+  return text.slice(boundary + 1, start);
+}
+
+function isCreatedPath(text: string, start: number): boolean {
+  return /\b(?:create|creates|created|creating|generate|generates|generated|generating|write|writes|written|writing|save|saves|saved|saving|output|outputs|produce|produces|produced|producing)\b[^\n.!?]*$/i.test(
+    sentencePrefix(text, start),
+  );
+}
+
 /** Finds path-like tokens with a known extension or trailing slash. */
 export function findFilePaths(text: string, skip: { start: number; end: number }[]): FileMatch[] {
   const matches: FileMatch[] = [];
@@ -88,10 +101,17 @@ export function findFilePaths(text: string, skip: { start: number; end: number }
 
 export function extractFiles(ctx: BlockContext): Candidate[] {
   const skip = urlRanges(ctx.text);
-  return findFilePaths(ctx.text, skip).map((m) => ({
-    start: m.start,
-    end: m.end,
-    high: inCode(ctx, m.start, m.end),
-    normalized: { type: 'file_path', path: m.path },
-  }));
+  return findFilePaths(ctx.text, skip)
+    .filter((m) => {
+      const markedAsCode = inCode(ctx, m.start, m.end);
+      const bareFilename = !m.path.includes('/');
+      if (!markedAsCode && bareFilename) return false;
+      return !isCreatedPath(ctx.text, m.start);
+    })
+    .map((m) => ({
+      start: m.start,
+      end: m.end,
+      high: inCode(ctx, m.start, m.end),
+      normalized: { type: 'file_path', path: m.path },
+    }));
 }
