@@ -314,6 +314,33 @@ describe('parsers the demo fixture does not use', () => {
     expect(cmd?.flags).not.toContain('--inspect');
   });
 
+  it('records an explicit fall-through for flags left to a child process', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "name": "nodemon", "bin": { "nodemon": "bin/nodemon.js" } }' },
+      {
+        path: 'lib/cli/parse.js',
+        text: [
+          'var args = process.argv.slice(2);',
+          'if (parseOption(args[i]) !== false) { args.splice(i, 1); }',
+          "function parseOption(arg) { if (arg === '--dump') return true; return false; }",
+        ].join('\n'),
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command');
+    expect(cmd).toMatchObject({ program: 'nodemon', passesUnknownFlags: true });
+  });
+
+  it('does not infer pass-through from an unrelated false return', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "name": "tool", "bin": "cli.js" }' },
+      {
+        path: 'cli.js',
+        text: "var args = process.argv.slice(2);\nif (arg === '--dump') {}\nfunction valid() { return false; }",
+      },
+    ]);
+    expect(i.cli.find((c) => c.kind === 'command')?.passesUnknownFlags).toBeUndefined();
+  });
+
   it('indexes tinyhttp routes as express-style paths', () => {
     const i = finish([
       {

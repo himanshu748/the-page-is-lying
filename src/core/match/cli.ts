@@ -22,6 +22,7 @@ const PACKAGE_MANAGER_BUILTINS = new Set([
   'install', 'i', 'ci', 'add', 'remove', 'update', 'upgrade', 'publish', 'pack', 'audit', 'init', 'link', 'login', 'exec', 'dlx', 'x',
 ]);
 const ALWAYS_DEFINED_FLAGS = new Set(['--help', '-h', '--version', '-V']);
+const NODE_RUNTIME_FLAGS = new Set(['--inspect', '--inspect-brk', '--require', '-r']);
 
 function isPlaceholder(token: string): boolean {
   return /^[<[${(]/.test(token) || token.includes('{') || token.includes('}');
@@ -185,20 +186,24 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   }
 
   const known = knownFlags();
-  const missing = n.flags.find((flag) => !known.has(flag) && !ALWAYS_DEFINED_FLAGS.has(flag));
-  if (missing === undefined) {
+  const undefinedFlags = n.flags.filter((flag) => !known.has(flag) && !ALWAYS_DEFINED_FLAGS.has(flag));
+  if (undefinedFlags.length === 0) {
     return toResult(claim, 'verified', 'cli_defined', verifiedStatement({ claim: text, file: target.file, line: target.line }), [
       makeEvidence(index, 'match', target),
     ]);
+  }
+  const unsupportedFlags = undefinedFlags.filter((flag) => !(target.passesUnknownFlags && NODE_RUNTIME_FLAGS.has(flag)));
+  const missing = unsupportedFlags[0];
+  if (missing === undefined) {
+    return unknownResult(claim, ctx, 'dynamic_definition', 'cli', [makeEvidence(index, 'nearest', target)]);
   }
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   const definition = makeEvidence(index, 'nearest', target);
   // The command without any flag the code does not define, so the proposed edit is not itself contradicted.
   // The defined flags the page does not already use are the alternatives.
-  const undefinedFlags = n.flags.filter((flag) => !known.has(flag) && !ALWAYS_DEFINED_FLAGS.has(flag));
-  const kept = [n.program, ...n.subcommands, ...n.flags.filter((flag) => !undefinedFlags.includes(flag))];
-  const withoutFlag = editCommand(claim.raw, n.program, undefinedFlags, '') ?? kept.join(' ');
-  const withFlag = (flag: string): string => editCommand(claim.raw, n.program, undefinedFlags, flag) ?? [...kept, flag].join(' ');
+  const kept = [n.program, ...n.subcommands, ...n.flags.filter((flag) => !unsupportedFlags.includes(flag))];
+  const withoutFlag = editCommand(claim.raw, n.program, unsupportedFlags, '') ?? kept.join(' ');
+  const withFlag = (flag: string): string => editCommand(claim.raw, n.program, unsupportedFlags, flag) ?? [...kept, flag].join(' ');
   const unused = target.flags.filter((flag) => !n.flags.includes(flag));
   return toResult(
     claim,

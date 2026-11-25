@@ -147,6 +147,42 @@ describe('cli rules (7.2)', () => {
     expect(r.statement).toBe('Contradicted by code: payments refund does not define --force. It defines --confirm, --reason at src/cli.ts:14.');
     expect(r.evidence[0]).toMatchObject({ file: 'src/cli.ts', line: 14 });
   });
+  it('does not contradict Node options passed through by a wrapper', () => {
+    const wrapper = makeIndex({
+      cli: [
+        {
+          ...loc('lib/cli/parse.js', 12),
+          program: 'nodemon',
+          subcommands: [],
+          flags: ['--dump', '--legacy-watch'],
+          kind: 'command',
+          passesUnknownFlags: true,
+        },
+      ],
+    });
+    expect(check(cli('nodemon', [], ['--inspect']), wrapper)).toMatchObject({
+      verdict: 'unknown',
+      reason: 'dynamic_definition',
+    });
+    expect(check(cli('nodemon', [], ['--require']), wrapper)).toMatchObject({
+      verdict: 'unknown',
+      reason: 'dynamic_definition',
+    });
+    expect(check(cli('nodemon', [], ['--not-a-node-option']), wrapper)).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'cli_flag_not_defined',
+    });
+    const mixed = check(cli('nodemon', [], ['--inspect', '--not-a-node-option']), wrapper);
+    expect(mixed).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'cli_flag_not_defined',
+      suggestion: { replacement: 'nodemon --inspect' },
+    });
+    expect(check(cli('nodemon', [], ['--not-a-node-option', '--inspect']), wrapper)).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'cli_flag_not_defined',
+    });
+  });
   it('contradicted: subcommand not defined', () => {
     const r = check(cli('payments', ['refound']), index);
     expect(r).toMatchObject({ verdict: 'contradicted', reason: 'cli_subcommand_not_defined' });
