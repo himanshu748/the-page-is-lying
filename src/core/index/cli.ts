@@ -762,9 +762,24 @@ export function indexArgEquals(acc: IndexAcc, file: string, original: string, te
   }
   if (flags.size === 0) return;
   const first = Math.min(...Object.values(flagLines));
+  // Some Node wrappers parse their own options and return false for every option
+  // they do not consume. The caller then leaves that option for the child process.
+  // Keep this fact on the entry so the matcher does not call a Node runtime option
+  // a missing wrapper option.
+  const passesUnknownFlags = /\breturn\s+false\s*;/.test(text);
   pushEntry(
     acc,
-    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    {
+      file,
+      line: first,
+      snippet: snippetOf(lines, first),
+      program: '',
+      subcommands: [],
+      flags: [...flags, ...HELP],
+      kind: 'command',
+      flagLines,
+      ...(passesUnknownFlags ? { passesUnknownFlags: true } : {}),
+    },
     true,
   );
 }
