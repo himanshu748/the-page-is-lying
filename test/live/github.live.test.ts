@@ -16,14 +16,16 @@ import type { FetchFn } from '../../src/repo/source';
 import { FakeKvs } from '../storage/fakeKvs';
 
 const live = process.env['LIVE_GITHUB'] === '1';
+const demoRepository = 'himanshu748/payments-api-demo';
+const demoRevision = '44c8112e1bc0f3be63fe45fbcb70bfaf6bfb03a5';
 const nodeFetch: FetchFn = async (url, init) => fetch(url, init as RequestInit) as never;
 
-describe.skipIf(!live)('live GitHub: himanshu748/payments-api', () => {
+describe.skipIf(!live)(`live GitHub: ${demoRepository}`, () => {
   it('indexes the public repo and reproduces the golden verdicts', async () => {
     const kvs = new FakeKvs();
     const now = (): number => Date.now();
-    await saveSettings(kvs, { repoUrl: 'https://github.com/himanshu748/payments-api', ref: 'main' });
-    const repoKey = repoKeyOf('github', 'himanshu748/payments-api', 'main');
+    await saveSettings(kvs, { repoUrl: `https://github.com/${demoRepository}`, ref: demoRevision });
+    const repoKey = repoKeyOf('github', demoRepository, demoRevision);
     const job = await runIndexJob({ kvs, fetch: nodeFetch, now }, { body: { repoKey, reason: 'manual' } });
     expect(job.outcome).toBe('indexed');
     const deps = {
