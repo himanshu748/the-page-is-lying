@@ -134,13 +134,13 @@ function pushFlag(out: Candidate[], start: number, flag: string, program: string
  * Option tables (`| -p or --port |`) and `Usage:` glossaries (`  -source  Location`).
  * Each flag is its own claim so one wrong flag does not hide the others.
  */
-function extractGlossary(ctx: BlockContext, out: Candidate[]): void {
+function extractGlossary(ctx: BlockContext, out: Candidate[], source: { text: string; offset: number }): void {
   const text = ctx.text;
   const rows = /^\|([^|\n]*)\|/gm;
   for (const m of text.matchAll(rows)) {
     const cell = m[1] ?? '';
     const flags = flagsInCell(cell);
-    const program = programBefore(text, m.index);
+    const program = programBefore(source.text, source.offset + m.index);
     if (flags === undefined || program === undefined) continue;
     const cellStart = m.index + 1;
     let from = 0;
@@ -177,7 +177,7 @@ function inCodeFlag(ctx: BlockContext, start: number, length: number): boolean {
   return ctx.codeRegions.some((region) => start >= region.start && start + length <= region.end);
 }
 
-export function extractCli(ctx: BlockContext): Candidate[] {
+export function extractCli(ctx: BlockContext, source = { text: ctx.text, offset: 0 }): Candidate[] {
   const out: Candidate[] = [];
   for (const segment of ctx.segments) {
     for (const command of tokenizeSegment(segment)) {
@@ -207,6 +207,6 @@ export function extractCli(ctx: BlockContext): Candidate[] {
       });
     }
   }
-  extractGlossary(ctx, out);
+  extractGlossary(ctx, out, source);
   return out;
 }

@@ -48,11 +48,11 @@ function resolve(candidates: Candidate[]): Candidate[] {
   return accepted.sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
-function extractFromBlock(block: TextBlock): Candidate[] {
+function extractFromBlock(block: TextBlock, source?: { text: string; offset: number }): Candidate[] {
   const ctx = buildContext(block);
   return resolve([
     ...extractHttp(ctx),
-    ...extractCli(ctx),
+    ...extractCli(ctx, source),
     ...extractPackages(ctx),
     ...extractEnv(ctx),
     ...extractConfig(ctx),
@@ -60,27 +60,31 @@ function extractFromBlock(block: TextBlock): Candidate[] {
   ]);
 }
 
-function extractFromBlocks(blocks: TextBlock[]): ExtractionResult {
+type ClaimBlock = TextBlock & { sourceOffset?: number };
+
+function extractFromBlocks(blocks: Iterable<ClaimBlock>, sourceText?: string): ExtractionResult {
   const claims: Claim[] = [];
-  let claimsTruncated = false;
   for (const block of blocks) {
-    const candidates = extractFromBlock(block).slice(0, MAX_CLAIMS_PER_BLOCK);
+    const offset = block.sourceOffset ?? 0;
+    const source = sourceText === undefined ? undefined : { text: sourceText, offset };
+    const candidates = extractFromBlock(block, source).slice(0, MAX_CLAIMS_PER_BLOCK);
     for (const c of candidates) {
       if (claims.length >= MAX_CLAIMS_PER_DOCUMENT) {
-        claimsTruncated = true;
-        break;
+        return { claims, claimsTruncated: true };
       }
+      const start = offset + c.start;
+      const end = offset + c.end;
       claims.push({
-        id: `c_${hash8(`${block.blockIndex}:${c.start}:${JSON.stringify(c.normalized)}`)}`,
+        id: `c_${hash8(`${block.blockIndex}:${start}:${JSON.stringify(c.normalized)}`)}`,
         type: c.normalized.type,
         raw: block.text.slice(c.start, c.end),
         normalized: c.normalized,
-        location: { blockIndex: block.blockIndex, start: c.start, end: c.end },
+        location: { blockIndex: block.blockIndex, start, end },
         confidence: c.high ? 'high' : 'medium',
       });
     }
   }
-  return { claims, claimsTruncated };
+  return { claims, claimsTruncated: false };
 }
 
 function parseInput(adf: unknown): unknown {
@@ -98,27 +102,45 @@ export function extractClaims(adf: unknown): ExtractionResult {
   return extractFromBlocks(walkAdf(parseInput(adf)));
 }
 
-/**
- * Extracts claims from plain text. Backtick spans and ``` fences count as code, like ADF code
- * marks and code blocks. Offsets refer to the (length capped) text, which is block 0.
- */
+function* plainTextBlocks(body: string): Iterable<ClaimBlock> {
+  function* paragraphs(start: number, end: number): Iterable<ClaimBlock> {
+    for (const text of body.slice(start, end).split(/(\r?\n(?:[ \t]*\r?\n)+)/)) {
+      if (text.trim() !== '') {
+        const marks = Array.from(text.matchAll(/`([^`\r\n]+)`/g), (match) => ({
+          start: match.index + 1,
+          end: match.index + match[0].length - 1,
+          type: 'code',
+        }));
+        yield { blockIndex: 0, sourceOffset: start, nodeType: 'paragraph', text, marks };
+      }
+      start += text.length;
+    }
+  }
+
+  let proseStart = 0;
+  let fence: { marker: string; start: number } | undefined;
+  for (const match of body.matchAll(/^ {0,3}(`{3,}|~{3,})([^\r\n]*)(?:\r?\n|$)/gm)) {
+    const [, marker = '', info = ''] = match;
+    if (fence) {
+      if (!marker.startsWith(fence.marker) || info.trim() !== '') continue;
+      yield { blockIndex: 0, sourceOffset: fence.start, nodeType: 'codeBlock', text: body.slice(fence.start, match.index), marks: [] };
+      proseStart = match.index + match[0].length;
+      fence = undefined;
+    } else if (marker[0] !== '`' || !info.includes('`')) {
+      yield* paragraphs(proseStart, match.index);
+      fence = { marker, start: match.index + match[0].length };
+    }
+  }
+  if (fence) {
+    yield { blockIndex: 0, sourceOffset: fence.start, nodeType: 'codeBlock', text: body.slice(fence.start), marks: [] };
+  } else {
+    yield* paragraphs(proseStart, body.length);
+  }
+}
+
+/** Each paragraph and fence gets its own claim budget. Locations still use full text offsets in block 0. */
 export function extractClaimsFromText(text: string): ExtractionResult {
   if (typeof text !== 'string') return { claims: [], claimsTruncated: false };
   const body = text.slice(0, MAX_BLOCK_TEXT);
-  const marks: TextBlock['marks'] = [];
-  const fenced = /```[^\n]*\n([\s\S]*?)```/g;
-  const fences: { start: number; end: number }[] = [];
-  for (let m = fenced.exec(body); m !== null; m = fenced.exec(body)) {
-    const start = m.index + m[0].length - 3 - (m[1] ?? '').length;
-    fences.push({ start: m.index, end: m.index + m[0].length });
-    marks.push({ start, end: start + (m[1] ?? '').length, type: 'code' });
-  }
-  const inline = /`([^`\n]+)`/g;
-  for (let m = inline.exec(body); m !== null; m = inline.exec(body)) {
-    const start = m.index + 1;
-    const range = { start: m.index, end: m.index + m[0].length };
-    if (fences.some((f) => overlaps(f, range))) continue;
-    marks.push({ start, end: start + (m[1] ?? '').length, type: 'code' });
-  }
-  return extractFromBlocks([{ blockIndex: 0, nodeType: 'paragraph', text: body, marks }]);
+  return extractFromBlocks(plainTextBlocks(body), body);
 }
