@@ -73,6 +73,16 @@ describe('file_path extraction', () => {
     expect(fromText('Generate `a.json` and `fixtures/b.json`.', 'file_path')).toEqual([]);
   });
 
+  it.each([
+    'Generate files using `scripts/generate.ts`.',
+    'Generate files from `src/routes.ts`.',
+    'The output is defined in `src/routes.ts`.',
+  ])('keeps source files in generation instructions: %s', (input) => {
+    expect(fromText(input, 'file_path')).toEqual([
+      file(input.includes('generate.ts') ? 'scripts/generate.ts' : 'src/routes.ts'),
+    ]);
+  });
+
   it('is high confidence in code and medium in prose', () => {
     expect(allFromText('See `a/b.ts`').map((c) => c.confidence)).toEqual(['high']);
     expect(allFromText('See a/b.ts').map((c) => c.confidence)).toEqual(['medium']);
