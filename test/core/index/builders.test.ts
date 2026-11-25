@@ -314,6 +314,18 @@ describe('parsers the demo fixture does not use', () => {
     expect(cmd?.flags).not.toContain('--inspect');
   });
 
+  it('records an explicit fall-through for flags left to a child process', () => {
+    const i = finish([
+      { path: 'package.json', text: '{ "name": "nodemon", "bin": { "nodemon": "bin/nodemon.js" } }' },
+      {
+        path: 'lib/cli/parse.js',
+        text: "var args = process.argv.slice(2);\nif (arg === '--dump') return true;\nreturn false;",
+      },
+    ]);
+    const cmd = i.cli.find((c) => c.kind === 'command');
+    expect(cmd).toMatchObject({ program: 'nodemon', passesUnknownFlags: true });
+  });
+
   it('indexes tinyhttp routes as express-style paths', () => {
     const i = finish([
       {
