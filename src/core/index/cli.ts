@@ -597,25 +597,176 @@ export function indexGoCli(acc: IndexAcc, file: string, original: string, text: 
   }
   if (/"flag"/.test(original) && /\bflag\s*\.\s*\w+\s*\(/.test(text)) {
     const flags = new Set<string>();
+    const flagLines: Record<string, number> = {};
     let first = Number.POSITIVE_INFINITY;
     for (const m of text.matchAll(/\bflag\s*\.\s*(\w+)\s*\(/g)) {
       if (['Parse', 'Parsed', 'Args', 'Arg', 'NArg', 'NFlag', 'Usage', 'PrintDefaults', 'Lookup', 'Set', 'Visit', 'VisitAll', 'NewFlagSet'].includes(m[1] as string)) continue;
       const open = m.index + m[0].length - 1;
       const close = findClose(text, open);
       const args = close === -1 ? [] : splitArgs(text.slice(open + 1, close), open + 1);
+      const line = lineAt(starts, m.index);
       for (const f of goFlagNames(m[1] as string, args)) {
         if (f === '?') acc.partial.cli = true;
-        else flags.add(f);
+        else {
+          flags.add(f);
+          flagLines[f] = line;
+          // The standard library accepts -name and --name for a multi-letter flag.
+          if (f.startsWith('--') && f.length > 3) {
+            const single = `-${f.slice(2)}`;
+            flags.add(single);
+            flagLines[single] = line;
+          }
+        }
       }
       first = Math.min(first, m.index);
     }
     if (flags.size > 0) {
       const line = lineAt(starts, first);
-      const name = baseName(dir === '' ? 'main' : dir);
-      pushEntry(acc, { file, line, snippet: snippetOf(lines, line), program: name, subcommands: [], flags: [...flags, ...HELP], kind: 'command' }, true);
+      const usage = /Usage:\s*([a-z][a-z0-9_-]{0,39})/.exec(original);
+      const name = usage?.[1] ?? baseName(dir === '' ? 'main' : dir);
+      pushEntry(acc, { file, line, snippet: snippetOf(lines, line), program: name, subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines }, true);
     }
   }
   if (/\bos\s*\.\s*Args\b/.test(text) && !/spf13\/cobra|"flag"/.test(original)) acc.partial.cli = true;
+}
+
+function flagForm(name: string): string {
+  return name.length === 1 ? `-${name}` : `--${name}`;
+}
+
+function rememberFlag(flags: Set<string>, lines: Record<string, number>, name: string, line: number): void {
+  if (name === '' || name === '_' || !/^[A-Za-z][\w-]*$/.test(name)) return;
+  const flag = flagForm(name);
+  flags.add(flag);
+  lines[flag] = line;
+}
+
+/** minimist: aliases, boolean names, and `argv.flag` / `argv['flag']` reads. `--no-flag` counts when the file writes it. */
+export function indexMinimist(acc: IndexAcc, file: string, original: string, text: string): void {
+  if (!(/['"]minimist['"]\s*\)\s*\(/.test(text) || /\bminimist\s*\(/.test(text))) return;
+  const starts = lineStarts(text);
+  const lines = splitLines(original);
+  const bound = /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:require\(\s*['"]minimist['"]\s*\)|minimist)\s*\(/.exec(text);
+  const argv = bound?.[1] ?? 'argv';
+  const flags = new Set<string>();
+  const flagLines: Record<string, number> = {};
+  const alias = /alias\s*:\s*\{([^{}]*)\}/.exec(text);
+  if (alias?.[1]) {
+    for (const pair of alias[1].matchAll(/(['"]?)([A-Za-z][\w-]*)\1\s*:\s*['"]([A-Za-z][\w-]*)['"]/g)) {
+      const line = lineAt(starts, alias.index + (pair.index ?? 0));
+      rememberFlag(flags, flagLines, pair[2] ?? '', line);
+      rememberFlag(flags, flagLines, pair[3] ?? '', line);
+    }
+  }
+  const booleans = /boolean\s*:\s*\[([^\]]*)\]/.exec(text);
+  if (booleans?.[1]) {
+    for (const name of booleans[1].matchAll(/['"]([A-Za-z][\w-]*)['"]/g)) {
+      rememberFlag(flags, flagLines, name[1] ?? '', lineAt(starts, booleans.index + (name.index ?? 0)));
+    }
+  }
+  const read = new RegExp(String.raw`(?<![\w.$])${argv}\s*(?:\.\s*([A-Za-z_][\w]*)|\[\s*['"]([^'"]+)['"]\s*\])`, 'g');
+  const notFlags = new Set(['slice', 'push', 'pop', 'map', 'filter', 'forEach', 'keys', 'values', 'entries', 'toString', 'hasOwnProperty']);
+  for (const m of text.matchAll(read)) {
+    const name = m[1] ?? m[2] ?? '';
+    if (notFlags.has(name)) continue;
+    const line = lineAt(starts, m.index);
+    rememberFlag(flags, flagLines, name, line);
+    if (name.length > 1 && original.includes(`--no-${name}`)) {
+      flags.add(`--no-${name}`);
+      flagLines[`--no-${name}`] = line;
+    }
+  }
+  if (flags.size === 0) {
+    acc.partial.cli = true;
+    return;
+  }
+  const first = Math.min(...Object.values(flagLines));
+  pushEntry(
+    acc,
+    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    true,
+  );
+}
+
+/** `node:util` `parseArgs({ options: { port: { short: 'p' } } })`. */
+export function indexParseArgs(acc: IndexAcc, file: string, original: string, text: string): void {
+  if (!/\bparseArgs\s*\(/.test(text)) return;
+  const starts = lineStarts(text);
+  const lines = splitLines(original);
+  const header = /options\s*:\s*\{/.exec(text);
+  if (!header) {
+    acc.partial.cli = true;
+    return;
+  }
+  const open = header.index + header[0].length - 1;
+  const close = findClose(text, open);
+  if (close === -1) {
+    acc.partial.cli = true;
+    return;
+  }
+  const flags = new Set<string>();
+  const flagLines: Record<string, number> = {};
+  const body = text.slice(open + 1, close);
+  let depth = 0;
+  let i = 0;
+  while (i < body.length) {
+    const ch = body[i];
+    if (ch === '{' || ch === '[' || ch === '(') {
+      depth++;
+      i++;
+      continue;
+    }
+    if (ch === '}' || ch === ']' || ch === ')') {
+      depth = Math.max(0, depth - 1);
+      i++;
+      continue;
+    }
+    if (depth === 0) {
+      const key = /^([A-Za-z_][\w-]*)\s*:/.exec(body.slice(i));
+      if (key?.[1]) {
+        const line = lineAt(starts, open + 1 + i);
+        rememberFlag(flags, flagLines, key[1], line);
+        const rest = body.slice(i, i + 200);
+        const short = /short\s*:\s*['"]([A-Za-z])['"]/.exec(rest);
+        if (short?.[1]) rememberFlag(flags, flagLines, short[1], line);
+        i += key[0].length;
+        continue;
+      }
+    }
+    i++;
+  }
+  if (flags.size === 0) {
+    acc.partial.cli = true;
+    return;
+  }
+  const first = Math.min(...Object.values(flagLines));
+  pushEntry(
+    acc,
+    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    true,
+  );
+}
+
+/** Hand-rolled parsers: `if (arg === '--dump' || arg === '-V')`. */
+export function indexArgEquals(acc: IndexAcc, file: string, original: string, text: string): void {
+  if (!/\bprocess\.argv\b|\bargv\.slice\s*\(/.test(text)) return;
+  const starts = lineStarts(text);
+  const lines = splitLines(original);
+  const flags = new Set<string>();
+  const flagLines: Record<string, number> = {};
+  for (const m of text.matchAll(/\b(?:arg|option|flag)\s*===\s*(['"])(-{1,2}[A-Za-z][\w-]*)\1/g)) {
+    const flag = m[2];
+    if (flag === undefined || !/^--?[A-Za-z][\w-]*$/.test(flag)) continue;
+    flags.add(flag);
+    flagLines[flag] = lineAt(starts, m.index);
+  }
+  if (flags.size === 0) return;
+  const first = Math.min(...Object.values(flagLines));
+  pushEntry(
+    acc,
+    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    true,
+  );
 }
 
 /** Called once after all files: resolves cobra hierarchies and unnamed roots. */
@@ -708,7 +859,7 @@ export function attachFlagLines(entries: CliEntry[], from: number, text: string)
   for (const entry of added) {
     const next = starts.find((l) => l > entry.line) ?? lines.length + 1;
     const last = Math.min(next - 1, entry.line + FLAG_LINE_WINDOW, lines.length);
-    const found: Record<string, number> = {};
+    const found: Record<string, number> = { ...(entry.flagLines ?? {}) };
     for (const flag of entry.flags) {
       if (IMPLICIT_FLAGS.has(flag)) continue;
       const quoted = new RegExp(`['"\`](?:-[A-Za-z0-9],?\\s*)?${escapeRegex(flag)}(?![\\w-])`);

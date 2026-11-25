@@ -124,6 +124,18 @@ describe('cli rules (7.2)', () => {
   });
   const cli = (program: string, subcommands: string[], flags: string[] = []): NormalizedClaim => ({ type: 'cli', program, subcommands, flags });
 
+  it('verified: flags recorded on the command entry count for the bin of the same program', () => {
+    const both = makeIndex({
+      cli: [
+        { ...loc('package.json', 4), program: 'http-server', subcommands: [], flags: [], kind: 'bin' },
+        { ...loc('bin/http-server', 40), program: 'http-server', subcommands: [], flags: ['--port', '-p', '--dir-overrides-404'], kind: 'command' },
+      ],
+    });
+    expect(check(cli('http-server', [], ['--port']), both)).toMatchObject({ verdict: 'verified', reason: 'cli_defined', evidence: [{ file: 'bin/http-server', line: 40 }] });
+    const missing = check(cli('http-server', [], ['-dir-overrides-404']), both);
+    expect(missing).toMatchObject({ verdict: 'contradicted', reason: 'cli_flag_not_defined' });
+    expect(missing.statement).toContain('bin/http-server:40');
+  });
   it('verified: subcommand and flags defined (global flags allowed)', () => {
     const r = check(cli('payments', ['refund'], ['--confirm', '--verbose', '--help']), index);
     expect(r).toMatchObject({ verdict: 'verified', reason: 'cli_defined' });

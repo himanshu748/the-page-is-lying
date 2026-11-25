@@ -51,6 +51,24 @@ describe('cli extraction', () => {
     expect(fromText(input, 'cli')).toEqual([]);
   });
 
+  it('treats a file argument as positional so later flags still count', () => {
+    expect(fromText('`json-server db.json -s ./static`', 'cli')).toEqual([cli('json-server', [], ['-s'])]);
+  });
+
+  it('reads flags from an option table under the usage line', () => {
+    const page = ['http-server [path] [options]', '', '|`-p` or `--port` | Port |', '|`-dir-overrides-404` | Override |'].join('\n');
+    expect(fromText(page, 'cli')).toEqual([
+      cli('http-server', [], ['-p']),
+      cli('http-server', [], ['--port']),
+      cli('http-server', [], ['-dir-overrides-404']),
+    ]);
+  });
+
+  it('reads a Usage glossary inside a code block', () => {
+    const page = '```\nUsage: migrate OPTIONS COMMAND [arg...]\n  -source          Location of the migrations\n  -database        Run migrations against this database\n```';
+    expect(fromText(page, 'cli')).toEqual([cli('migrate', [], ['-source']), cli('migrate', [], ['-database'])]);
+  });
+
   it('code block lines, prompts, continuation and chained commands', () => {
     const adf = doc(codeBlock('$ payments refund pay_1 --reason "dup" --confirm\nnpm run db:migrate && ledgerctl reconcile --since 24h\n# comment only\nls -la'));
     expect(fromAdf(adf, 'cli')).toEqual([

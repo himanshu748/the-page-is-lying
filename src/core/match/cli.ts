@@ -133,12 +133,23 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   if (programEntries.length === 0) return unknownResult(claim, ctx, 'program_not_in_repo', 'cli');
 
   const text = describeClaim(n);
-  const root = programEntries.find((entry) => entry.subcommands.length === 0);
-  const target = programEntries.find(
-    (entry) => entry.subcommands.length === subs.length && entry.subcommands.every((sub, i) => sub === subs[i]),
-  );
+  const samePath = (entry: CliEntry): boolean =>
+    entry.subcommands.length === subs.length && entry.subcommands.every((sub, i) => sub === subs[i]);
+  const matched = programEntries.filter(samePath);
+  // A package.json bin and the parser that implements it are one command. Cite the source entry.
+  const target = matched.find((entry) => entry.kind === 'command' && entry.flags.some((flag) => !ALWAYS_DEFINED_FLAGS.has(flag))) ?? matched.find((entry) => entry.kind === 'command') ?? matched[0];
   const coverage = index.coverage.cli;
   const hasSubcommandEntries = programEntries.some((entry) => entry.subcommands.length > 0);
+  const knownFlags = (): Set<string> => {
+    const known = new Set<string>();
+    for (const entry of matched) for (const flag of entry.flags) known.add(flag);
+    if (subs.length > 0) {
+      for (const entry of programEntries) {
+        if (entry.subcommands.length === 0) for (const flag of entry.flags) known.add(flag);
+      }
+    }
+    return known;
+  };
 
   if (!target) {
     if (subs.length === 0) {
@@ -173,7 +184,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
     );
   }
 
-  const known = new Set<string>([...target.flags, ...(root?.flags ?? [])]);
+  const known = knownFlags();
   const missing = n.flags.find((flag) => !known.has(flag) && !ALWAYS_DEFINED_FLAGS.has(flag));
   if (missing === undefined) {
     return toResult(claim, 'verified', 'cli_defined', verifiedStatement({ claim: text, file: target.file, line: target.line }), [

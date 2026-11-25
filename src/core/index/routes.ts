@@ -116,17 +116,23 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
   const usesKoa = hasSpec(imports, (s) => s === 'koa-router' || s === '@koa/router');
   const usesFastify = hasSpec(imports, (s) => s === 'fastify' || s.startsWith('@fastify/')) || /\bFastifyInstance\b|\bFastifyPluginAsync\b/.test(text);
   const usesHono = hasSpec(imports, (s) => s === 'hono' || s.startsWith('hono/') || s.startsWith('@hono/'));
-  if (!(usesExpress || usesKoa || usesFastify || usesHono) && !/\b(?:Router|express)\s*\(/.test(text)) return;
+  const usesTiny = hasSpec(imports, (s) => s === '@tinyhttp/app');
+  if (!(usesExpress || usesKoa || usesFastify || usesHono || usesTiny) && !/\b(?:Router|express)\s*\(/.test(text)) return;
   if (hasSpec(imports, (s) => s === '@fastify/autoload')) acc.partial.routes = true;
 
   const routerFramework = usesKoa ? 'koa' : 'express';
 
   // Receivers created in this file.
-  for (const m of text.matchAll(/\b(?:const|let|var)\s+([\w$]+)\s*(?::\s*[^=;\n]+)?=\s*(?:await\s+)?(express\s*\(\s*\)|new\s+Koa\s*\(|(?:express\s*\.\s*)?Router\s*\(|new\s+(?:Koa)?Router\s*\(|[Ff]astify\s*\(|new\s+Hono\b)/g)) {
+  const tinyCtor = usesTiny ? '|new\\s+App\\s*\\(' : '';
+  const ctorRe = new RegExp(
+    `\\b(?:const|let|var)\\s+([\\w$]+)\\s*(?::\\s*[^=;\\n]+)?=\\s*(?:await\\s+)?(express\\s*\\(\\s*\\)|new\\s+Koa\\s*\\(|(?:express\\s*\\.\\s*)?Router\\s*\\(|new\\s+(?:Koa)?Router\\s*\\(|[Ff]astify\\s*\\(|new\\s+Hono\\b${tinyCtor})`,
+    'g',
+  );
+  for (const m of text.matchAll(ctorRe)) {
     const name = m[1] as string;
     const ctor = m[2] as string;
     const after = m.index + m[0].length;
-    if (/^express\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express');
+    if (/^express\s*\(/.test(ctor) || /^new\s+App\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express');
     else if (/^new\s+Koa\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'koa');
     else if (/^new\s+Hono/.test(ctor)) {
       const tail = /^\s*(?:<[^>]*>)?\s*\(\s*[^)]*\)\s*(?:\.\s*basePath\s*\(\s*(['"])([^'"]*)\1\s*\))?/.exec(text.slice(after, after + 300));

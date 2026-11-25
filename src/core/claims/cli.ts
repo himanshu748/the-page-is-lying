@@ -1,4 +1,5 @@
-import type { BlockContext, Candidate } from './context';
+import { overlaps, type BlockContext, type Candidate } from './context';
+import { FILE_EXTENSIONS } from './files';
 import { stripPrefix, tokenizeSegment, type Token } from './shell';
 
 /** Well-known external tools. Their commands say nothing about the repo, so they are not claims. `curl` is handled by http.ts. */
@@ -56,6 +57,15 @@ function parseMake(args: Token[]): Parsed | null {
   return targets.length > 0 ? { program: 'make', subcommands: targets, flags: [] } : null;
 }
 
+/** `db.json` and `server.js` are arguments, not subcommands. */
+function isFileToken(value: string): boolean {
+  const name = value.split('/').pop() ?? value;
+  const dot = name.lastIndexOf('.');
+  if (dot <= 0 || dot === name.length - 1) return false;
+  const ext = name.slice(dot + 1).toLowerCase();
+  return FILE_EXTENSIONS.has(ext) || ext === 'json5';
+}
+
 function parseGeneric(program: string, args: Token[]): Parsed | null {
   const subcommands: string[] = [];
   const flags: string[] = [];
@@ -67,6 +77,9 @@ function parseGeneric(program: string, args: Token[]): Parsed | null {
     if (flag !== undefined && FLAG_RE.test(flag)) {
       collecting = false;
       if (!flags.includes(flag)) flags.push(flag);
+    } else if (collecting && !token.quoted && isFileToken(value)) {
+      // `json-server db.json -s` — the file is an argument, and flags after it still count.
+      collecting = false;
     } else if (collecting && !token.quoted && SUBCOMMAND_RE.test(value) && subcommands.length < MAX_SUBCOMMANDS) {
       subcommands.push(value);
     } else {
@@ -74,6 +87,94 @@ function parseGeneric(program: string, args: Token[]): Parsed | null {
     }
   }
   return subcommands.length > 0 || flags.length > 0 ? { program, subcommands, flags } : null;
+}
+
+interface ProgramHit {
+  name: string;
+  at: number;
+}
+
+/** The program named by the nearest preceding `Usage: name` or `name [options]` line. */
+function programBefore(text: string, index: number): string | undefined {
+  const before = text.slice(0, index);
+  const hits: ProgramHit[] = [];
+  const usage = /Usage:\s*([a-z][a-z0-9_-]{0,39})/g;
+  const bracket = /(?:^|\n)[ \t]*(?:[$%>][ \t]+)?([a-z][a-z0-9_-]{0,39})[ \t]+\[/g;
+  for (const re of [usage, bracket]) {
+    for (const m of before.matchAll(re)) {
+      const name = m[1];
+      if (name === undefined || EXTERNAL_TOOLS.has(name) || !PROGRAM_RE.test(name)) continue;
+      hits.push({ name, at: m.index });
+    }
+  }
+  hits.sort((a, b) => a.at - b.at);
+  return hits[hits.length - 1]?.name;
+}
+
+/** First cell of an option table: flags joined by "or", commas, and bracketed placeholders. */
+function flagsInCell(cell: string): string[] | undefined {
+  const cleaned = cell.replace(/`/g, '').replace(/\[[^\]]*\]/g, ' ').replace(/\([^)]*\)/g, ' ');
+  const tokens = cleaned.split(/[\s,]+/).filter((token) => token !== '' && token.toLowerCase() !== 'or' && token.toLowerCase() !== 'and');
+  if (tokens.length === 0) return undefined;
+  const flags: string[] = [];
+  for (const token of tokens) {
+    if (!FLAG_RE.test(token)) return undefined;
+    if (!flags.includes(token)) flags.push(token);
+  }
+  return flags;
+}
+
+function pushFlag(out: Candidate[], start: number, flag: string, program: string, high: boolean): void {
+  const range = { start, end: start + flag.length };
+  if (out.some((candidate) => overlaps(candidate, range))) return;
+  out.push({ ...range, high, normalized: { type: 'cli', program, subcommands: [], flags: [flag] } });
+}
+
+/**
+ * Option tables (`| -p or --port |`) and `Usage:` glossaries (`  -source  Location`).
+ * Each flag is its own claim so one wrong flag does not hide the others.
+ */
+function extractGlossary(ctx: BlockContext, out: Candidate[]): void {
+  const text = ctx.text;
+  const rows = /^\|([^|\n]*)\|/gm;
+  for (const m of text.matchAll(rows)) {
+    const cell = m[1] ?? '';
+    const flags = flagsInCell(cell);
+    const program = programBefore(text, m.index);
+    if (flags === undefined || program === undefined) continue;
+    const cellStart = m.index + 1;
+    let from = 0;
+    for (const flag of flags) {
+      const at = cell.indexOf(flag, from);
+      if (at === -1) continue;
+      from = at + flag.length;
+      pushFlag(out, cellStart + at, flag, program, inCodeFlag(ctx, cellStart + at, flag.length));
+    }
+  }
+
+  for (const region of ctx.codeRegions) {
+    const body = text.slice(region.start, region.end);
+    const hits: ProgramHit[] = [];
+    for (const m of body.matchAll(/Usage:\s*([a-z][a-z0-9_-]{0,39})/g)) {
+      const name = m[1];
+      if (name === undefined || EXTERNAL_TOOLS.has(name) || !PROGRAM_RE.test(name)) continue;
+      hits.push({ name, at: m.index });
+    }
+    if (hits.length === 0) continue;
+    const lines = /^[ \t]*(-{1,2}[A-Za-z][A-Za-z0-9-]{0,39})\b.*$/gm;
+    for (const m of body.matchAll(lines)) {
+      const flag = m[1];
+      if (flag === undefined || !FLAG_RE.test(flag)) continue;
+      const at = region.start + m.index + (m[0].length - m[0].trimStart().length);
+      const program = [...hits].reverse().find((hit) => hit.at < m.index)?.name ?? hits[0]?.name;
+      if (program === undefined) continue;
+      pushFlag(out, at, flag, program, true);
+    }
+  }
+}
+
+function inCodeFlag(ctx: BlockContext, start: number, length: number): boolean {
+  return ctx.codeRegions.some((region) => start >= region.start && start + length <= region.end);
 }
 
 export function extractCli(ctx: BlockContext): Candidate[] {
@@ -106,5 +207,6 @@ export function extractCli(ctx: BlockContext): Candidate[] {
       });
     }
   }
+  extractGlossary(ctx, out);
   return out;
 }

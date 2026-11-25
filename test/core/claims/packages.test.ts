@@ -37,6 +37,7 @@ describe('package_version extraction', () => {
     ['Node operator', 'Requires Node.js >=20.1.', [pkg('runtime', 'node', '>=20.1')]],
     ['Node exact', 'Runs on Node v20.x.', [pkg('runtime', 'node', '20.x')]],
     ['Python or higher', 'Needs Python 3.11 or higher.', [pkg('runtime', 'python', '>=3.11')]],
+    ['Python and newer', 'Flask supports Python 3.11 and newer.', [pkg('runtime', 'python', '>=3.11')]],
     ['python in code', 'Needs `python 3.12`', [pkg('runtime', 'python', '3.12')]],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'package_version')).toEqual(expected);
@@ -52,6 +53,7 @@ describe('package_version extraction', () => {
     ['pip in prose', 'We say foo==1.2.3 in prose.'],
     ['maven in prose', 'We say a:b:1.2.3 in prose.'],
     ['release word', 'Release 3.4.5 shipped.'],
+    ['interpreter banner', 'Python 3.10.0 (default, Oct 27 2021, 06:59:51) [GCC 11.1.0] on linux'],
   ])('negative: %s', (_name, input) => {
     expect(fromText(input, 'package_version')).toEqual([]);
   });

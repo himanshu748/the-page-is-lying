@@ -18,6 +18,9 @@ describe('env_var extraction', () => {
     ['digits', 'Set `S3_BUCKET_2` first.', ['S3_BUCKET_2']],
     ['stop-listed name with explicit cue', 'Use $HTTP_OK here.', ['HTTP_OK']],
     ['two vars', 'Set `A_B` and `C_D`.', ['A_B', 'C_D']],
+    ['single name with process.env', 'It reads process.env.PORT.', ['PORT']],
+    ['single name with a dollar', 'Listen on $PORT.', ['PORT']],
+    ['single name exported', 'export HOST=localhost before starting.', ['HOST']],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'env_var')).toEqual(expected.map(env));
   });
