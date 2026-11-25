@@ -67,7 +67,7 @@ function sentencePrefix(text: string, start: number): string {
 }
 
 function isCreatedPath(text: string, start: number): boolean {
-  return /\b(?:create|creates|created|creating|generate|generates|generated|generating|write|writes|written|writing|save|saves|saved|saving|output|outputs|produce|produces|produced|producing)\b[^\n.!?]*$/i.test(
+  return /\b(?:create|creates|created|creating|generate|generates|generated|generating|write|writes|written|writing|save|saves|saved|saving|output|outputs|produce|produces|produced|producing)\b[^\n]*$/i.test(
     sentencePrefix(text, start),
   );
 }
