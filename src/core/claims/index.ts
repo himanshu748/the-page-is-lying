@@ -1,7 +1,7 @@
 import type { Claim, ClaimType } from '../model';
 import { MAX_BLOCK_TEXT, walkAdf, type TextBlock } from '../adf/walk';
 import { extractCli } from './cli';
-import { extractConfig } from './config';
+import { extractConfig, findConfigFiles } from './config';
 import { buildContext, MAX_RAW_LENGTH, overlaps, type Candidate } from './context';
 import { extractEnv } from './env';
 import { extractFiles } from './files';
@@ -48,14 +48,16 @@ function resolve(candidates: Candidate[]): Candidate[] {
   return accepted.sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
-function extractFromBlock(block: TextBlock, source?: { text: string; offset: number }): Candidate[] {
+type ClaimSource = { text: string; offset: number; configFiles: ReturnType<typeof findConfigFiles> };
+
+function extractFromBlock(block: TextBlock, source?: ClaimSource): Candidate[] {
   const ctx = buildContext(block);
   return resolve([
     ...extractHttp(ctx),
     ...extractCli(ctx, source),
     ...extractPackages(ctx),
     ...extractEnv(ctx),
-    ...extractConfig(ctx),
+    ...extractConfig(ctx, source?.configFiles, source?.offset),
     ...extractFiles(ctx),
   ]);
 }
@@ -64,9 +66,10 @@ type ClaimBlock = TextBlock & { sourceOffset?: number };
 
 function extractFromBlocks(blocks: Iterable<ClaimBlock>, sourceText?: string): ExtractionResult {
   const claims: Claim[] = [];
+  const configFiles = sourceText === undefined ? [] : findConfigFiles(sourceText);
   for (const block of blocks) {
     const offset = block.sourceOffset ?? 0;
-    const source = sourceText === undefined ? undefined : { text: sourceText, offset };
+    const source = sourceText === undefined ? undefined : { text: sourceText, offset, configFiles };
     const candidates = extractFromBlock(block, source).slice(0, MAX_CLAIMS_PER_BLOCK);
     for (const c of candidates) {
       if (claims.length >= MAX_CLAIMS_PER_DOCUMENT) {
