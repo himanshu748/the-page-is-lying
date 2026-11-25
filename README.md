@@ -4,7 +4,7 @@
 
 A Forge app for Confluence. It finds checkable claims in a runbook or how-to page (HTTP endpoints, environment variables, CLI commands and flags, config keys, file paths, package versions), compares each one with the code in a public repository, and marks it **Verified**, **Contradicted by code** or **No evidence found**. Every verdict cites the repo file and line, for example `POST /v1/charge` is contradicted because the repo only has `POST /v2/payments` at `src/routes.ts:88`.
 
-Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the Rovo agent and `rovo:mcp` bonuses. Design and plan: [PLAN.md](PLAN.md).
+Built for Atlassian Codegeist 2026, category Apps for Software Teams, with the Rovo agent and `rovo:mcp` bonuses. See the [architecture](docs/architecture.md).
 
 ## What it does
 
@@ -136,8 +136,7 @@ Tools run with the signed-in user's permissions. `rovo:mcp` is a Preview module,
 
 - Public demo repo: https://github.com/himanshu748/payments-api-demo (`main`).
 - Seeded page "Payments API runbook" on the development demo site: expected 2 verified, 3 contradicted, 1 no evidence found; after the fix 3, 2, 1. See [demo/README.md](demo/README.md) and [demo/confluence/SEEDING.md](demo/confluence/SEEDING.md).
-- Demo script: [docs/demo-script.md](docs/demo-script.md). Browser checklist: [docs/integration-checklist.md](docs/integration-checklist.md). Agent evaluation: [docs/agent-eval.md](docs/agent-eval.md).
-- Devpost draft: [docs/devpost-draft.md](docs/devpost-draft.md). Bonus assessment: [docs/bonus-assessment.md](docs/bonus-assessment.md). Developer space notes: [docs/developer-space.md](docs/developer-space.md).
+- [Judge setup](docs/setup.md#judge-setup), [verification](docs/integration-results.md), and [Rovo and MCP evaluation](docs/agent-eval.md).
 
 ## Judge install link
 
