@@ -762,11 +762,11 @@ export function indexArgEquals(acc: IndexAcc, file: string, original: string, te
   }
   if (flags.size === 0) return;
   const first = Math.min(...Object.values(flagLines));
-  // Some Node wrappers parse their own options and return false for every option
-  // they do not consume. The caller then leaves that option for the child process.
-  // Keep this fact on the entry so the matcher does not call a Node runtime option
-  // a missing wrapper option.
-  const passesUnknownFlags = /\breturn\s+false\s*;/.test(text);
+  // Some Node wrappers remove only the options their parser recognizes. A false
+  // result leaves the unconsumed option in the child process's argument list.
+  const passesUnknownFlags =
+    /\breturn\s+false\s*;/.test(text) &&
+    /\bif\s*\([\s\S]{0,240}?!==\s*false\s*\)\s*\{[\s\S]{0,400}?\b(?:args|argv)\s*\.\s*splice\s*\(/.test(text);
   pushEntry(
     acc,
     {
