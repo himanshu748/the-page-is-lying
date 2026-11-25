@@ -67,9 +67,13 @@ function sentencePrefix(text: string, start: number): string {
 }
 
 function isCreatedPath(text: string, start: number): boolean {
-  return /\b(?:create|creates|created|creating|generate|generates|generated|generating|write|writes|written|writing|save|saves|saved|saving|output|outputs|produce|produces|produced|producing)\b[^\n]*$/i.test(
-    sentencePrefix(text, start),
-  );
+  const prefix = sentencePrefix(text, start);
+  const verb = /\b(?:create|creates|created|creating|generate|generates|generated|generating|write|writes|written|writing|save|saves|saved|saving|outputs|produce|produces|produced|producing)\b/gi;
+  let last: RegExpExecArray | null = null;
+  for (let match = verb.exec(prefix); match !== null; match = verb.exec(prefix)) last = match;
+  if (last === null) return false;
+  const relation = prefix.slice(last.index + last[0].length);
+  return !/\b(?:using|from|via|with|according to|based on|defined in|implemented in)\b/i.test(relation);
 }
 
 /** Finds path-like tokens with a known extension or trailing slash. */
