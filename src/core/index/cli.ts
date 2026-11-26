@@ -503,7 +503,7 @@ export function indexClick(acc: IndexAcc, file: string, original: string, text: 
           }
         }
         // Click uses positional arguments for option declarations, including aliases.
-        if (args.some((a) => a.literal === undefined && !/^\w+\s*=(?!=)/.test(a.src))) {
+        if (args.some((a) => a.src !== '' && a.literal === undefined && !/^\w+\s*=(?!=)/.test(a.src))) {
           c.flagsComplete = false;
           acc.partial.cli = true;
         }
