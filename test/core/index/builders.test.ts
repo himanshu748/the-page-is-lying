@@ -262,6 +262,31 @@ describe('parsers the demo fixture does not use', () => {
   const finish = (files: { path: string; text: string }[]): RepoIndex =>
     buildRepoIndex(files, { repo, stats: { filesIndexed: files.length, filesSkipped: 0, truncated: false } });
 
+  it('keeps static Click flags but marks computed aliases incomplete', () => {
+    const i = finish([
+      {
+        path: 'cli.py',
+        text: [
+          'import click',
+          '@click.group("ops")',
+          'def ops(): pass',
+          '@ops.command()',
+          '@click.option("--verbose", make_alias())',
+          'def sync(): pass',
+          '@ops.command()',
+          '@click.option("--limit", default=get_default())',
+          'def clean(): pass',
+        ].join('\n'),
+      },
+    ]);
+    const sync = i.cli.find((c) => c.subcommands[0] === 'sync');
+    const clean = i.cli.find((c) => c.subcommands[0] === 'clean');
+    expect(sync?.flags).toContain('--verbose');
+    expect(sync?.flagsComplete).toBeUndefined();
+    expect(clean).toMatchObject({ flagsComplete: true });
+    expect(i.coverage.cli).toBe('partial');
+  });
+
   it('reads minimist flags from an extensionless node bin and names them from package.json', () => {
     const i = finish([
       { path: 'package.json', text: '{ "name": "http-server", "bin": { "http-server": "./bin/http-server" } }' },
