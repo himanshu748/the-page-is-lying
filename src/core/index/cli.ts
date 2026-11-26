@@ -746,9 +746,11 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
     if (plain && !insideSpan(spans, m.index)) {
       const form = flagForm(name);
       const value = minimistLiteralFallback(text, m);
-      if (seen.has(name)) definitions.delete(form);
-      else if (flags.has(form) && value !== undefined) definitions.set(form, { value, line, snippet: snippetOf(lines, line) });
-      seen.add(name);
+      if (flags.has(form) && value !== undefined) {
+        if (seen.has(name)) definitions.delete(form);
+        else definitions.set(form, { value, line, snippet: snippetOf(lines, line) });
+        seen.add(name);
+      }
     }
     if (name.length > 1 && original.includes(`--no-${name}`)) {
       flags.add(`--no-${name}`);

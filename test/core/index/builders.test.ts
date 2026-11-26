@@ -372,6 +372,7 @@ describe('parsers the demo fixture does not use', () => {
       "    host = argv.a || '::',",
       "    ext = argv.e === true ? 'html' : argv.e;",
       "const cache = argv['cache'] || 3600;",
+      'if (argv.a) console.log(host);',
     ].join('\n');
     const readme = [
       '    http-server [path] [options]', '',
@@ -398,6 +399,11 @@ describe('parsers the demo fixture does not use', () => {
       text: source.replace("alias: { header: 'H' }", "default: { a: '0.0.0.0' }"),
     }]);
     expect(defaults.map((claim) => matchClaim(claim, configured).verdict)).toEqual(['unknown', 'unknown', 'unknown', 'unknown']);
+    const conflicting = finish([packageJson, {
+      path: 'bin/http-server',
+      text: source + "\nconst otherAddress = argv.a || '127.0.0.1';",
+    }]);
+    expect(matchClaim(defaults[1]!, conflicting).verdict).toBe('unknown');
   });
 
   it('reads node:util parseArgs options', () => {
