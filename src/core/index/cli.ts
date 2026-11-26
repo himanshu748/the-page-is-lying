@@ -496,14 +496,14 @@ export function indexClick(acc: IndexAcc, file: string, original: string, text: 
     if (def.parent === undefined && explicit !== undefined) c.name = explicit;
     for (const d of decos) {
       if (d.name === 'click.option') {
-        let any = false;
-        for (const a of d.args ?? []) {
+        const args = d.args ?? [];
+        for (const a of args) {
           if (a.literal?.startsWith('-')) {
-            any = true;
             for (const part of a.literal.split('/')) c.flags.add(part.trim().split(/\s+/)[0] as string);
           }
         }
-        if (!any && (d.args ?? []).length > 0 && d.args?.[0]?.literal === undefined) {
+        // Click uses positional arguments for option declarations, including aliases.
+        if (args.some((a) => a.literal === undefined && !/^\w+\s*=(?!=)/.test(a.src))) {
           c.flagsComplete = false;
           acc.partial.cli = true;
         }
