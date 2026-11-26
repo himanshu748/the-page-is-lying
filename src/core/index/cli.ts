@@ -86,7 +86,7 @@ interface Cmd {
   name?: string;
   root: boolean;
   flagsComplete?: boolean;
-  flagDefaults?: NonNullable<CliEntry['flagDefaults']>;
+  flagDefaults?: Map<string, NonNullable<CliEntry['flagDefaults']>[string]>;
 }
 
 function newCmd(path: string[], line: number, root: boolean): Cmd {
@@ -110,7 +110,7 @@ function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], ro
       flags: unique,
       kind: 'command' as const,
       ...(c.flagsComplete === undefined ? {} : { flagsComplete: c.flagsComplete }),
-      ...(c.flagDefaults === undefined ? {} : { flagDefaults: c.flagDefaults }),
+      ...(c.flagDefaults === undefined ? {} : { flagDefaults: Object.fromEntries(c.flagDefaults) }),
     };
     const e: CliEntry = { ...base, program, subcommands: c.path };
     pushEntry(acc, e, rootName === undefined || rootName === '');
@@ -196,18 +196,18 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
         const declaration = args[0]?.literal;
         if (declaration === undefined) acc.partial.cli = true;
         const fallback = args[2];
-        const isValueOption = declaration !== undefined && /[<\[][^>\]]+[>\]]/.test(declaration);
+        const isValueOption = declaration !== undefined && /<[^>]+>|\[[^\]]+\]/.test(declaration);
         const value = args.length === 3 && isValueOption && fallback !== undefined
           ? fallback.literal ?? (/^(?:-?(?:0|[1-9]\d*)(?:\.\d+)?|true|false)$/.test(fallback.src) ? fallback.src : undefined)
           : undefined;
         for (const f of dashWords(declaration ?? '')) {
           base.flags.add(f);
           if (value === undefined) {
-            if (base.flagDefaults !== undefined) delete base.flagDefaults[f];
+            base.flagDefaults?.delete(f);
           } else {
-            base.flagDefaults ??= {};
+            base.flagDefaults ??= new Map();
             const line = lineAt(starts, ev.at);
-            base.flagDefaults[f] = { value, line, snippet: snippetOf(lines, line) };
+            base.flagDefaults.set(f, { value, line, snippet: snippetOf(lines, line) });
           }
         }
         break;
