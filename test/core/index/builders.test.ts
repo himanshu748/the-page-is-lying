@@ -365,9 +365,11 @@ describe('parsers the demo fixture does not use', () => {
 
   it('checks direct minimist fallbacks in an option table without using conditional defaults', () => {
     const packageJson = { path: 'package.json', text: '{"bin":{"http-server":"./bin/http-server"}}' };
+    const shebang = '#!/usr/bin/env node';
+    const binding = "var argv = require('minimist')(process.argv.slice(2), { alias: { header: 'H' }, boolean: ['proxy-all'] });";
     const source = [
-      '#!/usr/bin/env node',
-      "var argv = require('minimist')(process.argv.slice(2), { alias: { header: 'H' }, boolean: ['proxy-all'] });",
+      shebang,
+      binding,
       'var port = argv.p || process.env.PORT,',
       "    host = argv.a || '::',",
       "    ext = argv.e === true ? 'html' : argv.e;",
@@ -386,6 +388,8 @@ describe('parsers the demo fixture does not use', () => {
     const defaults = extractClaimsFromText(readme).claims.filter(({ normalized }) =>
       normalized.type === 'cli' && normalized.defaultValue !== undefined
     );
+    const [, address, , cache] = defaults;
+    if (!address || !cache) throw new Error('Expected address and cache default claims');
     const indexed = finish([packageJson, { path: 'bin/http-server', text: source }]);
     expect(defaults.map(({ raw }) => raw)).toEqual(['8080', '0.0.0.0', 'html', '3600']);
     expect(defaults.map((claim) => matchClaim(claim, indexed))).toMatchObject([
@@ -403,12 +407,12 @@ describe('parsers the demo fixture does not use', () => {
       path: 'bin/http-server',
       text: source + "\nconst otherAddress = argv.a || '127.0.0.1';",
     }]);
-    expect(matchClaim(defaults[1]!, conflicting).verdict).toBe('unknown');
+    expect(matchClaim(address, conflicting).verdict).toBe('unknown');
     const conditional = finish([packageJson, {
       path: 'bin/http-server',
       text: [
-        source.split('\n')[0]!,
-        source.split('\n')[1]!,
+        shebang,
+        binding,
         "var host = '0.0.0.0';",
         'if (process.env.IPV6) {',
         "  host = argv.a || '::';",
@@ -417,8 +421,8 @@ describe('parsers the demo fixture does not use', () => {
         '  var cache = argv.cache || 3600;',
       ].join('\n'),
     }]);
-    expect(matchClaim(defaults[1]!, conditional).verdict).toBe('unknown');
-    expect(matchClaim(defaults[3]!, conditional).verdict).toBe('unknown');
+    expect(matchClaim(address, conditional).verdict).toBe('unknown');
+    expect(matchClaim(cache, conditional).verdict).toBe('unknown');
   });
 
   it('reads node:util parseArgs options', () => {
