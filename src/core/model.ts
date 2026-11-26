@@ -253,6 +253,8 @@ export interface CliEntry extends SourceLocation {
   /** Flags defined for this command, e.g. "--confirm". */
   flags: string[];
   kind: 'bin' | 'command' | 'script' | 'make_target';
+  /** This command's own flag declarations were fully static, even if another command made global coverage partial. */
+  flagsComplete?: boolean;
   /** The parser explicitly leaves unrecognized options for another process. */
   passesUnknownFlags?: boolean;
   /**

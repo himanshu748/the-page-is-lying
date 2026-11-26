@@ -197,7 +197,9 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   if (missing === undefined) {
     return unknownResult(claim, ctx, 'dynamic_definition', 'cli', [makeEvidence(index, 'nearest', target)]);
   }
-  if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
+  if (coverage !== 'complete' && target.flagsComplete !== true) {
+    return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
+  }
   const definition = makeEvidence(index, 'nearest', target);
   // The command without any flag the code does not define, so the proposed edit is not itself contradicted.
   // The defined flags the page does not already use are the alternatives.
