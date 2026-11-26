@@ -274,7 +274,7 @@ describe('parsers the demo fixture does not use', () => {
           '@click.option("--verbose", make_alias())',
           'def sync(): pass',
           '@ops.command()',
-          '@click.option("--limit", default=get_default())',
+          '@click.option("--limit", default=get_default(),)',
           'def clean(): pass',
         ].join('\n'),
       },
