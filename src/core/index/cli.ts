@@ -15,7 +15,7 @@
 import type { CliEntry } from '../model';
 import { mapGet, scalarString } from './structured';
 import type { TreeNode } from './structured';
-import { baseName, dirName, findClose, insideSpan, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral, stringSpans } from './text';
+import { baseName, dirName, findClose, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral, stringSpans } from './text';
 import type { Arg } from './text';
 import type { IndexAcc } from './types';
 
@@ -697,15 +697,45 @@ function minimistUsesPlainArgv(text: string, bound: RegExpExecArray): boolean {
   );
 }
 
-function minimistLiteralFallback(text: string, read: RegExpMatchArray): string | number | undefined {
-  const offset = read.index ?? 0;
-  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
-  const prefix = text.slice(lineStart, offset);
-  if (!/^[ \t]*(?:(?:const|let|var)[ \t]+)?[A-Za-z_$][\w$]*[ \t]*=[ \t]*$/.test(prefix)) return undefined;
-  const lineEnd = text.indexOf('\n', offset);
-  const tail = text.slice(offset + read[0].length, lineEnd < 0 ? text.length : lineEnd);
-  const match = /^\s*\|\|\s*(.+)\s*[,;]\s*$/.exec(tail);
-  return match?.[1] === undefined ? undefined : optionLiteral(match[1].trim());
+/** Initializers in semicolon-terminated top-level declarations, including comma-separated declarations. */
+function topLevelInitializers(text: string): Map<number, string> {
+  const result = new Map<number, string>();
+  const strings = new Map(stringSpans(text));
+  const declaration = /(?:const|let|var)\s+/y;
+  let start: number | undefined;
+  let boundary = true;
+  const shebangEnd = text.startsWith('#!') ? text.indexOf('\n') : 0;
+  for (let i = Math.max(0, shebangEnd); i < text.length; i++) {
+    const c = text.charAt(i);
+    if (/\s/.test(c)) continue;
+    const stringEnd = strings.get(i);
+    if (stringEnd !== undefined) {
+      boundary = false;
+      i = stringEnd - 1;
+    } else if ('([{'.includes(c)) {
+      const end = findClose(text, i);
+      if (end < 0) return result;
+      boundary = c === '{' && start === undefined;
+      i = end;
+    } else if (c === ';') {
+      if (start !== undefined) {
+        for (const arg of splitArgs(text.slice(start, i), start)) {
+          const lhs = /^[A-Za-z_$][\w$]*\s*=\s*/.exec(arg.src);
+          if (lhs) result.set(arg.offset + lhs[0].length, arg.src.slice(lhs[0].length));
+        }
+      }
+      start = undefined;
+      boundary = true;
+    } else if (boundary) {
+      declaration.lastIndex = i;
+      if (declaration.exec(text)) {
+        start = declaration.lastIndex;
+        i = start - 1;
+      }
+      boundary = false;
+    }
+  }
+  return result;
 }
 
 /** minimist: aliases, boolean names, and `argv.flag` / `argv['flag']` reads. `--no-flag` counts when the file writes it. */
@@ -736,16 +766,19 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
   const notFlags = new Set(['slice', 'push', 'pop', 'map', 'filter', 'forEach', 'keys', 'values', 'entries', 'toString', 'hasOwnProperty']);
   const definitions = new Map<string, NonNullable<CliEntry['flagDefaults']>[string]>();
   const seen = new Set<string>();
-  const plain = bound !== null && minimistUsesPlainArgv(text, bound);
-  const spans = plain ? stringSpans(text) : [];
+  const initializers = bound !== null && minimistUsesPlainArgv(text, bound) ? topLevelInitializers(text) : new Map<number, string>();
+  const assignment = bound ? /=\s*/.exec(bound[0]) : null;
+  const plain = bound !== null && assignment !== null && initializers.has(bound.index + assignment.index + assignment[0].length);
   for (const m of text.matchAll(read)) {
     const name = m[1] ?? m[2] ?? '';
     if (notFlags.has(name)) continue;
     const line = lineAt(starts, m.index);
     rememberFlag(flags, flagLines, name, line);
-    if (plain && !insideSpan(spans, m.index)) {
+    const initializer = plain ? initializers.get(m.index) : undefined;
+    if (initializer !== undefined) {
       const form = flagForm(name);
-      const value = minimistLiteralFallback(text, m);
+      const literal = /^\s*\|\|\s*(.+)$/s.exec(initializer.slice(m[0].length))?.[1];
+      const value = literal === undefined ? undefined : optionLiteral(literal.trim());
       if (flags.has(form) && value !== undefined) {
         if (seen.has(name)) definitions.delete(form);
         else definitions.set(form, { value, line, snippet: snippetOf(lines, line) });

@@ -404,6 +404,21 @@ describe('parsers the demo fixture does not use', () => {
       text: source + "\nconst otherAddress = argv.a || '127.0.0.1';",
     }]);
     expect(matchClaim(defaults[1]!, conflicting).verdict).toBe('unknown');
+    const conditional = finish([packageJson, {
+      path: 'bin/http-server',
+      text: [
+        source.split('\n')[0]!,
+        source.split('\n')[1]!,
+        "var host = '0.0.0.0';",
+        'if (process.env.IPV6) {',
+        "  host = argv.a || '::';",
+        '}',
+        'if (process.env.USE_CACHE)',
+        '  var cache = argv.cache || 3600;',
+      ].join('\n'),
+    }]);
+    expect(matchClaim(defaults[1]!, conditional).verdict).toBe('unknown');
+    expect(matchClaim(defaults[3]!, conditional).verdict).toBe('unknown');
   });
 
   it('reads node:util parseArgs options', () => {
