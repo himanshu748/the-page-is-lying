@@ -11,11 +11,11 @@ describe('extractClaims', () => {
     expect(extractClaims(null)).toEqual({ claims: [], claimsTruncated: false });
   });
 
-  it('caps claims per block at 20', () => {
+  it('reports claims dropped by the per-block cap', () => {
     const names = Array.from({ length: 30 }, (_v, i) => `VAR_${String(i)}`).join(' ');
     const { claims, claimsTruncated } = extractClaims(doc(para(...names.split(' ').flatMap((n) => [{ code: n }, ' ']))));
     expect(claims).toHaveLength(MAX_CLAIMS_PER_BLOCK);
-    expect(claimsTruncated).toBe(false);
+    expect(claimsTruncated).toBe(true);
   });
 
   it('caps claims per document at 200 and sets claimsTruncated', () => {
@@ -73,7 +73,7 @@ describe('extractClaimsFromText', () => {
       expect(location.blockIndex).toBe(0);
       expect(input.slice(location.start, location.end)).toBe(raw);
     }
-    expect(claimsTruncated).toBe(false);
+    expect(claimsTruncated).toBe(true);
   });
 
   it('shares the document cap across plain text paragraphs', () => {
@@ -86,7 +86,7 @@ describe('extractClaimsFromText', () => {
 
   it('survives non-string input and huge text', () => {
     expect(extractClaimsFromText(42 as unknown as string).claims).toEqual([]);
-    expect(extractClaimsFromText('a '.repeat(100_000)).claims).toEqual([]);
+    expect(extractClaimsFromText('a '.repeat(100_000))).toEqual({ claims: [], claimsTruncated: true });
   });
 
   it('does not treat text as code or evaluate it', () => {

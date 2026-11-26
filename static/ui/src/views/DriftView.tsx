@@ -112,7 +112,7 @@ function DriftPage({ page }: { page: AuditedPage }) {
         <span className="drift-counts">
           <strong>{counts.contradicted}</strong> contradicted of {counts.claims} claims
           {counts.contradicted > 0 ? ` (${Math.round(page.driftRatio * 100)}%)` : ''}
-          {page.claimsTruncated ? `. Only the first ${counts.claims} claims were checked: the page has more than the limit` : ''}
+          {page.claimsTruncated ? '. Some content or claims were skipped because the check reached its limits.' : ''}
         </span>
       </div>
       <div

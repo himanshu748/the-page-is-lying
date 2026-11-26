@@ -13,7 +13,7 @@ export const MAX_CLAIMS_PER_BLOCK = 20;
 
 export interface ExtractionResult {
   claims: Claim[];
-  /** True when claims were dropped because of the per-document cap. */
+  /** True when an extraction limit cut off candidates or input text. */
   claimsTruncated: boolean;
 }
 
@@ -64,14 +64,16 @@ function extractFromBlock(block: TextBlock, source?: ClaimSource): Candidate[] {
 
 type ClaimBlock = TextBlock & { sourceOffset?: number };
 
-function extractFromBlocks(blocks: Iterable<ClaimBlock>, sourceText?: string): ExtractionResult {
+function extractFromBlocks(blocks: Iterable<ClaimBlock>, sourceText?: string, inputTruncated = false): ExtractionResult {
   const claims: Claim[] = [];
+  let claimsTruncated = inputTruncated;
   const configFiles = sourceText === undefined ? [] : findConfigFiles(sourceText);
   for (const block of blocks) {
     const offset = block.sourceOffset ?? 0;
     const source = sourceText === undefined ? undefined : { text: sourceText, offset, configFiles };
-    const candidates = extractFromBlock(block, source).slice(0, MAX_CLAIMS_PER_BLOCK);
-    for (const c of candidates) {
+    const candidates = extractFromBlock(block, source);
+    if (candidates.length > MAX_CLAIMS_PER_BLOCK) claimsTruncated = true;
+    for (const c of candidates.slice(0, MAX_CLAIMS_PER_BLOCK)) {
       if (claims.length >= MAX_CLAIMS_PER_DOCUMENT) {
         return { claims, claimsTruncated: true };
       }
@@ -87,7 +89,7 @@ function extractFromBlocks(blocks: Iterable<ClaimBlock>, sourceText?: string): E
       });
     }
   }
-  return { claims, claimsTruncated: false };
+  return { claims, claimsTruncated };
 }
 
 function parseInput(adf: unknown): unknown {
@@ -145,5 +147,5 @@ function* plainTextBlocks(body: string): Iterable<ClaimBlock> {
 export function extractClaimsFromText(text: string): ExtractionResult {
   if (typeof text !== 'string') return { claims: [], claimsTruncated: false };
   const body = text.slice(0, MAX_BLOCK_TEXT);
-  return extractFromBlocks(plainTextBlocks(body), body);
+  return extractFromBlocks(plainTextBlocks(body), body, body.length < text.length);
 }

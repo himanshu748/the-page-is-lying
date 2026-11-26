@@ -102,6 +102,11 @@ export function ReportHeader({ report }: { report: Report }) {
       <span className="repo">
         {report.repo.fullName}@{shortSha(report.repo.sha)}
       </span>
+      {report.limits.claimsTruncated && (
+        <span className="warn" role="status">
+          Some content or claims were skipped because the check reached its limits.
+        </span>
+      )}
       {report.stale && (
         <span className="warn" role="status">
           Index may be stale: the repository has changed since it was indexed.

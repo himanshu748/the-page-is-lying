@@ -6,7 +6,7 @@ import { extractClaims, extractClaimsFromText, type ExtractionResult } from '../
 import type { ClaimExtractor, ExtractedClaims } from './check';
 
 /** Bump when extraction rules change so cached reports are not reused across versions. */
-export const EXTRACTOR_VERSION = 'claims-v2';
+export const EXTRACTOR_VERSION = 'claims-v3';
 
 function adapt(result: ExtractionResult): ExtractedClaims {
   return { claims: result.claims, truncated: result.claimsTruncated };
