@@ -45,7 +45,7 @@ function makeCtx(acc: IndexAcc, file: string, masked: string, original: string):
   return { acc, file, text: masked, starts: lineStarts(masked), lines: splitLines(original), spans: stringSpans(masked, { backtickStrings: !file.endsWith('.java') }) };
 }
 
-function addReceiver(ctx: Ctx, name: string, kind: ReceiverKind, framework: string, ownPrefix = ''): void {
+function addReceiver(ctx: Ctx, name: string, kind: ReceiverKind, framework: string, ownPrefix: string | null = ''): void {
   if (ctx.acc.receivers.some((r) => r.file === ctx.file && r.name === name)) return;
   ctx.acc.receivers.push({ file: ctx.file, name, kind, framework, ownPrefix });
 }
@@ -135,8 +135,17 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     if (/^express\s*\(/.test(ctor) || /^new\s+App\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express');
     else if (/^new\s+Koa\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'koa');
     else if (/^new\s+Hono/.test(ctor)) {
-      const tail = /^\s*(?:<[^>]*>)?\s*\(\s*[^)]*\)\s*(?:\.\s*basePath\s*\(\s*(['"])([^'"]*)\1\s*\))?/.exec(text.slice(after, after + 300));
-      addReceiver(ctx, name, 'plugin', 'hono', tail?.[2] ?? '');
+      const ctorArgs = /^\s*(?:<[^>]*>)?\s*\(/.exec(text.slice(after, after + 300));
+      const ctorEnd = ctorArgs ? findClose(text, after + ctorArgs[0].length - 1) : -1;
+      const basePath = ctorEnd < 0 ? null : /^\s*\.\s*basePath\s*\(/.exec(text.slice(ctorEnd + 1, ctorEnd + 301));
+      let prefix: string | null = '';
+      if (basePath) {
+        const open = ctorEnd + basePath[0].length;
+        const close = findClose(text, open);
+        prefix = close < 0 ? null : stringLiteral(text.slice(open + 1, close)) ?? null;
+      }
+      if (prefix === null) acc.partial.routes = true;
+      addReceiver(ctx, name, 'plugin', 'hono', prefix);
     } else if (/^[Ff]astify/.test(ctor)) addReceiver(ctx, name, 'root', 'fastify');
     else {
       let prefix = '';
@@ -699,15 +708,17 @@ export function resolveRoutes(acc: IndexAcc): void {
   const memo = new Map<string, string[] | undefined>();
 
   const prefixesFor = (r: Receiver, depth: number, seen: Set<string>): string[] | undefined => {
+    const { ownPrefix } = r;
+    if (ownPrefix === null) return undefined;
     const key = `${r.file}\u0000${r.name}`;
     if (memo.has(key)) return memo.get(key);
     if (depth > 8 || seen.has(key)) return undefined;
     seen.add(key);
     let result: string[] | undefined;
-    if (r.kind === 'root') result = [r.ownPrefix];
+    if (r.kind === 'root') result = [ownPrefix];
     else {
       const incoming = mountTargets.filter(({ m, file }) => (m.local !== undefined ? m.file === r.file && m.local === r.name : file === r.file));
-      if (incoming.length === 0) result = r.kind === 'plugin' ? [r.ownPrefix] : undefined;
+      if (incoming.length === 0) result = r.kind === 'plugin' ? [ownPrefix] : undefined;
       else {
         const out: string[] = [];
         for (const { m } of incoming) {
@@ -715,7 +726,7 @@ export function resolveRoutes(acc: IndexAcc): void {
           if (!parent) continue;
           const pp = prefixesFor(parent, depth + 1, new Set(seen));
           if (!pp) continue;
-          for (const p of pp) out.push(joinRoute(joinRoute(p, m.prefix), r.ownPrefix === '' ? '/' : r.ownPrefix));
+          for (const p of pp) out.push(joinRoute(joinRoute(p, m.prefix), ownPrefix === '' ? '/' : ownPrefix));
         }
         result = out.length > 0 ? out : undefined;
       }

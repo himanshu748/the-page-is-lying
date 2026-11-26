@@ -177,6 +177,21 @@ describe('Fastify, Hono, Koa', () => {
     expect(route(i, 'GET', '/api/books')[0]).toMatchObject({ file: 'src/books.ts', line: 3 });
     expect(route(i, 'POST', '/api/books')).toHaveLength(1);
   });
+  it('Hono: a dynamic base path never confirms an unprefixed route', () => {
+    const fixture = index('hono-app');
+    const i = buildRepoIndex([{ path: 'src/app.ts', text: [
+      "import { Hono } from 'hono';",
+      'const app = new Hono().basePath(process.env.API_PREFIX);',
+      'const child = new Hono();',
+      "app.get('/status', handler);",
+      "child.get('/books', handler);",
+      "app.route('/catalog', child);",
+      'const health = new Hono();',
+      "health.get('/health', handler);",
+    ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+    expect(i.coverage.routes).toBe('partial');
+    expect(i.routes.map((r) => r.path)).toEqual(['/health']);
+  });
   it('Koa router: constructor prefix and routes()', () => {
     const i = index('koa-app');
     expect(route(i, 'GET', '/v1/status')[0]?.line).toBe(5);
