@@ -282,7 +282,7 @@ describe('parsers the demo fixture does not use', () => {
     const sync = i.cli.find((c) => c.subcommands[0] === 'sync');
     const clean = i.cli.find((c) => c.subcommands[0] === 'clean');
     expect(sync?.flags).toContain('--verbose');
-    expect(sync?.flagsComplete).toBeUndefined();
+    expect(sync).toMatchObject({ flagsComplete: false });
     expect(clean).toMatchObject({ flagsComplete: true });
     expect(i.coverage.cli).toBe('partial');
   });

@@ -197,7 +197,11 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   if (missing === undefined) {
     return unknownResult(claim, ctx, 'dynamic_definition', 'cli', [makeEvidence(index, 'nearest', target)]);
   }
-  if (coverage !== 'complete' && target.flagsComplete !== true) {
+  const incompleteDefinition = matched.some((entry) => entry.flagsComplete === false);
+  const incompleteRoot = subs.length > 0 && programEntries.some(
+    (entry) => entry.subcommands.length === 0 && entry.flagsComplete === false,
+  );
+  if (coverage !== 'complete' && (target.flagsComplete !== true || incompleteDefinition || incompleteRoot)) {
     return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   }
   const definition = makeEvidence(index, 'nearest', target);
