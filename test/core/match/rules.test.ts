@@ -205,6 +205,15 @@ describe('cli rules (7.2)', () => {
     expect(r).toMatchObject({ verdict: 'contradicted', reason: 'cli_flag_not_defined' });
     expect(r.evidence[0]).toMatchObject({ file: 'src/cli.ts', line: 14 });
   });
+  it('unknown: a statically parsed subcommand can inherit a dynamic root flag', () => {
+    const cliEntries = [
+      { ...loc('app.py', 1), program: 'ops', subcommands: [], flags: ['--verbose'], kind: 'command' as const, flagsComplete: false },
+      { ...loc('app.py', 5), program: 'ops', subcommands: ['sync'], flags: ['--limit'], kind: 'command' as const, flagsComplete: true },
+    ];
+    const idx = makeIndex({ coverage: { cli: 'partial' }, cli: cliEntries });
+    expect(check(cli('ops', ['sync'], ['--dynamic']), idx)).toMatchObject({ verdict: 'unknown', reason: 'coverage_partial' });
+    expect(check(cli('ops', ['sync'], ['--verbose', '--limit']), idx).verdict).toBe('verified');
+  });
   it('unknown: subcommand missing but cli coverage is partial', () => {
     isUnknownStatement(check(cli('payments', ['nope']), makeIndex({ coverage: { cli: 'partial' }, cli: index.cli })));
   });
