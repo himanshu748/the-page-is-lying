@@ -22,6 +22,7 @@ it('checks literal defaults in a Markdown option table independently of flag nam
     "program.option('-p, --port <number>', 'Listen port', 3000);",
     "program.option('--address <host>', 'Listen address', '::');",
     "program.option('--output <path>', 'Output path', process.env.OUTPUT_PATH);",
+    "program.command('serve-all').option('--port <number>', 'Listen port', 4000.0);",
   ].join('\n');
   const repoIndex = buildRepoIndex([{ path: 'src/cli.ts', text: source }], {
     repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
@@ -50,6 +51,19 @@ it('checks literal defaults in a Markdown option table independently of flag nam
   ]);
   const format = claims.find((claim) => claim.raw === '--format');
   expect(format && matchClaim(format, repoIndex).reason).toBe('cli_flag_not_defined');
+
+  const subcommandPage = [
+    'Usage: my-cli serve-all [options]',
+    '',
+    '| Option | Default |',
+    '| --- | --- |',
+    '| `--port` | `4000` |',
+  ].join('\n');
+  const subcommandDefault = extractClaimsFromText(subcommandPage).claims.find(({ raw }) => raw === '4000');
+  expect(subcommandDefault?.normalized).toMatchObject({ subcommands: ['serve-all'] });
+  expect(subcommandDefault && matchClaim(subcommandDefault, repoIndex)).toMatchObject({
+    verdict: 'verified', reason: 'cli_default_matches', evidence: [{ line: 6 }],
+  });
 });
 
 describe('payments-api-mini (demo contract)', () => {

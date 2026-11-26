@@ -197,9 +197,15 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
         if (declaration === undefined) acc.partial.cli = true;
         const fallback = args[2];
         const isValueOption = declaration !== undefined && /<[^>]+>|\[[^\]]+\]/.test(declaration);
-        const value = args.length === 3 && isValueOption && fallback !== undefined
-          ? fallback.literal ?? (/^(?:-?(?:0|[1-9]\d*)(?:\.\d+)?|true|false)$/.test(fallback.src) ? fallback.src : undefined)
-          : undefined;
+        let value: string | number | undefined;
+        if (args.length === 3 && isValueOption && fallback !== undefined) {
+          value = fallback.literal;
+          if (value === undefined && /^(?:true|false)$/.test(fallback.src)) value = fallback.src;
+          if (value === undefined && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(fallback.src)) {
+            const numeric = Number(fallback.src);
+            if (Number.isFinite(numeric)) value = numeric;
+          }
+        }
         for (const f of dashWords(declaration ?? '')) {
           base.flags.add(f);
           if (value === undefined) {

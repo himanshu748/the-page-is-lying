@@ -148,7 +148,10 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
         definitions.some((entry) => entry.value !== definition.value)) {
       return unknownResult(claim, ctx, 'cli_default_unresolved');
     }
-    if (definition.value === n.defaultValue) {
+    const stated = typeof definition.value === 'number' && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(n.defaultValue)
+      ? Number(n.defaultValue)
+      : n.defaultValue;
+    if (definition.value === stated) {
       return toResult(claim, 'verified', 'cli_default_matches', verifiedStatement({ claim: text, file: definition.file, line: definition.line }), [
         makeEvidence(index, 'match', definition),
       ]);
@@ -159,7 +162,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       'cli_default_mismatch',
       contradictedGenericStatement({
         claim: text,
-        detail: `The option declaration in ${sanitizeUntrusted(definition.file)}:${definition.line} specifies ${sanitizeUntrusted(definition.value)}.`,
+        detail: `The option declaration in ${sanitizeUntrusted(definition.file)}:${definition.line} specifies ${sanitizeUntrusted(String(definition.value))}.`,
       }),
       [makeEvidence(index, 'nearest', definition)],
     );

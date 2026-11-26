@@ -267,7 +267,7 @@ export interface CliEntry extends SourceLocation {
    * flag. Best effort: a flag without an entry has no known line. Help and version flags are never listed.
    */
   flagLines?: Record<string, number>;
-  flagDefaults?: Record<string, { value: string; line: number; snippet: string }>;
+  flagDefaults?: Record<string, { value: string | number; line: number; snippet: string }>;
 }
 
 export interface ConfigEntry extends SourceLocation {
