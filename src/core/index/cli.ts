@@ -85,10 +85,11 @@ interface Cmd {
   version: boolean;
   name?: string;
   root: boolean;
+  flagsComplete: boolean;
 }
 
 function newCmd(path: string[], line: number, root: boolean): Cmd {
-  return { path, flags: new Set(), line, aliases: [], version: false, root };
+  return { path, flags: new Set(), line, aliases: [], version: false, root, flagsComplete: false };
 }
 
 function dashWords(src: string): string[] {
@@ -101,7 +102,14 @@ function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], ro
     const flags = [...c.flags, ...HELP, ...(c.version ? ['--version', '-V'] : [])];
     const unique = [...new Set(flags)];
     const program = rootName ?? '';
-    const base = { file, line: c.line, snippet: snippetOf(lines, c.line), flags: unique, kind: 'command' as const };
+    const base = {
+      file,
+      line: c.line,
+      snippet: snippetOf(lines, c.line),
+      flags: unique,
+      kind: 'command' as const,
+      ...(c.flagsComplete ? { flagsComplete: true } : {}),
+    };
     const e: CliEntry = { ...base, program, subcommands: c.path };
     pushEntry(acc, e, rootName === undefined || rootName === '');
     for (const a of c.aliases) {
@@ -484,6 +492,7 @@ export function indexClick(acc: IndexAcc, file: string, original: string, text: 
     const name = explicit ?? fn.replace(/_/g, '-');
     const path = def.parent ? [...def.parent, name] : [];
     const c = newCmd(path, lineAt(starts, it.idx), def.parent === undefined);
+    c.flagsComplete = true;
     if (def.parent === undefined && explicit !== undefined) c.name = explicit;
     for (const d of decos) {
       if (d.name === 'click.option') {
@@ -494,7 +503,10 @@ export function indexClick(acc: IndexAcc, file: string, original: string, text: 
             for (const part of a.literal.split('/')) c.flags.add(part.trim().split(/\s+/)[0] as string);
           }
         }
-        if (!any && (d.args ?? []).length > 0 && d.args?.[0]?.literal === undefined) acc.partial.cli = true;
+        if (!any && (d.args ?? []).length > 0 && d.args?.[0]?.literal === undefined) {
+          c.flagsComplete = false;
+          acc.partial.cli = true;
+        }
       } else if (d.name === 'click.version_option') c.version = true;
     }
     if (def.group) groups.set(fn, path);
