@@ -114,6 +114,7 @@ export function describeClaim(n: NormalizedClaim): string {
       break;
     case 'cli':
       text = [n.program, ...n.subcommands, ...n.flags].join(' ');
+      if (n.defaultValue !== undefined) text += ` defaults to ${n.defaultValue}`;
       break;
     case 'config_key':
       text = n.file === undefined ? n.keyPath : `${n.keyPath} in ${n.file}`;

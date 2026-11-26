@@ -49,6 +49,8 @@ export interface CliClaim {
   subcommands: string[];
   /** Long and short flags without values, e.g. "--force", "-s". */
   flags: string[];
+  /** A literal value from an explicitly labelled Default column. */
+  defaultValue?: string;
 }
 
 export interface ConfigKeyClaim {
@@ -125,6 +127,7 @@ export type ReasonCode =
   | 'env_read_in_code'
   | 'env_listed_in_config'
   | 'cli_defined'
+  | 'cli_default_matches'
   | 'script_defined'
   | 'config_key_present'
   | 'file_present'
@@ -134,6 +137,7 @@ export type ReasonCode =
   | 'route_absent'
   | 'env_not_read'
   | 'cli_flag_not_defined'
+  | 'cli_default_mismatch'
   | 'cli_subcommand_not_defined'
   | 'script_not_defined'
   | 'config_key_absent'
@@ -145,6 +149,7 @@ export type ReasonCode =
   | 'external_host'
   | 'program_not_in_repo'
   | 'dynamic_definition'
+  | 'cli_default_unresolved'
   | 'config_file_not_in_repo'
   | 'no_config_files'
   | 'tree_truncated'
@@ -262,6 +267,7 @@ export interface CliEntry extends SourceLocation {
    * flag. Best effort: a flag without an entry has no known line. Help and version flags are never listed.
    */
   flagLines?: Record<string, number>;
+  flagDefaults?: Record<string, { value: string; line: number; snippet: string }>;
 }
 
 export interface ConfigEntry extends SourceLocation {

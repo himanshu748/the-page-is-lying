@@ -130,6 +130,43 @@ function pushFlag(out: Candidate[], start: number, flag: string, program: string
   out.push({ ...range, high, normalized: { type: 'cli', program, subcommands: [], flags: [flag] } });
 }
 
+/** Limit default claims to the literal cell of a Markdown table with a Default header. */
+function extractTableDefaults(ctx: BlockContext, out: Candidate[], source: { text: string; offset: number }): void {
+  const tables = /^( *\|[^\n]*\|)\r?\n *\|(?: *:?-{3,}:? *\|)+ *(?:\r?\n|$)((?: *\|[^\n]*\| *(?:\r?\n|$))+)/gm;
+  for (const table of ctx.text.matchAll(tables)) {
+    const header = table[1];
+    const body = table[2];
+    if (header === undefined || body === undefined || header.includes('\\|')) continue;
+    const headers = header.trim().slice(1, -1).split('|');
+    const column = headers.findIndex((cell) => /^defaults?$/i.test(cell.trim()));
+    if (column < 1) continue;
+    const program = programBefore(source.text, source.offset + table.index);
+    if (program === undefined) continue;
+    const bodyStart = table.index + table[0].length - body.length;
+    for (const row of body.matchAll(/^ *\|([^\n]*?)\| *\r?$/gm)) {
+      const interior = row[1];
+      if (interior === undefined || interior.includes('\\|')) continue;
+      const cells = interior.split('|');
+      if (cells.length !== headers.length) continue;
+      const first = cells[0];
+      const cell = cells[column];
+      if (first === undefined || cell === undefined) continue;
+      const flags = flagsInCell(first);
+      const literal = /^\s*(?:`([A-Za-z0-9_.:/-]+)`|([A-Za-z0-9_.:/-]+))\s*$/.exec(cell);
+      const value = literal?.[1] ?? literal?.[2];
+      if (flags === undefined || value === undefined || /^-+$/.test(value)) continue;
+      const cellStart = row[0].indexOf('|') + 1 + cells.slice(0, column).reduce((sum, part) => sum + part.length + 1, 0);
+      const start = bodyStart + row.index + cellStart + cell.indexOf(value);
+      out.push({
+        start,
+        end: start + value.length,
+        high: true,
+        normalized: { type: 'cli', program, subcommands: [], flags, defaultValue: value },
+      });
+    }
+  }
+}
+
 /**
  * Option tables (`| -p or --port |`) and `Usage:` glossaries (`  -source  Location`).
  * Each flag is its own claim so one wrong flag does not hide the others.
@@ -208,5 +245,6 @@ export function extractCli(ctx: BlockContext, source = { text: ctx.text, offset:
     }
   }
   extractGlossary(ctx, out, source);
+  extractTableDefaults(ctx, out, source);
   return out;
 }
