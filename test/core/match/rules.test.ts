@@ -49,9 +49,15 @@ describe('http_endpoint rules (7.2)', () => {
     expect(r.statement).toBe('Contradicted by code: no route matches POST /v1/charge. The repo has POST /v2/payments at src/routes.ts:88.');
   });
   it('contradicted: wrong method on an existing path', () => {
-    const r = check({ type: 'http_endpoint', method: 'DELETE', path: '/v2/payments' }, index);
+    const r = check({ type: 'http_endpoint', method: 'GET', path: '/v2/payments' }, index);
     expect(r.verdict).toBe('contradicted');
     expect(r.evidence[0]?.line).toBe(88);
+    expect(r.statement).toContain('The repo has POST /v2/payments');
+  });
+  it('stays unknown when an indexed path has another method under partial coverage', () => {
+    const partial = makeIndex({ coverage: { routes: 'partial' }, routes: index.routes });
+    const r = check({ type: 'http_endpoint', method: 'GET', path: '/v2/payments' }, partial);
+    expect(r).toMatchObject({ verdict: 'unknown', reason: 'coverage_partial' });
   });
   it('contradicted without any alternative uses route_absent', () => {
     const r = check({ type: 'http_endpoint', method: 'POST', path: '/x' }, makeIndex({ routes: [] }));

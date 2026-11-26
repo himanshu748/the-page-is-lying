@@ -39,7 +39,6 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
   const coverage = index.coverage.routes;
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'routes');
 
-  // Same path with another method ranks first through methodMatches being false; rankRoutes handles the rest.
   const nearest = rankRoutes(n, index.routes);
   const top = nearest[0];
   const evidence = nearest.map((route) => makeEvidence(index, 'nearest', route));

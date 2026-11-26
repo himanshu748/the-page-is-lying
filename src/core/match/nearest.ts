@@ -45,10 +45,13 @@ function stripVersion(segments: string[]): { version?: string; rest: string[] } 
   return { rest: segments };
 }
 
-function routeScore(claim: HttpEndpointClaim, route: RouteEntry): { sameMethod: boolean; score: number } {
+function routeScore(claim: HttpEndpointClaim, route: RouteEntry): { samePath: boolean; sameMethod: boolean; score: number } {
   const sameMethod = claim.method === 'ANY' || claim.method === route.method;
-  const claimParts = stripVersion(pathSegments(claim.path));
-  const routeParts = stripVersion(pathSegments(route.path));
+  const claimSegments = pathSegments(claim.path);
+  const routeSegments = pathSegments(route.path);
+  const samePath = claimSegments.join('/') === routeSegments.join('/');
+  const claimParts = stripVersion(claimSegments);
+  const routeParts = stripVersion(routeSegments);
   const versionSwap =
     claimParts.version !== undefined &&
     routeParts.version !== undefined &&
@@ -56,14 +59,15 @@ function routeScore(claim: HttpEndpointClaim, route: RouteEntry): { sameMethod: 
     segmentsMatch(claimParts.rest, routeParts.rest);
   const similarity = jaroWinkler(claimParts.rest.join('/'), routeParts.rest.join('/'));
   const sameDepth = claimParts.rest.length === routeParts.rest.length ? 0.1 : 0;
-  return { sameMethod, score: (versionSwap ? 2 : 0) + similarity + sameDepth };
+  return { samePath, sameMethod, score: (versionSwap ? 2 : 0) + similarity + sameDepth };
 }
 
-/** Same method first, then version swap and path similarity. */
+/** Prefer the exact path, then the same method, then version swap and path similarity. */
 export function rankRoutes(claim: HttpEndpointClaim, routes: readonly RouteEntry[]): RouteEntry[] {
   const scored = routes.map((route) => ({ route, ...routeScore(claim, route) }));
-  const candidates = scored.filter((s) => s.sameMethod || s.score >= 0.5);
+  const candidates = scored.filter((s) => s.samePath || s.sameMethod || s.score >= 0.5);
   candidates.sort((a, b) => {
+    if (a.samePath !== b.samePath) return a.samePath ? -1 : 1;
     if (a.sameMethod !== b.sameMethod) return a.sameMethod ? -1 : 1;
     if (a.score !== b.score) return b.score - a.score;
     return byLocation(a.route, b.route);
