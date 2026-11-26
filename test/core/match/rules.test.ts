@@ -67,6 +67,15 @@ describe('http_endpoint rules (7.2)', () => {
   it('still verified on partial coverage when a route matches', () => {
     expect(check({ type: 'http_endpoint', method: 'POST', path: '/v2/payments' }, makeIndex({ coverage: { routes: 'partial' }, routes: index.routes })).verdict).toBe('verified');
   });
+  it('still contradicts a known path with the wrong method on partial coverage', () => {
+    const r = check(
+      { type: 'http_endpoint', method: 'DELETE', path: '/v2/payments' },
+      makeIndex({ coverage: { routes: 'partial' }, routes: index.routes }),
+    );
+    expect(r).toMatchObject({ verdict: 'contradicted', reason: 'route_absent_nearest' });
+    expect(r.evidence[0]).toMatchObject({ kind: 'nearest', file: 'src/routes.ts', line: 88 });
+    expect(r.evidence.some((e) => e.kind === 'absence')).toBe(false);
+  });
   it('unknown for an external host, checked for a configured service host', () => {
     const claim: NormalizedClaim = { type: 'http_endpoint', method: 'POST', path: '/v2/payments', host: 'api.example.com' };
     const external = check(claim, index);
