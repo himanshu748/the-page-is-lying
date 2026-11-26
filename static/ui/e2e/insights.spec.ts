@@ -166,7 +166,7 @@ test.describe('space doc drift page', () => {
     await page.goto('/?module=runbook-drift');
     await expect(page.getByText('claims were checked')).toHaveCount(0);
     await page.goto('/?module=runbook-drift&drift=truncated');
-    await expect(page.getByTestId('drift-page').last()).toContainText('0 contradicted of 4 claims. Only the first 4 claims were checked: the page has more than the limit');
+    await expect(page.getByTestId('drift-page').last()).toContainText('0 contradicted of 4 claims. Some content or claims were skipped because the check reached its limits.');
   });
 
   test('empty space, missing repository and failure show a notice and no ranking', async ({ page }) => {

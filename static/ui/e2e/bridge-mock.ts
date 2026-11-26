@@ -66,6 +66,8 @@ function checkResponse(name: string): CheckResponse {
       return checks++ === 0 ? { state: 'indexing' } : { state: 'ready', report };
     case 'stale':
       return { state: 'ready', report: { ...report, stale: true } };
+    case 'truncated':
+      return { state: 'ready', report: { ...report, limits: { ...report.limits, claimsTruncated: true } } };
     case 'rate_limited':
       return { state: 'rate_limited', retryAfterSeconds: 1800 };
     case 'rate_limited_stale':

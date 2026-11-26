@@ -48,6 +48,12 @@ test.describe('macro view', () => {
     expect(calls).toEqual([{ type: 'forge', agentKey: 'runbook-checker', agentName: 'Runbook checker', prompt: 'Is this page still true?' }]);
   });
 
+  test('reports limits next to the claims that were checked', async ({ page }) => {
+    await open(page, '&scenario=truncated');
+    await expect(page.getByText('Some content or claims were skipped because the check reached its limits.')).toBeVisible();
+    await expect(page.getByTestId('claim')).toHaveCount(6);
+  });
+
   test('hover shows the evidence card with src/routes.ts:88 and leaving hides it', async ({ page }) => {
     await open(page);
     const card = page.getByTestId('evidence-card').first();
