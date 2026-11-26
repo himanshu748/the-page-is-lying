@@ -137,6 +137,36 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   const samePath = (entry: CliEntry): boolean =>
     entry.subcommands.length === subs.length && entry.subcommands.every((sub, i) => sub === subs[i]);
   const matched = programEntries.filter(samePath);
+  if (n.defaultValue !== undefined) {
+    const commands = matched.filter((entry) => entry.kind === 'command');
+    const definitions = commands.flatMap((entry) => n.flags.flatMap((flag) => {
+      const definition = entry.flagDefaults?.[flag];
+      return definition === undefined ? [] : [{ ...definition, file: entry.file }];
+    }));
+    const definition = definitions[0];
+    if (commands.length !== 1 || definition === undefined || definitions.length !== n.flags.length ||
+        definitions.some((entry) => entry.value !== definition.value)) {
+      return unknownResult(claim, ctx, 'cli_default_unresolved');
+    }
+    const stated = typeof definition.value === 'number' && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(n.defaultValue)
+      ? Number(n.defaultValue)
+      : n.defaultValue;
+    if (definition.value === stated) {
+      return toResult(claim, 'verified', 'cli_default_matches', verifiedStatement({ claim: text, file: definition.file, line: definition.line }), [
+        makeEvidence(index, 'match', definition),
+      ]);
+    }
+    return toResult(
+      claim,
+      'contradicted',
+      'cli_default_mismatch',
+      contradictedGenericStatement({
+        claim: text,
+        detail: `The option declaration in ${sanitizeUntrusted(definition.file)}:${definition.line} specifies ${sanitizeUntrusted(String(definition.value))}.`,
+      }),
+      [makeEvidence(index, 'nearest', definition)],
+    );
+  }
   // A package.json bin and the parser that implements it are one command. Cite the source entry.
   const target = matched.find((entry) => entry.kind === 'command' && entry.flags.some((flag) => !ALWAYS_DEFINED_FLAGS.has(flag))) ?? matched.find((entry) => entry.kind === 'command') ?? matched[0];
   const coverage = index.coverage.cli;

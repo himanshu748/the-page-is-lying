@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildRepoIndex } from '../../../src/core/index/build';
+import { extractClaimsFromText } from '../../../src/core/claims';
+import { matchClaim } from '../../../src/core/match';
 import type { RepoIndex } from '../../../src/core/model';
 import { loadFixture } from '../../repo/helpers';
 
@@ -12,6 +14,57 @@ function index(name: string, extra: { truncated?: boolean } = {}): RepoIndex {
 }
 
 const route = (i: RepoIndex, method: string, path: string) => i.routes.filter((r) => r.method === method && r.path === path);
+
+it('checks literal defaults in a Markdown option table independently of flag names', () => {
+  const source = [
+    "import { Command } from 'commander';",
+    "const program = new Command('my-cli');",
+    "program.option('-p, --port <number>', 'Listen port', 3000);",
+    "program.option('--address <host>', 'Listen address', '::');",
+    "program.option('--output <path>', 'Output path', process.env.OUTPUT_PATH);",
+    "program.command('serve-all').option('--port <number>', 'Listen port', 4000.0);",
+  ].join('\n');
+  const repoIndex = buildRepoIndex([{ path: 'src/cli.ts', text: source }], {
+    repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+    stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+  });
+  const page = [
+    'my-cli [options]',
+    '',
+    '| Option | Description | Default |',
+    '| --- | --- | --- |',
+    '| `-p` or `--port` | Listener port | `3000` |',
+    '| `--address` | 0.0.0.0 for all IPv4 addresses | `0.0.0.0` |',
+    '| `--output` | Output | `log` |',
+    '| `--format` | Format | See configuration |',
+  ].join('\n');
+  const { claims } = extractClaimsFromText(page);
+  const defaults = claims.filter(({ normalized }) => normalized.type === 'cli' && normalized.defaultValue !== undefined);
+  expect(defaults.map(({ raw, location }) => [raw, page.slice(location.start, location.end)])).toEqual([
+    ['3000', '3000'], ['0.0.0.0', '0.0.0.0'], ['log', 'log'],
+  ]);
+  expect(defaults[1]?.location.start).toBe(page.indexOf('`0.0.0.0`') + 1);
+  expect(defaults.map((claim) => matchClaim(claim, repoIndex))).toMatchObject([
+    { verdict: 'verified', reason: 'cli_default_matches', evidence: [{ line: 3 }] },
+    { verdict: 'contradicted', reason: 'cli_default_mismatch', evidence: [{ line: 4 }] },
+    { verdict: 'unknown', reason: 'cli_default_unresolved' },
+  ]);
+  const format = claims.find((claim) => claim.raw === '--format');
+  expect(format && matchClaim(format, repoIndex).reason).toBe('cli_flag_not_defined');
+
+  const subcommandPage = [
+    'Usage: my-cli serve-all [options]',
+    '',
+    '| Option | Default |',
+    '| --- | --- |',
+    '| `--port` | `4000` |',
+  ].join('\n');
+  const subcommandDefault = extractClaimsFromText(subcommandPage).claims.find(({ raw }) => raw === '4000');
+  expect(subcommandDefault?.normalized).toMatchObject({ subcommands: ['serve-all'] });
+  expect(subcommandDefault && matchClaim(subcommandDefault, repoIndex)).toMatchObject({
+    verdict: 'verified', reason: 'cli_default_matches', evidence: [{ line: 6 }],
+  });
+});
 
 describe('payments-api-mini (demo contract)', () => {
   const i = index('payments-api-mini');

@@ -86,6 +86,7 @@ interface Cmd {
   name?: string;
   root: boolean;
   flagsComplete?: boolean;
+  flagDefaults?: Map<string, NonNullable<CliEntry['flagDefaults']>[string]>;
 }
 
 function newCmd(path: string[], line: number, root: boolean): Cmd {
@@ -109,6 +110,7 @@ function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], ro
       flags: unique,
       kind: 'command' as const,
       ...(c.flagsComplete === undefined ? {} : { flagsComplete: c.flagsComplete }),
+      ...(c.flagDefaults === undefined ? {} : { flagDefaults: Object.fromEntries(c.flagDefaults) }),
     };
     const e: CliEntry = { ...base, program, subcommands: c.path };
     pushEntry(acc, e, rootName === undefined || rootName === '');
@@ -125,6 +127,7 @@ function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], ro
 export function indexCommander(acc: IndexAcc, file: string, original: string, text: string): void {
   if (!/['"]commander['"]|\bnew\s+Command\s*\(/.test(text)) return;
   const starts = lineStarts(text);
+  const lines = splitLines(original);
   const vars = new Map<string, Cmd>();
   const all: Cmd[] = [];
   const mk = (path: string[], offset: number, root: boolean): Cmd => {
@@ -190,8 +193,29 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
       }
       case 'option':
       case 'requiredOption': {
-        for (const f of dashWords(args[0]?.literal ?? '')) base.flags.add(f);
-        if (args[0]?.literal === undefined) acc.partial.cli = true;
+        const declaration = args[0]?.literal;
+        if (declaration === undefined) acc.partial.cli = true;
+        const fallback = args[2];
+        const isValueOption = declaration !== undefined && /<[^>]+>|\[[^\]]+\]/.test(declaration);
+        let value: string | number | undefined;
+        if (args.length === 3 && isValueOption && fallback !== undefined) {
+          value = fallback.literal;
+          if (value === undefined && /^(?:true|false)$/.test(fallback.src)) value = fallback.src;
+          if (value === undefined && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(fallback.src)) {
+            const numeric = Number(fallback.src);
+            if (Number.isFinite(numeric)) value = numeric;
+          }
+        }
+        for (const f of dashWords(declaration ?? '')) {
+          base.flags.add(f);
+          if (value === undefined) {
+            base.flagDefaults?.delete(f);
+          } else {
+            base.flagDefaults ??= new Map();
+            const line = lineAt(starts, ev.at);
+            base.flagDefaults.set(f, { value, line, snippet: snippetOf(lines, line) });
+          }
+        }
         break;
       }
       case 'addOption': {

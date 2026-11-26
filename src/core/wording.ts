@@ -82,6 +82,7 @@ export type UnknownReasonKey =
   | 'external_host'
   | 'program_not_in_repo'
   | 'dynamic_definition'
+  | 'cli_default_unresolved'
   | 'config_file_not_in_repo'
   | 'no_config_files'
   | 'tree_truncated'
@@ -99,6 +100,7 @@ const UNKNOWN_REASON_TEXT: Record<UnknownReasonKey, string> = {
   external_host: 'the claim names a host that is not one of the configured service hosts',
   program_not_in_repo: 'the program is not defined in this repository',
   dynamic_definition: 'the definition in code is built dynamically or could not be parsed',
+  cli_default_unresolved: 'no unambiguous literal option default was indexed',
   config_file_not_in_repo: 'the named configuration file is not in the repository',
   no_config_files: 'no configuration files were parsed in the repository',
   tree_truncated: 'the repository file tree was cut short while indexing',
@@ -137,6 +139,7 @@ const REASON_EXPLANATION: Record<string, string> = {
   env_read_in_code: 'The code reads an environment variable with this exact name.',
   env_listed_in_config: 'An env example, compose or Kubernetes file lists a variable with this exact name.',
   cli_defined: 'The command and every flag in the claim are defined in the code.',
+  cli_default_matches: 'The option declaration sets the stated default.',
   script_defined: 'A package script or make target with this name is defined.',
   config_key_present: 'A parsed configuration file defines this key.',
   file_present: 'A file or directory with this path is in the repository tree.',
@@ -145,6 +148,7 @@ const REASON_EXPLANATION: Record<string, string> = {
   route_absent: 'Route coverage is complete, no route matches and none is similar.',
   env_not_read: 'Env coverage is complete and nothing reads or lists this name. The nearest names are cited.',
   cli_flag_not_defined: 'The command is defined, but it does not define one of the flags in the claim.',
+  cli_default_mismatch: 'The option declaration sets a different literal default.',
   cli_subcommand_not_defined: 'The program is defined, but not this subcommand.',
   script_not_defined: 'Scripts or targets are defined, but none has this name.',
   config_key_absent: 'Config coverage is complete and no parsed file defines this key.',
