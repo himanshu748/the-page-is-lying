@@ -197,6 +197,14 @@ describe('cli rules (7.2)', () => {
     const r = check(cli('payments', ['refund'], ['--force']), makeIndex({ coverage: { cli: 'partial' }, cli: index.cli }));
     isUnknownStatement(r);
   });
+  it('contradicted: a statically complete command keeps its flags under partial coverage', () => {
+    const cliEntries = index.cli.map((entry) =>
+      entry.file === 'src/cli.ts' && entry.subcommands[0] === 'refund' ? { ...entry, flagsComplete: true } : entry,
+    );
+    const r = check(cli('payments', ['refund'], ['--force']), makeIndex({ coverage: { cli: 'partial' }, cli: cliEntries }));
+    expect(r).toMatchObject({ verdict: 'contradicted', reason: 'cli_flag_not_defined' });
+    expect(r.evidence[0]).toMatchObject({ file: 'src/cli.ts', line: 14 });
+  });
   it('unknown: subcommand missing but cli coverage is partial', () => {
     isUnknownStatement(check(cli('payments', ['nope']), makeIndex({ coverage: { cli: 'partial' }, cli: index.cli })));
   });
