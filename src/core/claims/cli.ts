@@ -133,7 +133,7 @@ function pushFlag(out: Candidate[], start: number, flag: string, program: string
 
 /** Limit default claims to the literal cell of a Markdown table with a Default header. */
 function extractTableDefaults(ctx: BlockContext, out: Candidate[], source: { text: string; offset: number }): void {
-  const tables = /^( *\|[^\n]*\|)\r?\n *\|(?: *:?-{3,}:? *\|)+ *(?:\r?\n|$)((?: *\|[^\n]*\| *(?:\r?\n|$))+)/gm;
+  const tables = /^( *\|[^\n]*\|)[ \t]*\r?\n *\|(?: *:?-{3,}:? *\|)+ *(?:\r?\n|$)((?: *\|[^\r\n]*(?:\r?\n|$))+)/gm;
   for (const table of ctx.text.matchAll(tables)) {
     const header = table[1];
     const body = table[2];
@@ -148,8 +148,8 @@ function extractTableDefaults(ctx: BlockContext, out: Candidate[], source: { tex
     const subcommands = optionStart === -1 ? words : words.slice(0, optionStart);
     if (subcommands.length > MAX_SUBCOMMANDS || subcommands.some((arg) => !/^[a-z][A-Za-z0-9:.-]*$/.test(arg))) continue;
     const bodyStart = table.index + table[0].length - body.length;
-    for (const row of body.matchAll(/^ *\|([^\n]*?)\| *\r?$/gm)) {
-      const interior = row[1];
+    for (const row of body.matchAll(/^ *\|([^\r\n]*)/gm)) {
+      const interior = row[1]?.replace(/\|[ \t]*$/, '');
       if (interior === undefined || interior.includes('\\|')) continue;
       const cells = interior.split('|');
       if (cells.length !== headers.length) continue;

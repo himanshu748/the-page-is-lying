@@ -15,7 +15,7 @@
 import type { CliEntry } from '../model';
 import { mapGet, scalarString } from './structured';
 import type { TreeNode } from './structured';
-import { baseName, dirName, findClose, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral } from './text';
+import { baseName, dirName, findClose, insideSpan, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral, stringSpans } from './text';
 import type { Arg } from './text';
 import type { IndexAcc } from './types';
 
@@ -95,6 +95,17 @@ function newCmd(path: string[], line: number, root: boolean): Cmd {
 
 function dashWords(src: string): string[] {
   return [...src.matchAll(/(?:^|[\s,|'"])(--?[A-Za-z][\w-]*)/g)].map((m) => m[1] as string);
+}
+
+function optionLiteral(source: string): string | number | undefined {
+  const quoted = stringLiteral(source);
+  if (quoted !== undefined) return quoted;
+  if (/^(?:true|false)$/.test(source)) return source;
+  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(source)) {
+    const numeric = Number(source);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return undefined;
 }
 
 function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], rootName?: string): void {
@@ -197,15 +208,9 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
         if (declaration === undefined) acc.partial.cli = true;
         const fallback = args[2];
         const isValueOption = declaration !== undefined && /<[^>]+>|\[[^\]]+\]/.test(declaration);
-        let value: string | number | undefined;
-        if (args.length === 3 && isValueOption && fallback !== undefined) {
-          value = fallback.literal;
-          if (value === undefined && /^(?:true|false)$/.test(fallback.src)) value = fallback.src;
-          if (value === undefined && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(fallback.src)) {
-            const numeric = Number(fallback.src);
-            if (Number.isFinite(numeric)) value = numeric;
-          }
-        }
+        const value = args.length === 3 && isValueOption && fallback !== undefined
+          ? optionLiteral(fallback.src)
+          : undefined;
         for (const f of dashWords(declaration ?? '')) {
           base.flags.add(f);
           if (value === undefined) {
@@ -677,6 +682,32 @@ function rememberFlag(flags: Set<string>, lines: Record<string, number>, name: s
   lines[flag] = line;
 }
 
+/** Decline inferred defaults when the parser can supply its own configured values. */
+function minimistUsesPlainArgv(text: string, bound: RegExpExecArray): boolean {
+  const open = bound.index + bound[0].length - 1;
+  const close = findClose(text, open);
+  if (close < 0) return false;
+  const args = splitArgs(text.slice(open + 1, close));
+  if (!/^process\.argv\.slice\(2\)$/.test(args[0]?.src ?? '') || args.length > 2) return false;
+  const options = args[1]?.src;
+  if (options === undefined) return true;
+  if (!options.startsWith('{') || !options.endsWith('}')) return false;
+  return splitArgs(options.slice(1, -1)).every(({ src }) =>
+    src === '' || /^(?:alias|boolean|string)\s*:/.test(src)
+  );
+}
+
+function minimistLiteralFallback(text: string, read: RegExpMatchArray): string | number | undefined {
+  const offset = read.index ?? 0;
+  const lineStart = text.lastIndexOf('\n', offset - 1) + 1;
+  const prefix = text.slice(lineStart, offset);
+  if (!/^[ \t]*(?:(?:const|let|var)[ \t]+)?[A-Za-z_$][\w$]*[ \t]*=[ \t]*$/.test(prefix)) return undefined;
+  const lineEnd = text.indexOf('\n', offset);
+  const tail = text.slice(offset + read[0].length, lineEnd < 0 ? text.length : lineEnd);
+  const match = /^\s*\|\|\s*(.+)\s*[,;]\s*$/.exec(tail);
+  return match?.[1] === undefined ? undefined : optionLiteral(match[1].trim());
+}
+
 /** minimist: aliases, boolean names, and `argv.flag` / `argv['flag']` reads. `--no-flag` counts when the file writes it. */
 export function indexMinimist(acc: IndexAcc, file: string, original: string, text: string): void {
   if (!(/['"]minimist['"]\s*\)\s*\(/.test(text) || /\bminimist\s*\(/.test(text))) return;
@@ -700,13 +731,25 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
       rememberFlag(flags, flagLines, name[1] ?? '', lineAt(starts, booleans.index + (name.index ?? 0)));
     }
   }
-  const read = new RegExp(String.raw`(?<![\w.$])${argv}\s*(?:\.\s*([A-Za-z_][\w]*)|\[\s*['"]([^'"]+)['"]\s*\])`, 'g');
+  const escapedArgv = argv.replace(/\$/g, '\\$');
+  const read = new RegExp(String.raw`(?<![\w.$])${escapedArgv}\s*(?:\.\s*([A-Za-z_][\w]*)|\[\s*['"]([^'"]+)['"]\s*\])`, 'g');
   const notFlags = new Set(['slice', 'push', 'pop', 'map', 'filter', 'forEach', 'keys', 'values', 'entries', 'toString', 'hasOwnProperty']);
+  const definitions = new Map<string, NonNullable<CliEntry['flagDefaults']>[string]>();
+  const seen = new Set<string>();
+  const plain = bound !== null && minimistUsesPlainArgv(text, bound);
+  const spans = plain ? stringSpans(text) : [];
   for (const m of text.matchAll(read)) {
     const name = m[1] ?? m[2] ?? '';
     if (notFlags.has(name)) continue;
     const line = lineAt(starts, m.index);
     rememberFlag(flags, flagLines, name, line);
+    if (plain && !insideSpan(spans, m.index)) {
+      const form = flagForm(name);
+      const value = minimistLiteralFallback(text, m);
+      if (seen.has(name)) definitions.delete(form);
+      else if (flags.has(form) && value !== undefined) definitions.set(form, { value, line, snippet: snippetOf(lines, line) });
+      seen.add(name);
+    }
     if (name.length > 1 && original.includes(`--no-${name}`)) {
       flags.add(`--no-${name}`);
       flagLines[`--no-${name}`] = line;
@@ -719,7 +762,8 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
   const first = Math.min(...Object.values(flagLines));
   pushEntry(
     acc,
-    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines,
+      ...(definitions.size > 0 ? { flagDefaults: Object.fromEntries(definitions) } : {}) },
     true,
   );
 }

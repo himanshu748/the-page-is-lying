@@ -363,6 +363,43 @@ describe('parsers the demo fixture does not use', () => {
     expect(i.coverage.cli).toBe('complete');
   });
 
+  it('checks direct minimist fallbacks in an option table without using conditional defaults', () => {
+    const packageJson = { path: 'package.json', text: '{"bin":{"http-server":"./bin/http-server"}}' };
+    const source = [
+      '#!/usr/bin/env node',
+      "var argv = require('minimist')(process.argv.slice(2), { alias: { header: 'H' }, boolean: ['proxy-all'] });",
+      'var port = argv.p || process.env.PORT,',
+      "    host = argv.a || '::',",
+      "    ext = argv.e === true ? 'html' : argv.e;",
+      "const cache = argv['cache'] || 3600;",
+    ].join('\n');
+    const readme = [
+      '    http-server [path] [options]', '',
+      '| Command | Description | Defaults |  ',
+      '| --- | --- | --- |',
+      '| `-p` | Port | 8080',
+      '| `-a` | Address | 0.0.0.0 |',
+      '| `-e` | Extension | `html` |',
+      '| `--cache` | Cache time | 3600 |',
+    ].join('\n');
+    const defaults = extractClaimsFromText(readme).claims.filter(({ normalized }) =>
+      normalized.type === 'cli' && normalized.defaultValue !== undefined
+    );
+    const indexed = finish([packageJson, { path: 'bin/http-server', text: source }]);
+    expect(defaults.map(({ raw }) => raw)).toEqual(['8080', '0.0.0.0', 'html', '3600']);
+    expect(defaults.map((claim) => matchClaim(claim, indexed))).toMatchObject([
+      { verdict: 'unknown' },
+      { verdict: 'contradicted', reason: 'cli_default_mismatch', evidence: [{ file: 'bin/http-server', line: 4 }] },
+      { verdict: 'unknown' },
+      { verdict: 'verified', reason: 'cli_default_matches', evidence: [{ file: 'bin/http-server', line: 6 }] },
+    ]);
+    const configured = finish([packageJson, {
+      path: 'bin/http-server',
+      text: source.replace("alias: { header: 'H' }", "default: { a: '0.0.0.0' }"),
+    }]);
+    expect(defaults.map((claim) => matchClaim(claim, configured).verdict)).toEqual(['unknown', 'unknown', 'unknown', 'unknown']);
+  });
+
   it('reads node:util parseArgs options', () => {
     const i = finish([
       { path: 'package.json', text: '{ "bin": { "json-server": "src/bin.ts" } }' },
