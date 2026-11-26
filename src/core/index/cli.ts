@@ -85,11 +85,11 @@ interface Cmd {
   version: boolean;
   name?: string;
   root: boolean;
-  flagsComplete: boolean;
+  flagsComplete?: boolean;
 }
 
 function newCmd(path: string[], line: number, root: boolean): Cmd {
-  return { path, flags: new Set(), line, aliases: [], version: false, root, flagsComplete: false };
+  return { path, flags: new Set(), line, aliases: [], version: false, root };
 }
 
 function dashWords(src: string): string[] {
@@ -108,7 +108,7 @@ function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], ro
       snippet: snippetOf(lines, c.line),
       flags: unique,
       kind: 'command' as const,
-      ...(c.flagsComplete ? { flagsComplete: true } : {}),
+      ...(c.flagsComplete === undefined ? {} : { flagsComplete: c.flagsComplete }),
     };
     const e: CliEntry = { ...base, program, subcommands: c.path };
     pushEntry(acc, e, rootName === undefined || rootName === '');
