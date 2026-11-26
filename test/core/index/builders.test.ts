@@ -170,6 +170,7 @@ describe('Python', () => {
     expect(run?.program).toBe('pytool');
     const deploy = i.cli.find((c) => c.subcommands.join(' ') === 'deploy' && c.file === 'tool.py');
     expect(deploy?.flags).toEqual(expect.arrayContaining(['--dry-run', '--no-dry-run', '-n', '--count']));
+    expect(deploy?.flagsComplete).toBe(true);
     expect(i.cli.find((c) => c.kind === 'bin')?.program).toBe('pytool');
   });
   it('requirements and pyproject packages with PEP 503 names', () => {
