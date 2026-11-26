@@ -15,7 +15,7 @@
 import type { CliEntry } from '../model';
 import { mapGet, scalarString } from './structured';
 import type { TreeNode } from './structured';
-import { baseName, dirName, findClose, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral } from './text';
+import { baseName, dirName, findClose, lineAt, lineStarts, snippetOf, splitArgs, splitLines, stringLiteral, stringSpans } from './text';
 import type { Arg } from './text';
 import type { IndexAcc } from './types';
 
@@ -95,6 +95,17 @@ function newCmd(path: string[], line: number, root: boolean): Cmd {
 
 function dashWords(src: string): string[] {
   return [...src.matchAll(/(?:^|[\s,|'"])(--?[A-Za-z][\w-]*)/g)].map((m) => m[1] as string);
+}
+
+function optionLiteral(source: string): string | number | undefined {
+  const quoted = stringLiteral(source);
+  if (quoted !== undefined) return quoted;
+  if (/^(?:true|false)$/.test(source)) return source;
+  if (/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(source)) {
+    const numeric = Number(source);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return undefined;
 }
 
 function emitCmds(acc: IndexAcc, file: string, original: string, cmds: Cmd[], rootName?: string): void {
@@ -197,15 +208,9 @@ export function indexCommander(acc: IndexAcc, file: string, original: string, te
         if (declaration === undefined) acc.partial.cli = true;
         const fallback = args[2];
         const isValueOption = declaration !== undefined && /<[^>]+>|\[[^\]]+\]/.test(declaration);
-        let value: string | number | undefined;
-        if (args.length === 3 && isValueOption && fallback !== undefined) {
-          value = fallback.literal;
-          if (value === undefined && /^(?:true|false)$/.test(fallback.src)) value = fallback.src;
-          if (value === undefined && /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(fallback.src)) {
-            const numeric = Number(fallback.src);
-            if (Number.isFinite(numeric)) value = numeric;
-          }
-        }
+        const value = args.length === 3 && isValueOption && fallback !== undefined
+          ? optionLiteral(fallback.src)
+          : undefined;
         for (const f of dashWords(declaration ?? '')) {
           base.flags.add(f);
           if (value === undefined) {
@@ -677,6 +682,62 @@ function rememberFlag(flags: Set<string>, lines: Record<string, number>, name: s
   lines[flag] = line;
 }
 
+/** Decline inferred defaults when the parser can supply its own configured values. */
+function minimistUsesPlainArgv(text: string, bound: RegExpExecArray): boolean {
+  const open = bound.index + bound[0].length - 1;
+  const close = findClose(text, open);
+  if (close < 0) return false;
+  const args = splitArgs(text.slice(open + 1, close));
+  if (!/^process\.argv\.slice\(2\)$/.test(args[0]?.src ?? '') || args.length > 2) return false;
+  const options = args[1]?.src;
+  if (options === undefined) return true;
+  if (!options.startsWith('{') || !options.endsWith('}')) return false;
+  return splitArgs(options.slice(1, -1)).every(({ src }) =>
+    src === '' || /^(?:alias|boolean|string)\s*:/.test(src)
+  );
+}
+
+/** Initializers in semicolon-terminated top-level declarations, including comma-separated declarations. */
+function topLevelInitializers(text: string): Map<number, string> {
+  const result = new Map<number, string>();
+  const strings = new Map(stringSpans(text));
+  const declaration = /(?:const|let|var)\s+/y;
+  let start: number | undefined;
+  let boundary = true;
+  const shebangEnd = text.startsWith('#!') ? text.indexOf('\n') : 0;
+  for (let i = Math.max(0, shebangEnd); i < text.length; i++) {
+    const c = text.charAt(i);
+    if (/\s/.test(c)) continue;
+    const stringEnd = strings.get(i);
+    if (stringEnd !== undefined) {
+      boundary = false;
+      i = stringEnd - 1;
+    } else if ('([{'.includes(c)) {
+      const end = findClose(text, i);
+      if (end < 0) return result;
+      boundary = c === '{' && start === undefined;
+      i = end;
+    } else if (c === ';') {
+      if (start !== undefined) {
+        for (const arg of splitArgs(text.slice(start, i), start)) {
+          const lhs = /^[A-Za-z_$][\w$]*\s*=\s*/.exec(arg.src);
+          if (lhs) result.set(arg.offset + lhs[0].length, arg.src.slice(lhs[0].length));
+        }
+      }
+      start = undefined;
+      boundary = true;
+    } else if (boundary) {
+      declaration.lastIndex = i;
+      if (declaration.exec(text)) {
+        start = declaration.lastIndex;
+        i = start - 1;
+      }
+      boundary = false;
+    }
+  }
+  return result;
+}
+
 /** minimist: aliases, boolean names, and `argv.flag` / `argv['flag']` reads. `--no-flag` counts when the file writes it. */
 export function indexMinimist(acc: IndexAcc, file: string, original: string, text: string): void {
   if (!(/['"]minimist['"]\s*\)\s*\(/.test(text) || /\bminimist\s*\(/.test(text))) return;
@@ -700,13 +761,30 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
       rememberFlag(flags, flagLines, name[1] ?? '', lineAt(starts, booleans.index + (name.index ?? 0)));
     }
   }
-  const read = new RegExp(String.raw`(?<![\w.$])${argv}\s*(?:\.\s*([A-Za-z_][\w]*)|\[\s*['"]([^'"]+)['"]\s*\])`, 'g');
+  const escapedArgv = argv.replace(/\$/g, '\\$');
+  const read = new RegExp(String.raw`(?<![\w.$])${escapedArgv}\s*(?:\.\s*([A-Za-z_][\w]*)|\[\s*['"]([^'"]+)['"]\s*\])`, 'g');
   const notFlags = new Set(['slice', 'push', 'pop', 'map', 'filter', 'forEach', 'keys', 'values', 'entries', 'toString', 'hasOwnProperty']);
+  const definitions = new Map<string, NonNullable<CliEntry['flagDefaults']>[string]>();
+  const seen = new Set<string>();
+  const initializers = bound !== null && minimistUsesPlainArgv(text, bound) ? topLevelInitializers(text) : new Map<number, string>();
+  const assignment = bound ? /=\s*/.exec(bound[0]) : null;
+  const plain = bound !== null && assignment !== null && initializers.has(bound.index + assignment.index + assignment[0].length);
   for (const m of text.matchAll(read)) {
     const name = m[1] ?? m[2] ?? '';
     if (notFlags.has(name)) continue;
     const line = lineAt(starts, m.index);
     rememberFlag(flags, flagLines, name, line);
+    const initializer = plain ? initializers.get(m.index) : undefined;
+    if (initializer !== undefined) {
+      const form = flagForm(name);
+      const literal = /^\s*\|\|\s*(.+)$/s.exec(initializer.slice(m[0].length))?.[1];
+      const value = literal === undefined ? undefined : optionLiteral(literal.trim());
+      if (flags.has(form) && value !== undefined) {
+        if (seen.has(name)) definitions.delete(form);
+        else definitions.set(form, { value, line, snippet: snippetOf(lines, line) });
+        seen.add(name);
+      }
+    }
     if (name.length > 1 && original.includes(`--no-${name}`)) {
       flags.add(`--no-${name}`);
       flagLines[`--no-${name}`] = line;
@@ -719,7 +797,8 @@ export function indexMinimist(acc: IndexAcc, file: string, original: string, tex
   const first = Math.min(...Object.values(flagLines));
   pushEntry(
     acc,
-    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines },
+    { file, line: first, snippet: snippetOf(lines, first), program: '', subcommands: [], flags: [...flags, ...HELP], kind: 'command', flagLines,
+      ...(definitions.size > 0 ? { flagDefaults: Object.fromEntries(definitions) } : {}) },
     true,
   );
 }
