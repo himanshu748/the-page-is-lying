@@ -23,8 +23,8 @@ export interface Receiver {
   name: string;
   kind: ReceiverKind;
   framework: string;
-  /** Own prefix (Koa `prefix`, Flask `url_prefix`, FastAPI `prefix`, Hono `basePath`). */
-  ownPrefix: string;
+  /** Own prefix (Koa `prefix`, Flask `url_prefix`, FastAPI `prefix`, Hono `basePath`), or null if unresolved. */
+  ownPrefix: string | null;
 }
 
 export interface RouteDef {
