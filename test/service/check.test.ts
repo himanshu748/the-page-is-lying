@@ -10,6 +10,7 @@ import {
   type PageReadResult,
 } from '../../src/service/check';
 import { demoClaims, demoIndex } from '../fixtures/match/demo';
+import { createClaimExtractor } from '../../src/service/extractor';
 
 const adf = { type: 'doc', version: 1, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'POST /v1/charge' }] }] };
 
@@ -30,6 +31,23 @@ function setup(over: Partial<CheckDeps> & { load?: IndexLoadResult; page?: PageR
 }
 
 describe('checkDocument', () => {
+  it('cites the declared HEAD route for curl --head runbook examples', async () => {
+    const index = demoIndex();
+    index.routes = [{ file: 'src/routes.ts', line: 24, snippet: "router.head('/health', health);", method: 'HEAD', path: '/health', framework: 'express' }];
+    const { deps } = setup({
+      extractor: createClaimExtractor(),
+      load: { ok: true, index, stale: false },
+      matchOptions: { serviceHosts: ['api.example.com'] },
+    });
+    const command = { type: 'doc', content: [{ type: 'codeBlock', content: [
+      { type: 'text', text: 'curl --head https://api.example.com/health' },
+    ] }] };
+    const out = await checkDocument(deps, { adf: command });
+    expect(out).toMatchObject({ ok: true, report: { counts: { claims: 1, verified: 1, contradicted: 0 }, results: [
+      { claim: { normalized: { type: 'http_endpoint', method: 'HEAD', path: '/health' } }, verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 24 }] },
+    ] } });
+  });
+
   it('returns a report with counts for the demo claims', async () => {
     const { deps, loadIndex } = setup();
     const out = await checkDocument(deps, { adf, repoRef: { repoUrl: 'https://github.com/himanshu748/payments-api' } });

@@ -41,6 +41,13 @@ describe('http_endpoint extraction', () => {
     ['curl -XPOST', 'Run `curl -XPOST "https://h.io/v1/a"`', [http('POST', '/v1/a', 'h.io')]],
     ['curl default GET', 'Run `curl https://h.io:8443/v1/a`', [http('GET', '/v1/a', 'h.io')]],
     ['curl with data defaults to POST', 'Run `curl -d @x.json https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl -I uses HEAD', 'Run `curl -I https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl --head uses HEAD', 'Run `curl --head https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl groups short modifiers with -I', 'Run `curl -sSI https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl -G turns data into a query', 'Run `curl -G --data-urlencode "q=x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl --get with --head still sends HEAD', 'Run `curl --get --head -d q=x https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl explicit request overrides --head', 'Run `curl --head -X GET https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl data that looks like a method flag stays data', 'Run `curl -d "-I" https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
     ['curl with prompt and headers', 'Run `$ curl -s -H "Accept: x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'http_endpoint')).toEqual(expected);
