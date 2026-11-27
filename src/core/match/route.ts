@@ -13,6 +13,11 @@ function routeText(route: RouteEntry): string {
   return route.method === 'ANY' ? route.path : `${route.method} ${route.path}`;
 }
 
+/** A declared catch-all can verify a claim about that exact pattern. */
+function isSpecificEvidence(routePath: string, claimedPath: string): boolean {
+  return routePath === claimedPath || !pathSegments(routePath).includes('*');
+}
+
 export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext): ClaimResult {
   const { index } = ctx;
   const text = describeClaim(n);
@@ -23,9 +28,11 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
   }
 
   const claimSegments = pathSegments(n.path);
-  const pathMatches = index.routes.filter((route) => segmentsMatch(claimSegments, pathSegments(route.path)));
-  const exact = pathMatches.filter((route) => methodMatches(n.method, route.method));
-  const hit = exact.find((route) => route.method === n.method) ?? exact[0];
+  const matching = index.routes.filter(
+    (route) => methodMatches(n.method, route.method) && segmentsMatch(claimSegments, pathSegments(route.path)),
+  );
+  const specific = matching.filter((route) => isSpecificEvidence(route.path, n.path));
+  const hit = specific.find((route) => route.method === n.method) ?? specific[0];
   if (hit) {
     return toResult(
       claim,
@@ -35,11 +42,13 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
       [makeEvidence(index, 'match', hit)],
     );
   }
+  const catchAll = matching[0];
+  if (catchAll) return unknownResult(claim, ctx, 'route_wildcard_only', undefined, [makeEvidence(index, 'nearest', catchAll)]);
 
   const coverage = index.coverage.routes;
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'routes');
 
-  const nearest = rankRoutes(n, index.routes);
+  const nearest = rankRoutes(n, index.routes.filter((route) => isSpecificEvidence(route.path, n.path)));
   const top = nearest[0];
   const evidence = nearest.map((route) => makeEvidence(index, 'nearest', route));
   evidence.push(absenceEvidence(ctx, 'routes'));

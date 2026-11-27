@@ -147,6 +147,7 @@ export type ReasonCode =
   | 'coverage_partial'
   | 'coverage_none'
   | 'external_host'
+  | 'route_wildcard_only'
   | 'program_not_in_repo'
   | 'dynamic_definition'
   | 'cli_default_unresolved'

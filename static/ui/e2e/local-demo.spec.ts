@@ -19,3 +19,16 @@ test('the local demo checks the bundled code and changes only the corrected rout
   await expect(route).toContainText('Contradicted');
   expect(await page.locator('.local-demo').evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
 });
+
+test('the local demo distinguishes a frontend fallback from a declared API route', async ({ page }) => {
+  await page.goto('/local-demo.html');
+  await page.getByLabel('Runbook example').selectOption('catch-all');
+  const results = page.getByRole('listitem');
+  const removed = results.filter({ has: page.getByRole('heading', { name: 'GET /v1/refunds/123' }) });
+  const declared = results.filter({ has: page.getByRole('heading', { name: 'GET /v2/refunds/{id}' }) });
+  await expect(removed).toContainText('No evidence');
+  await expect(removed).toContainText('a catch-all route matches the path');
+  await expect(removed).toContainText('server.js:5');
+  await expect(declared).toContainText('Verified');
+  await expect(declared).toContainText('server.js:4');
+});
