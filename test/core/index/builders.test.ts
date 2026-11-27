@@ -600,12 +600,19 @@ describe('Java', () => {
       '    """;',
       '  @GetMapping("/health") void health() {}',
       '}',
+      '@RequestMapping("""',
+      '  /dynamic-prefix',
+      '  """)',
+      'class TextBlockController {',
+      '  @GetMapping("/status") void status() {}',
+      '}',
     ].join('\n');
     const index = buildRepoIndex([{ path: 'Controller.java', text: source }], {
       repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
       stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
     });
     expect(index.routes.map(({ path, line }) => ({ path, line }))).toEqual([{ path: '/api/health', line: 8 }]);
+    expect(index.coverage.routes).toBe('partial');
   });
   it('JAX-RS', () => {
     expect(route(i, 'GET', '/ping/:param')).toHaveLength(1);

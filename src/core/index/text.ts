@@ -74,6 +74,7 @@ export function maskCStyleComments(text: string, opts: { backtickStrings?: boole
       while (j < n && !text.startsWith('"""', j)) j += text[j] === '\\' ? 2 : 1;
       const end = Math.min(j + 3, n);
       blank(chars, i, end);
+      chars[i] = '?'; // Keep a nonliteral argument distinct from an omitted argument.
       i = end;
     } else if (c === '"' || c === "'" || (backtick && c === '`')) {
       let j = i + 1;
