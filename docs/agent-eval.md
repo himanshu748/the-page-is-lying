@@ -1,6 +1,7 @@
 # Rovo agent and MCP: live findings and evaluation checklist
 
-Owner: Task E (FEAT-006). Last updated Nov 15, 2026.
+Sections 1, 2, 4 and 5 document the original development check. Section 3
+gives the current external-client verification.
 
 ## 1. What was verified, and what still needs a browser
 
@@ -32,10 +33,8 @@ The page is never read as the app when `asUser()` fails: the handler returns a t
 2. Open the page "Payments API runbook" (or any page). Note the numeric page ID in the URL (`/pages/<id>/`).
 3. Click **Ask Rovo** (top bar). In the agent selector, look for **Runbook checker**. Record: visible yes or no.
 4. Select it and click the starter "Is this page still true?". The service is wired now, so after the repository is configured and indexed (see [judge setup](setup.md#judge-setup)) the answer is the cited verdicts. Before indexing the agent reports that no index is available and gives no verdict.
-5. In a terminal:
+5. From the repository root with Forge CLI installed and authenticated, run:
    ```
-   export PATH=$HOME/.nvm/versions/node/v24.22.1/bin:/Users/himanshujha/.rote/lib/node-runtimes/node-v22.14.0-IYQPZh/bin:$PATH
-   cd /Users/himanshujha/.t3/worktrees/atlassian/t3-5206c989-431d864a8241a24d
    forge logs -e development
    ```
    Find the `page_read` line and record its `status`.
@@ -51,16 +50,31 @@ the two-tool version that was deployed at the time.
 
 1. Record the Confluence site, Forge environment and installed version, and
    external client name and version.
-2. In **Connected apps**, verify all five tools in the setup guide are enabled
-   for that installation. Complete OAuth in a fresh client session and select
-   the same site.
+2. In **Connected apps**, verify **Expose tools to MCP-compatible apps** is
+   **Enabled** for the installation. Complete OAuth in a fresh client session
+   and select the same site.
 3. Capture the names returned by `tools/list` in MCP Inspector or by the
-   equivalent server details in the external client. Verify that all five
-   tool keys are present, accounting for any environment suffix.
-4. Call `check-page` on an accessible test page with a configured repository
-   index. Record the verdict and its evidence. When Forge logs are available,
-   confirm `"source":"input"` in the `check-page` line because the external
-   client supplies the page ID explicitly.
+   equivalent server details in the external client. Verify that the five
+   tool keys below are present, accounting for any environment suffix.
+4. With the public demo repository indexed, create and publish the sample
+   runbook from [judge setup](setup.md#judge-setup). Use its URL as the
+   `page` input. Run the calls before applying the sample correction.
+
+| Tool | Inputs | Expected result |
+| --- | --- | --- |
+| `check-page` | `page` | The sample reports 2 verified, 3 contradicted and 1 no evidence. It cites the indexed commit and evidence for the old route. |
+| `check-claim` | `claim` = `POST /v1/charge` | Contradicted, with a cited counterpart at `POST /v2/payments`. |
+| `explain-claim` | `claim` = `POST /v1/charge` | Explains the route rule and points to the same evidence ID as `check-claim`. |
+| `suggest-fix` | `claim` = `POST /v1/charge` | Proposes `POST /v2/payments` and reports `applied: false`. |
+| `audit-space` | `page` | The published sample appears in the space results with its three contradictions. |
+
+Record the discovered names, indexed commit and results. When Forge logs
+are available, confirm `"source":"input"` for the `check-page` call.
+
+On Nov 27, 2026, the admin panel showed production version 3.0.0 already
+installed on a separate test site. Tool exposure was enabled there. Inspector
+successfully registered an OAuth client, then the browser could not reach its
+loopback callback. Discovery and tool calls are still pending on that site.
 
 ## 4. If `asUser()` does not work in actions: fallback
 

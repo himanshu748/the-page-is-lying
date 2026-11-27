@@ -54,8 +54,10 @@ repository coordinates from the saved settings.
 
 On the authorized Confluence site where the app is installed, a site or
 organization administrator opens **Atlassian Administration → Apps → Sites →
-the site → Connected apps → The Page Is Lying → View app details → Tools** and
-enables all five tools. Atlassian saves this selection per installation.
+the site → Connected apps → The Page Is Lying → View app details**. Under
+**Tools**, select **Enable tools** and confirm. Atlassian saves this setting
+per installation. If the panel offers individual tool controls, enable the
+five below.
 
 | Tool | What it returns |
 | --- | --- |
@@ -76,9 +78,13 @@ review the consent screen. In the client, select `runbook-checker` and compare
 the discovered tool list with the five keys above. In MCP Inspector, the
 equivalent is **Tools → List Tools** on the Streamable HTTP connection to the
 same endpoint. Record any environment suffix on the returned tool names.
+Run Inspector and its OAuth browser on the same computer so Atlassian can
+return to Inspector's local callback.
 
-The app's tools are read-only and use the caller's page permissions. See the
+The app's tools are read-only and use the caller's page permissions. The
+Atlassian gateway consent screen may list broader permissions than the app
+uses. See the
 [consent screenshot](screenshots/mcp-oauth-consent-production.png) and the
-[fresh-install checklist](agent-eval.md#3-mcp-server-fresh-install-checklist).
+[five-call verification](agent-eval.md#3-mcp-server-fresh-install-checklist).
 
 [Privacy policy](../PRIVACY.md)
