@@ -66,7 +66,13 @@ export function createIndexLoader(deps: IndexLoaderDeps): IndexLoader {
         case 'unavailable':
           return { ok: false, reason: lookup.reason === 'repo_not_found_or_private' || lookup.reason === 'rate_limited' || lookup.reason === 'tarball_too_large' ? lookup.reason : 'index_missing', message: lookup.message };
         case 'ready':
-          return { ok: true, index: lookup.index, stale: lookup.stale, ...(lookup.staleReason !== undefined ? { staleReason: lookup.staleReason } : {}) };
+          return {
+            ok: true,
+            index: lookup.index,
+            stale: lookup.stale,
+            matchOptions: { serviceHosts: settings.serviceHosts ?? [] },
+            ...(lookup.staleReason !== undefined ? { staleReason: lookup.staleReason } : {}),
+          };
       }
     },
   };
