@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { runIndexJob } from '../../src/consumers/indexJob';
 import { createAgentService } from '../../src/service/agentService';
+import { extractClaimsFromText } from '../../src/core/claims';
 import type { ClaimType } from '../../src/core/model';
 import { checkClaim, checkDocument, type CheckDeps } from '../../src/service/check';
 import { createClaimExtractor } from '../../src/service/extractor';
@@ -148,6 +149,12 @@ describe.skipIf(!live)('live GitHub: typicode/json-server', () => {
     const staticLine = 248;
     const command = lines[staticLine - 1] ?? '';
     expect(command).toBe('json-server db.json -s ./static');
+    const { claims } = extractClaimsFromText(lines.join('\n'));
+    expect(claims).toContainEqual(expect.objectContaining({
+      type: 'cli',
+      raw: command,
+      normalized: { type: 'cli', program: 'json-server', subcommands: [], flags: ['-s'] },
+    }));
     const result = await verifyDocumentedClaim(deps, revision,
       { text: command, type: 'cli', url: `${url}#L${staticLine}` }, { file: 'src/bin.ts', line: 43 });
     expect(result?.claim.normalized).toMatchObject({ program: 'json-server', flags: ['-s'] });

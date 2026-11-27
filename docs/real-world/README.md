@@ -1,10 +1,10 @@
 # Public repository checks
 
 The checker was run locally against three public repositories and their own
-docs, pinned to the commits below. The index and the claim extractor are the
-ones in this repository. A whole README is one text block and keeps 20 claims;
-a Confluence page is one block per paragraph or code block, so a fenced command
-was also checked on its own where the cap would have dropped it.
+docs, pinned to the commits below. The index and claim extractor are the ones
+in this repository. Each plain-text paragraph or fenced code block has its own
+claim budget, and Confluence uses the blocks in the page. The replay checks
+selected lines individually so their verdicts can be traced to the upstream docs.
 
 | Repository | Commit | What was checked | Result |
 |---|---|---|---|

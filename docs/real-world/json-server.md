@@ -38,9 +38,9 @@ json-server db.json -s ./static
 That is the `parseArgs` options object. `static` is declared there with
 `short: "s"` at `src/bin.ts:53`.
 
-A whole-file text check keeps 20 claims, and this fence sits past that cap, so
-the same command is absent from a single `extractClaimsFromText` of the entire
-README. The page checker does not do that: each code block is its own block.
+The replay also checks that `extractClaimsFromText` finds the command in the
+full pinned README. The fence has its own claim budget, as it does in the
+Confluence page checker.
 
 ## Not a contradiction
 
