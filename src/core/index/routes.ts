@@ -396,15 +396,16 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
     const open = m.index + m[0].length - 1;
     const close = findClose(text, open);
     const args = close === -1 ? [] : splitArgs(text.slice(open + 1, close), open + 1);
-    let prefix = '';
+    let prefix: string | null = '';
     const key = ctor === 'APIRouter' ? 'prefix' : ctor === 'Blueprint' ? 'url_prefix' : undefined;
     if (key) {
       const kw = args.find((a) => new RegExp(`^${key}\\s*=`).test(a.src));
-      if (kw) {
-        const lit = stringLiteral(kw.src.replace(new RegExp(`^${key}\\s*=\\s*`), ''));
-        if (lit === undefined) acc.partial.routes = true;
-        else prefix = lit;
-      }
+      const lit = kw ? stringLiteral(kw.src.replace(new RegExp(`^${key}\\s*=\\s*`), '')) : '';
+      const unresolvedRouter = ctor === 'APIRouter' && (close === -1 || args.some((arg) => arg.src.startsWith('**')));
+      if (lit === undefined || unresolvedRouter) {
+        acc.partial.routes = true;
+        if (ctor === 'APIRouter') prefix = null;
+      } else prefix = lit;
     }
     if (ctor === 'FastAPI' || ctor === 'Flask') {
       const root = ctor === 'FastAPI' ? args.find((a) => /^root_path\s*=/.test(a.src)) : undefined;

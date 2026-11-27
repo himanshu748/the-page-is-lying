@@ -391,6 +391,26 @@ describe('Python', () => {
     expect(route(i, 'POST', '/v1/items')).toHaveLength(1);
     expect(i.routes.map((r) => r.path)).not.toContain('/in-docstring');
   });
+  it.each(['prefix=settings.API_PREFIX', '**router_options'])('FastAPI leaves constructor prefix from %s unresolved', (options) => {
+    const result = buildRepoIndex([{ path: 'app.py', text: [
+      'from fastapi import APIRouter, FastAPI',
+      'app = FastAPI()',
+      `catalog = APIRouter(${options})`,
+      'health = APIRouter(prefix="/v1")',
+      '@catalog.get("/books")',
+      'def books(): pass',
+      '@health.get("/status")',
+      'def status(): pass',
+      'app.include_router(catalog, prefix="/catalog")',
+      'app.include_router(health, prefix="/stable")',
+    ].join('\n') }], { repo: i.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+    expect(result.coverage.routes).toBe('partial');
+    const { claims } = extractClaimsFromText('`GET /catalog/books`\n\n`GET /stable/v1/status`');
+    expect(claims.map((claim) => matchClaim(claim, result))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'verified', reason: 'route_exact' },
+    ]);
+  });
   it('Flask routes, methods and blueprint prefix', () => {
     expect(route(i, 'GET', '/')[0]).toMatchObject({ file: 'flask_app.py', line: 7 });
     expect(route(i, 'GET', '/admin/users/:param')).toHaveLength(1);
