@@ -27,13 +27,16 @@ The tools are `check-page`, `check-claim`, `explain-claim`, `suggest-fix`, and `
 
 ## Quickstart
 
-From a fresh clone with Node 22 or newer:
+From a fresh clone with Node 22 or newer, try the checker in your browser:
 
 ~~~sh
-npm ci && npm run build:ui
+npm ci && npm run demo
 ~~~
 
-For a live run, install with the link above and [open the sample runbook](docs/setup.md#judge-setup).
+The local demo runs the real checker on the bundled payments fixture. Apply the
+sample route correction and check how the verdict and source line change.
+For the live Forge and Rovo flow, install with the link above and
+[open the sample runbook](docs/setup.md#judge-setup).
 
 [Video](https://www.youtube.com/watch?v=GAsxA1YAr-4) ·
 [Devpost](https://devpost.com/software/the-page-is-lying) · [MIT](LICENSE)
