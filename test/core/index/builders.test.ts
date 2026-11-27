@@ -411,6 +411,31 @@ describe('Python', () => {
       { verdict: 'verified', reason: 'route_exact' },
     ]);
   });
+  it.each([
+    { options: "url_prefix='/default'", registration: ", url_prefix='/live'", path: '/live/health', partial: false },
+    { options: "url_prefix='/default'", registration: ", url_prefix=''", path: '/health', partial: false },
+    { options: "url_prefix='/default'", registration: ', url_prefix=None', path: '/default/health', partial: false },
+    { options: 'url_prefix=settings.API_PREFIX', registration: '', path: null, partial: true },
+    { options: '**blueprint_options', registration: ", url_prefix='/live'", path: '/live/health', partial: true },
+    { options: "url_prefix='/default'", registration: ', **mount_options', path: null, partial: true },
+    { options: "None, None, None, '/positional'", registration: '', path: '/positional/health', partial: false },
+  ])('Flask builds only the resolved route for $options with $registration', ({ options, registration, path, partial }) => {
+    const source = [
+      'from flask import Flask, Blueprint',
+      'app = Flask(__name__)',
+      `bp = Blueprint('health', __name__, ${options})`,
+      '@bp.get("/health")',
+      'def read_health(): pass',
+      `app.register_blueprint(bp${registration})`,
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'app.py', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map((entry) => entry.path)).toEqual(path ? [path] : []);
+    if (partial) expect(index.coverage.routes).toBe('partial');
+  });
+
   it('Flask routes, methods and blueprint prefix', () => {
     expect(route(i, 'GET', '/')[0]).toMatchObject({ file: 'flask_app.py', line: 7 });
     expect(route(i, 'GET', '/admin/users/:param')).toHaveLength(1);

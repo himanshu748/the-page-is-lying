@@ -43,6 +43,8 @@ export interface Mount {
   parent: string;
   /** Literal mount prefix, or null when the runtime determines the prefix. */
   prefix: string | null;
+  /** Flask registration replaces the blueprint default when given a prefix. */
+  replaceOwnPrefix?: boolean;
   /** Local receiver name, resolved later against receivers in the same file. */
   local?: string;
   /** Import target as written; resolved later against the repo file list. */

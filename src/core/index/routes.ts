@@ -400,11 +400,12 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
     const key = ctor === 'APIRouter' ? 'prefix' : ctor === 'Blueprint' ? 'url_prefix' : undefined;
     if (key) {
       const kw = args.find((a) => new RegExp(`^${key}\\s*=`).test(a.src));
-      const lit = kw ? stringLiteral(kw.src.replace(new RegExp(`^${key}\\s*=\\s*`), '')) : '';
-      const unresolvedRouter = ctor === 'APIRouter' && (close === -1 || args.some((arg) => arg.src.startsWith('**')));
-      if (lit === undefined || unresolvedRouter) {
+      const positional = ctor === 'Blueprint' ? args.filter((arg) => arg.src && !/^\w+\s*=/.test(arg.src))[5]?.src : undefined;
+      const value = kw?.src.replace(new RegExp(`^${key}\\s*=\\s*`), '') ?? positional;
+      const lit = value === undefined || (ctor === 'Blueprint' && value === 'None') ? '' : stringLiteral(value);
+      if (lit === undefined || close === -1 || args.some((arg) => arg.src.startsWith('*'))) {
         acc.partial.routes = true;
-        if (ctor === 'APIRouter') prefix = null;
+        prefix = null;
       } else prefix = lit;
     }
     if (ctor === 'FastAPI' || ctor === 'Flask') {
@@ -479,19 +480,19 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
       acc.partial.routes = true;
       continue;
     }
-    const key = m[2] === 'include_router' ? 'prefix' : 'url_prefix';
-    let prefix = '';
+    const flask = m[2] === 'register_blueprint';
+    const key = flask ? 'url_prefix' : 'prefix';
     const kw = args.find((a) => new RegExp(`^${key}\\s*=`).test(a.src));
-    if (kw) {
-      const lit = stringLiteral(kw.src.replace(new RegExp(`^${key}\\s*=\\s*`), ''));
-      if (lit === undefined) {
-        acc.partial.routes = true;
-        continue;
-      }
-      prefix = lit;
+    const value = kw?.src.replace(new RegExp(`^${key}\\s*=\\s*`), '');
+    const suppliedPrefix = value !== undefined && (!flask || value !== 'None');
+    const prefix = suppliedPrefix ? stringLiteral(value) : '';
+    if (prefix === undefined || (flask && args.some((arg) => arg.src.startsWith('**')))) {
+      acc.partial.routes = true;
+      continue;
     }
     const ident = base[1] as string;
     const mount: Mount = { file, parent: parent.name, prefix };
+    if (flask && suppliedPrefix) mount.replaceOwnPrefix = true;
     if (recvByName(ident)) mount.local = ident;
     else {
       const imp = pyImports.get(ident);
@@ -757,25 +758,25 @@ export function resolveRoutes(acc: IndexAcc): void {
 
   const prefixesFor = (r: Receiver, depth: number, seen: Set<string>): string[] | undefined => {
     const { ownPrefix } = r;
-    if (ownPrefix === null) return undefined;
     const key = `${r.file}\u0000${r.name}`;
     if (memo.has(key)) return memo.get(key);
     if (depth > 8 || seen.has(key)) return undefined;
     seen.add(key);
     let result: string[] | undefined;
-    if (r.kind === 'root') result = [ownPrefix];
+    if (r.kind === 'root') result = ownPrefix === null ? undefined : [ownPrefix];
     else {
       const incoming = mountTargets.filter(({ m, file }) => (m.local !== undefined ? m.file === r.file && m.local === r.name : file === r.file));
-      if (incoming.length === 0) result = r.kind === 'plugin' ? [ownPrefix] : undefined;
+      if (incoming.length === 0) result = r.kind === 'plugin' && ownPrefix !== null ? [ownPrefix] : undefined;
       else {
         const out: string[] = [];
         for (const { m } of incoming) {
-          if (m.prefix === null) continue;
+          const effectiveOwnPrefix = m.replaceOwnPrefix ? '' : ownPrefix;
+          if (m.prefix === null || effectiveOwnPrefix === null) continue;
           const parent = byKey.get(`${m.file}\u0000${m.parent}`);
           if (!parent) continue;
           const pp = prefixesFor(parent, depth + 1, new Set(seen));
           if (!pp) continue;
-          for (const p of pp) out.push(joinRoute(joinRoute(p, m.prefix), ownPrefix === '' ? '/' : ownPrefix));
+          for (const p of pp) out.push(joinRoute(joinRoute(p, m.prefix), effectiveOwnPrefix));
         }
         result = out.length > 0 ? out : undefined;
       }
