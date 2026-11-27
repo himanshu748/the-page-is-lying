@@ -257,7 +257,7 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       program: n.program,
       subcommand: subs.join(' '),
       flag: missing,
-      defined: target.flags,
+      defined: correctedFlag === undefined ? target.flags : [correctedFlag],
       file: target.file,
       line: correctedLine ?? target.line,
     }),

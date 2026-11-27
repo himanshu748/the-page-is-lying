@@ -72,6 +72,7 @@ describe('fix suggestions on contradicted results', () => {
       evidenceId: result.evidence[0]?.id,
     });
     expect(result.evidence[0]).toMatchObject({ file: 'bin/http-server', line: 203 });
+    expect(result.statement).toContain('It defines --dir-overrides-404 at bin/http-server:203.');
   });
 
   it('cli: the proposed command keeps the arguments and flag values the page wrote', () => {
