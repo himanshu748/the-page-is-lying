@@ -1,4 +1,5 @@
 /** Index status for the settings page and for de-duplicating queue pushes. */
+import { randomUUID } from 'node:crypto';
 import type { ReasonCode } from '../core/model';
 import { statusKey } from './keys';
 import type { KvsLike } from './kvs';
@@ -8,6 +9,7 @@ export interface IndexStatus {
   /** ISO 8601. */
   updatedAt: string;
   startedAt?: string;
+  queueAttempt?: string;
   /** Commit of the last good index. */
   sha?: string;
   filesIndexed?: number;
@@ -33,4 +35,28 @@ export function isInFlight(status: IndexStatus | undefined, now: number): boolea
   if (!status || (status.state !== 'queued' && status.state !== 'indexing')) return false;
   const t = Date.parse(status.startedAt ?? status.updatedAt);
   return Number.isFinite(t) && now - t < IN_FLIGHT_MS;
+}
+
+/** Mark the job before pushing it so a fast consumer can advance the status. */
+export async function queueIndexJob(kvs: KvsLike, repoKey: string, now: number, push: () => Promise<void>): Promise<boolean> {
+  const previous = await getStatus(kvs, repoKey);
+  if (isInFlight(previous, now)) return false;
+  const iso = new Date(now).toISOString();
+  const queueAttempt = randomUUID();
+  await setStatus(kvs, repoKey, { ...previous, state: 'queued', updatedAt: iso, startedAt: iso, queueAttempt });
+  try {
+    await push();
+  } catch (error) {
+    try {
+      const current = await getStatus(kvs, repoKey);
+      if (current?.state === 'queued' && current.queueAttempt === queueAttempt) {
+        if (previous) await setStatus(kvs, repoKey, previous);
+        else await kvs.delete(statusKey(repoKey));
+      }
+    } catch {
+      console.warn('Could not restore the index status after a failed queue request.');
+    }
+    throw error;
+  }
+  return true;
 }

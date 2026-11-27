@@ -12,7 +12,7 @@ import { repoKeyOf } from '../storage/keys';
 import type { KvsLike } from '../storage/kvs';
 import { clearToken, getSettings, hasToken, saveSettings, setToken } from '../storage/settings';
 import type { SiteSettings } from '../storage/settings';
-import { getStatus, isInFlight, setStatus } from '../storage/status';
+import { getStatus, queueIndexJob } from '../storage/status';
 import type { PageContent, StoredSettings, UiBackend } from './backend';
 import type { CheckResponse, IndexStatus } from './contract';
 
@@ -143,11 +143,7 @@ export function createStorageBackend(deps: StorageBackendDeps): UiBackend {
       const site = await getSettings(kvs);
       const repoKey = site ? repoKeyFor(site) : undefined;
       if (!repoKey) return;
-      const status = await getStatus(kvs, repoKey);
-      if (isInFlight(status, deps.now())) return;
-      const iso = new Date(deps.now()).toISOString();
-      await setStatus(kvs, repoKey, { ...(status ?? {}), state: 'queued', updatedAt: iso, startedAt: iso });
-      await deps.enqueue({ repoKey, reason: 'manual' });
+      await queueIndexJob(kvs, repoKey, deps.now(), () => deps.enqueue({ repoKey, reason: 'manual' }));
     },
 
     async saveCounts(contentId: string, version: number, counts: ReportCounts): Promise<void> {

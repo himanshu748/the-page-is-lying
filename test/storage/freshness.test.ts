@@ -140,6 +140,20 @@ describe('getIndexForCheck', () => {
     expect(q).toEqual([]);
   });
 
+  it('keeps the prior status when a stale-index rebuild cannot be queued', async () => {
+    const kvs = new FakeKvs();
+    await seed(kvs, t - FRESH_MS - 1000);
+    const previous = { state: 'ok' as const, updatedAt: new Date(t).toISOString(), sha: SHA_OLD };
+    await setStatus(kvs, REPO_KEY, previous);
+    const { source } = fakeSource([() => SHA_NEW]);
+    const unavailable = { ...deps(kvs, source, []), enqueue: async () => { throw new Error('queue unavailable'); } };
+    await expect(getIndexForCheck(unavailable, REPO_KEY, 'main')).rejects.toThrow('queue unavailable');
+    expect(await getStatus(kvs, REPO_KEY)).toEqual(previous);
+    const pushed: unknown[] = [];
+    await expect(getIndexForCheck(deps(kvs, source, pushed), REPO_KEY, 'main')).resolves.toMatchObject({ state: 'ready', stale: true, reindexQueued: true });
+    expect(pushed).toEqual([{ repoKey: REPO_KEY, reason: 'stale' }]);
+  });
+
   it('keeps serving the old index when the repo disappears', async () => {
     const kvs = new FakeKvs();
     await seed(kvs, t - FRESH_MS - 1000);
