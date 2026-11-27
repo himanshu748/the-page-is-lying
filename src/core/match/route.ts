@@ -1,5 +1,6 @@
 /** http_endpoint rules (PLAN.md 7.2). */
 import type { Claim, ClaimResult, HttpEndpointClaim, RouteEntry } from '../model';
+import { catchAllMinimumSegments } from '../route-path';
 import {
   contradictedRouteStatement,
   contradictedGenericStatement,
@@ -15,7 +16,7 @@ function routeText(route: RouteEntry): string {
 
 /** A declared catch-all can verify a claim about that exact pattern. */
 function isSpecificEvidence(routePath: string, claimedPath: string): boolean {
-  return routePath === claimedPath || !pathSegments(routePath).includes('*');
+  return routePath === claimedPath || !pathSegments(routePath).some((segment) => catchAllMinimumSegments(segment) !== undefined);
 }
 
 export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext): ClaimResult {
