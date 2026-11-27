@@ -269,7 +269,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     if (close === -1) continue;
     const args = splitArgs(text.slice(open + 1, close), open + 1);
     const kind = m[2] as string;
-    let prefix = '';
+    let prefix: string | null = '';
     let target: string | undefined;
     let optsArg: string | undefined;
     if (kind === 'register') {
@@ -296,9 +296,13 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
       } else if (a0.literal === undefined && args.length === 1) target = a0.src;
       else continue;
     } else {
-      // route
-      if (args.length !== 2 || args[0]?.literal === undefined) continue; // 1-arg form is the Express chain
-      prefix = args[0].literal;
+      // A single argument belongs to the Express route chain handled above.
+      if (args.length !== 2) continue;
+      prefix = args[0]?.literal ?? null;
+      if (prefix === null) {
+        if (parent.framework !== 'hono') continue;
+        acc.partial.routes = true;
+      }
       target = args[1]?.src;
     }
     if (!target) continue;
@@ -722,6 +726,7 @@ export function resolveRoutes(acc: IndexAcc): void {
       else {
         const out: string[] = [];
         for (const { m } of incoming) {
+          if (m.prefix === null) continue;
           const parent = byKey.get(`${m.file}\u0000${m.parent}`);
           if (!parent) continue;
           const pp = prefixesFor(parent, depth + 1, new Set(seen));

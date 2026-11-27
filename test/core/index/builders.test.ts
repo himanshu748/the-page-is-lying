@@ -224,6 +224,28 @@ describe('Fastify, Hono, Koa', () => {
     expect(i.coverage.routes).toBe('partial');
     expect(i.routes.map((r) => r.path)).toEqual(['/health']);
   });
+  it('Hono: a dynamic route mount does not expose the child at its unprefixed path', () => {
+    const fixture = index('hono-app');
+    const i = buildRepoIndex([{ path: 'src/app.ts', text: [
+      "import { Hono } from 'hono';",
+      'const app = new Hono();',
+      'const child = new Hono();',
+      'const both = new Hono();',
+      "child.get('/books', handler);",
+      "both.get('/status', handler);",
+      "app.get('/health', handler);",
+      'app.route(process.env.API_PREFIX, child);',
+      'app.route(process.env.ADMIN_PREFIX, both);',
+      "app.route('/public', both);",
+    ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+    expect(i.coverage.routes).toBe('partial');
+    expect(i.routes.map((r) => r.path)).toEqual(['/public/status', '/health']);
+    const { claims } = extractClaimsFromText('`GET /books`\n\n`GET /public/status`');
+    expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/app.ts', line: 6 }] },
+    ]);
+  });
   it('Koa router: constructor prefix and routes()', () => {
     const i = index('koa-app');
     expect(route(i, 'GET', '/v1/status')[0]?.line).toBe(5);
