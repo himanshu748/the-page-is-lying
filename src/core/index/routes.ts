@@ -212,6 +212,18 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
 
   const recvByName = (name: string): Receiver | undefined => acc.receivers.find((r) => r.file === file && r.name === name);
 
+  // A Koa router's prefix setter can rewrite existing route layers. The flat
+  // index cannot prove when that mutation runs relative to registration or mounting.
+  if (usesKoa) {
+    for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*prefix\s*\(/g)) {
+      if (insideSpan(ctx.spans, m.index)) continue;
+      const recv = recvByName(m[1] as string);
+      if (recv?.framework !== 'koa' || recv.kind !== 'sub') continue;
+      recv.ownPrefix = null;
+      acc.partial.routes = true;
+    }
+  }
+
   // Simple route calls: recv.get('/x', ...)
   const callRe = new RegExp(`\\b([\\w$]+)\\s*\\.\\s*(${METHOD_NAMES})\\s*\\(`, 'g');
   for (const m of text.matchAll(callRe)) {
