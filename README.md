@@ -42,10 +42,10 @@ For the live Forge and Rovo flow, install with the link above and
 
 ### Checks judges can reproduce
 
-- **Public repository.** Replay a documented `http-server` flag against a
-  pinned upstream commit. The checker cites where the code reads the flag,
-  suggests the two-dash spelling and verifies the corrected command.
-  [Run the public repository check](docs/real-world/http-server.md#reproduce-the-flag-check).
+- **Public repositories.** Replay checks against pinned commits of
+  `http-server`, JSON Server and Flask. The checker finds an incorrect flag
+  spelling and verifies JSON Server's routes and Flask's Python requirement.
+  [Run the public repository checks](docs/real-world/README.md#run-the-three-public-examples).
 - **Confluence and MCP.** Start with the sample runbook and compare the five
   external calls against their expected results.
   [Open the five-call checklist](docs/agent-eval.md#3-mcp-server-fresh-install-checklist).
