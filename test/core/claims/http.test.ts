@@ -45,6 +45,9 @@ describe('http_endpoint extraction', () => {
     ['curl --head uses HEAD', 'Run `curl --head https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
     ['curl groups short modifiers with -I', 'Run `curl -sSI https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
     ['curl -G turns data into a query', 'Run `curl -G --data-urlencode "q=x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl -G leaves multipart as POST', 'Run `curl -G -F name=x https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl --get after --form-string leaves multipart as POST', 'Run `curl --form-string name=x --get https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl explicit request overrides multipart default', 'Run `curl -X PUT -G -F name=x https://h.io/v1/a`', [http('PUT', '/v1/a', 'h.io')]],
     ['curl --get with --head still sends HEAD', 'Run `curl --get --head -d q=x https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
     ['curl explicit request overrides --head', 'Run `curl --head -X GET https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
     ['curl data that looks like a method flag stays data', 'Run `curl -d "-I" https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
@@ -64,6 +67,9 @@ describe('http_endpoint extraction', () => {
     ['curl without url', 'Run `curl --help`'],
     ['curl to a variable host', 'Run `curl $BASE/v1/a`'],
     ['curl with unknown method', 'Run `curl -X PROPFIND https://h.io/v1/a`'],
+    ['curl cannot send HEAD with a multipart body', 'Run `curl -I -G -F name=x https://h.io/v1/a`'],
+    ['curl cannot send HEAD with non-query data', 'Run `curl -I -d q=x https://h.io/v1/a`'],
+    ['curl cannot combine multipart and data options', 'Run `curl -G -F name=x -d q=x https://h.io/v1/a`'],
     ['empty input', ''],
   ])('negative: %s', (_name, input) => {
     expect(fromText(input, 'http_endpoint')).toEqual([]);
