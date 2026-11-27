@@ -155,7 +155,7 @@ describe.skipIf(!live)('live GitHub: typicode/json-server', () => {
 });
 
 describe.skipIf(!live)('live GitHub: pallets/flask', () => {
-  it('verifies the installation guide’s supported Python range', async () => {
+  it('verifies the installation guide and contradicts an older Python minimum', async () => {
     const repository = 'pallets/flask';
     const revision = '49943b5a94413a530761350f04e896f76e8d620e';
     const [deps, { lines, url }] = await Promise.all([
@@ -171,5 +171,16 @@ describe.skipIf(!live)('live GitHub: pallets/flask', () => {
       reason: 'package_range_intersects',
       claim: { normalized: { ecosystem: 'runtime', name: 'python', range: '>=3.11' } },
     });
+    const edited = text.replace('Python 3.11 and newer', 'Python 3.10 and newer');
+    const outdated = await checkClaim(deps, { text: edited });
+    if (!outdated.ok) throw new Error(outdated.message);
+    const minimum = outdated.report.results.find(({ claim }) => claim.type === 'package_version');
+    expect(minimum).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'runtime_minimum_conflict',
+      suggestion: { replacement: 'Python >=3.11' },
+    });
+    expect(minimum?.evidence[0]).toMatchObject({ file: 'pyproject.toml', line: 22 });
+    console.info(`Edited claim: ${edited}\n  ${minimum?.statement}\n  Manifest: ${minimum?.evidence[0]?.permalink}`);
   }, 60_000);
 });

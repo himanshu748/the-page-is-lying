@@ -20,6 +20,12 @@ requires-python = ">=3.11"
 (`Python 3.10.0 (default, Oct 27 2021, …)`) is sample output from `flask shell`,
 not a support claim, and is not extracted.
 
+## Deliberately outdated minimum
+
+The live replay also changes that sentence locally to say Python 3.10 and
+newer. The checker flags the unsupported 3.10 minimum and suggests
+`Python >=3.11`, citing the same manifest line.
+
 ## Why the rest is unknown
 
 Flask registers commands and configuration dynamically, and the repository
