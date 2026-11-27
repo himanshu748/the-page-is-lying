@@ -645,6 +645,37 @@ describe('Java', () => {
   it('JAX-RS', () => {
     expect(route(i, 'GET', '/ping/:param')).toHaveLength(1);
   });
+  it('scopes JAX-RS paths to their resource and skips unresolved paths', () => {
+    const source = [
+      '@Path("/orders")',
+      'class Orders {',
+      '  @Path("/{id}")',
+      '  @Produces({"application/json"})',
+      '  @GET String getOrder() { return "order"; }',
+      '}',
+      '@Path(value = "/returns")',
+      'class Returns {',
+      '  @POST @Path("/new") String create() { return "return"; }',
+      '  @GET @Path(PATH) String dynamic() { return "dynamic"; }',
+      '}',
+      '@Path(PREFIX)',
+      'class Dynamic {',
+      '  @GET @Path("/health") String health() { return "ok"; }',
+      '}',
+      'class Subresource {',
+      '  @GET @Path("/unknown") String unknown() { return "@GET"; }',
+      '}',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'Resource.java', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ method, path, line }) => ({ method, path, line }))).toEqual([
+      { method: 'GET', path: '/orders/:param', line: 5 },
+      { method: 'POST', path: '/returns/new', line: 9 },
+    ]);
+    expect(index.coverage.routes).toBe('partial');
+  });
   it('System.getenv and pom dependencies', () => {
     expect(i.env.find((e) => e.name === 'ORDERS_URL')?.line).toBe(19);
     expect(i.packages.find((p) => p.name === 'org.springframework.boot:spring-boot-starter-web')).toMatchObject({ ecosystem: 'maven', range: '3.2.0', dev: false });
