@@ -441,11 +441,22 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
     if (verb === 'route' || verb === 'api_route') {
       const mk = args.find((a) => /^methods\s*=/.test(a.src));
       if (mk) {
-        const found = [...mk.src.matchAll(/(['"])(\w+)\1/g)].map((x) => methodFromName(x[2] as string)).filter((x): x is HttpMethod | 'ANY' => x !== undefined);
-        if (found.length === 0) acc.partial.routes = true;
-        methods = found;
-      } else methods = verb === 'route' ? ['GET'] : [];
-      if (methods.length === 0 && !mk) acc.partial.routes = true;
+        const value = mk.src.replace(/^methods\s*=\s*/, '');
+        const collection = ['[', '(', '{'].includes(value[0] ?? '');
+        const entries = collection && findClose(value, 0) === value.length - 1
+          ? splitArgs(value.slice(1, -1)).filter((arg, i, list) => arg.src !== '' || i < list.length - 1)
+          : [];
+        const literals = entries.map(({ literal }) => literal).filter((literal): literal is string => literal !== undefined);
+        const parenthesizedString = value.startsWith('(') && entries.length === 1 && !/,\s*\)$/.test(value);
+        if (parenthesizedString || literals.length === 0 || literals.length !== entries.length) {
+          acc.partial.routes = true;
+          continue;
+        }
+        methods = literals.map(toHttpMethod).filter((method): method is HttpMethod => method !== undefined);
+        if (methods.length !== literals.length) acc.partial.routes = true;
+      } else if (args.some((arg) => arg.src.startsWith('**')) || verb === 'api_route') {
+        acc.partial.routes = true;
+      } else methods = ['GET'];
     } else {
       const hm = methodFromName(verb);
       if (hm) methods = [hm];

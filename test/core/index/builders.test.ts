@@ -436,6 +436,41 @@ describe('Python', () => {
     if (partial) expect(index.coverage.routes).toBe('partial');
   });
 
+  it('does not verify Python methods inferred from runtime decorator options', () => {
+    const source = [
+      'from flask import Flask',
+      'app = Flask(__name__)',
+      "options = {'methods': ['POST']}",
+      "@app.route('/options', **options)",
+      'def options_route(): pass',
+      "settings = {'POST': ['DELETE']}",
+      "@app.route('/computed', methods=settings.get('POST'))",
+      'def computed_route(): pass',
+      "@app.route('/expression', methods=['POST'.replace('POST', 'DELETE')])",
+      'def expression_route(): pass',
+      "@app.route('/explicit', methods=('GET', 'POST'))",
+      'def explicit_route(): pass',
+      "@app.route('/mixed', methods=['GET', 'TRACE'])",
+      'def mixed_route(): pass',
+      "@app.route('/default')",
+      'def default_route(): pass',
+      'from fastapi import FastAPI',
+      'api = FastAPI()',
+      "@api.api_route('/literal', methods=['PATCH', 'PUT'])",
+      'def literal_route(): pass',
+      "@api.api_route('/runtime', methods=settings.get('POST'))",
+      'def runtime_route(): pass',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'app.py', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ method, path }) => `${method} ${path}`).sort()).toEqual([
+      'GET /default', 'GET /explicit', 'GET /mixed', 'PATCH /literal', 'POST /explicit', 'PUT /literal',
+    ]);
+    expect(index.coverage.routes).toBe('partial');
+  });
+
   it('Flask routes, methods and blueprint prefix', () => {
     expect(route(i, 'GET', '/')[0]).toMatchObject({ file: 'flask_app.py', line: 7 });
     expect(route(i, 'GET', '/admin/users/:param')).toHaveLength(1);
