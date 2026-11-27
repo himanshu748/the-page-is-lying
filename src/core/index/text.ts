@@ -51,7 +51,7 @@ function blank(chars: string[], from: number, to: number): void {
  * Mask `//` and block comments in C-like source (JS, TS, Go, Java). String, template
  * and char literals are skipped so `'//'` inside a string is kept. Offsets are preserved.
  */
-export function maskCStyleComments(text: string, opts: { backtickStrings?: boolean } = {}): string {
+export function maskCStyleComments(text: string, opts: { backtickStrings?: boolean; javaTextBlocks?: boolean } = {}): string {
   const backtick = opts.backtickStrings ?? true;
   const chars = text.split('');
   const n = text.length;
@@ -69,6 +69,13 @@ export function maskCStyleComments(text: string, opts: { backtickStrings?: boole
       const j = end === -1 ? n : end + 2;
       blank(chars, i, j);
       i = j;
+    } else if (opts.javaTextBlocks && text.startsWith('"""', i)) {
+      let j = i + 3;
+      while (j < n && !text.startsWith('"""', j)) j += text[j] === '\\' ? 2 : 1;
+      const end = Math.min(j + 3, n);
+      blank(chars, i, end);
+      chars[i] = '?'; // Keep a nonliteral argument distinct from an omitted argument.
+      i = end;
     } else if (c === '"' || c === "'" || (backtick && c === '`')) {
       let j = i + 1;
       while (j < n) {

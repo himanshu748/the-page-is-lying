@@ -565,6 +565,55 @@ describe('Java', () => {
     expect(route(i, 'PUT', '/api/orders/bulk')).toHaveLength(1);
     expect(i.routes.map((r) => r.path)).not.toContain('/api/orders/commented');
   });
+  it('scopes Spring prefixes to each controller and skips an unresolved prefix', () => {
+    const source = [
+      '@RestController',
+      '@RequestMapping({"/admin", "/ops"})',
+      'class AdminController {',
+      '  @GetMapping("/status") void status() {}',
+      '}',
+      '@RestController',
+      'class PublicController {',
+      '  @GetMapping("/health") void health() {}',
+      '}',
+      '@RestController',
+      '@RequestMapping(API_PREFIX)',
+      'class DynamicController {',
+      '  @GetMapping("/unknown") void unknown() {}',
+      '}',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'Controllers.java', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ path }) => path).sort()).toEqual(['/admin/status', '/health', '/ops/status']);
+    expect(index.coverage.routes).toBe('partial');
+  });
+  it('keeps Spring routes after Java text blocks containing quoted braces', () => {
+    const source = [
+      '@RestController',
+      '@RequestMapping("/api")',
+      'class Controller {',
+      '  static final String JSON = """',
+      '    {"value": "}"}',
+      '    @GetMapping("/fake")',
+      '    """;',
+      '  @GetMapping("/health") void health() {}',
+      '}',
+      '@RequestMapping("""',
+      '  /dynamic-prefix',
+      '  """)',
+      'class TextBlockController {',
+      '  @GetMapping("/status") void status() {}',
+      '}',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'Controller.java', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ path, line }) => ({ path, line }))).toEqual([{ path: '/api/health', line: 8 }]);
+    expect(index.coverage.routes).toBe('partial');
+  });
   it('JAX-RS', () => {
     expect(route(i, 'GET', '/ping/:param')).toHaveLength(1);
   });

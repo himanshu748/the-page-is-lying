@@ -610,43 +610,66 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
   const ctx = makeCtx(acc, file, masked, original);
   const text = masked;
   if (/\bRouterFunction\b|\bRouterFunctions\b/.test(text)) acc.partial.routes = true;
-  const classPos = [...text.matchAll(/\b(?:class|interface)\s+\w+/g)].map((m) => m.index);
+  const classPos = [...text.matchAll(/\b(?:class|interface)\s+\w+/g)]
+    .filter((match) => !insideSpan(ctx.spans, match.index))
+    .map((match) => match.index);
   if (classPos.length === 0) return;
-  let classPrefix = '';
-  const firstClass = classPos[0] as number;
+  const classScopes = classPos.map((start) => {
+    const open = text.indexOf('{', start);
+    return { start, end: open === -1 ? -1 : findClose(text, open) };
+  });
+  const classPrefixes = new Map<number, string[] | null>();
 
   const annoRe = /@(Get|Post|Put|Patch|Delete|Request)Mapping\b(?:\s*\(([^)]*)\))?/g;
   const pathsIn = (args: string | undefined): string[] | undefined => {
     if (args === undefined || args.trim() === '') return [''];
-    const named = /\b(?:value|path)\s*=\s*(\{[^}]*\}|"[^"]*"|[\w.]+)/.exec(args);
-    const bare = /^\s*(\{[^}]*\}|"[^"]*")/.exec(args);
-    const spec = named?.[1] ?? bare?.[1];
+    const parts = splitArgs(args);
+    const named = parts.find((part) => /^(?:value|path)\s*=/.test(part.src));
+    const first = parts[0];
+    const spec = named?.src.replace(/^(?:value|path)\s*=\s*/, '')
+      ?? (first && !/^\w+\s*=/.test(first.src) ? first.src : undefined);
     if (spec === undefined) return [''];
-    const lits = [...spec.matchAll(/"([^"]*)"/g)].map((x) => x[1] as string);
-    if (lits.length === 0 || /[A-Za-z_]\w*\s*[+,)]|\+/.test(spec.replace(/"[^"]*"/g, ''))) return undefined;
-    return lits;
+    if (spec.startsWith('{') && findClose(spec, 0) === spec.length - 1) {
+      const entries = splitArgs(spec.slice(1, -1)).filter(({ src }) => src !== '');
+      const paths = entries.map(({ literal }) => literal).filter((literal): literal is string => literal !== undefined);
+      return paths.length !== entries.length ? undefined : paths.length > 0 ? paths : [''];
+    }
+    const path = stringLiteral(spec);
+    return path === undefined ? undefined : [path];
   };
 
   for (const m of text.matchAll(annoRe)) {
     const kind = m[1] as string;
     const args = m[2];
+    if (insideSpan(ctx.spans, m.index)) continue;
     const paths = pathsIn(args);
-    const isClassLevel = kind === 'Request' && /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:public\s+|abstract\s+|final\s+)*(?:class|interface)\b/.test(text.slice(m.index + m[0].length, m.index + m[0].length + 400));
+    const after = m.index + m[0].length;
+    const isClassLevel = kind === 'Request' && /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:(?:public|protected|private|abstract|final|static|strictfp|sealed|non-sealed)\s+)*(?:class|interface)\b/.test(text.slice(after, after + 400));
+    if (isClassLevel) {
+      const owner = classPos.find((position) => position >= after);
+      if (owner !== undefined) classPrefixes.set(owner, paths ?? null);
+      if (paths === undefined) acc.partial.routes = true;
+      continue;
+    }
     if (paths === undefined) {
       acc.partial.routes = true;
       continue;
     }
-    if (isClassLevel) {
-      classPrefix = paths[0] ?? '';
+    const scope = classScopes.findLast(({ start, end }) => start < m.index && end > m.index);
+    if (!scope) {
+      acc.partial.routes = true;
       continue;
     }
-    if (m.index < firstClass) continue;
+    const prefixes = classPrefixes.get(scope.start);
+    if (prefixes === null) continue;
     let methods: Array<HttpMethod | 'ANY'>;
     if (kind === 'Request') {
       const found = [...(args ?? '').matchAll(/RequestMethod\s*\.\s*(\w+)/g)].map((x) => methodFromName(x[1] as string)).filter((x): x is HttpMethod | 'ANY' => x !== undefined);
       methods = found.length > 0 ? found : ['ANY'];
     } else methods = [methodFromName(kind) as HttpMethod];
-    for (const p of paths) for (const mt of methods) addRoute(ctx, m.index, '', 'spring', mt, joinRoute(classPrefix, p));
+    for (const prefix of prefixes ?? ['']) {
+      for (const p of paths) for (const mt of methods) addRoute(ctx, m.index, '', 'spring', mt, joinRoute(prefix, p));
+    }
   }
 
   // JAX-RS
@@ -822,6 +845,6 @@ export function resolveRoutes(acc: IndexAcc): void {
 export function maskFor(path: string, text: string): string {
   const ext = extOf(path);
   if (ext === 'py') return maskPython(text);
-  if (ext === 'go' || ext === 'java') return maskCStyleComments(text, { backtickStrings: ext === 'go' });
+  if (ext === 'go' || ext === 'java') return maskCStyleComments(text, { backtickStrings: ext === 'go', javaTextBlocks: ext === 'java' });
   return maskCStyleComments(text);
 }
