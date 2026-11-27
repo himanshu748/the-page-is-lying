@@ -81,6 +81,11 @@ same endpoint. Record any environment suffix on the returned tool names.
 Run Inspector and its OAuth browser on the same computer so Atlassian can
 return to Inspector's local callback.
 
+If you configure OAuth scopes manually, include Atlassian's required
+`read:me`, `read:account` and `offline_access` scopes alongside the
+Confluence scopes the client needs. The last scope lets the client refresh its
+grant. [Atlassian OAuth troubleshooting](https://support.atlassian.com/rovo/kb/mcp-v2-oauth-required-base-scopes-for-custom-clients/).
+
 The app's tools are read-only and use the caller's page permissions. The
 Atlassian gateway consent screen may list broader permissions than the app
 uses. See the

@@ -40,6 +40,16 @@ route without evidence.
 For the live Forge and Rovo flow, install with the link above and
 [open the sample runbook](docs/setup.md#judge-setup).
 
+### Checks judges can reproduce
+
+- **Public repository.** Replay a documented `http-server` flag against a
+  pinned upstream commit. The checker cites where the code reads the flag,
+  suggests the two-dash spelling and verifies the corrected command.
+  [Run the public repository check](docs/real-world/http-server.md#reproduce-the-flag-check).
+- **Confluence and MCP.** Start with the sample runbook and compare the five
+  external calls against their expected results.
+  [Open the five-call checklist](docs/agent-eval.md#3-mcp-server-fresh-install-checklist).
+
 [Video](https://www.youtube.com/watch?v=GAsxA1YAr-4) ·
 [Devpost](https://devpost.com/software/the-page-is-lying) · [MIT](LICENSE)
 

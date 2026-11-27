@@ -48,6 +48,10 @@ and discover all five tools on a fresh, authorized Confluence installation.
 The earlier [development integration results](integration-results.md) record
 the two-tool version that was deployed at the time.
 
+The [Codegeist submission](https://devpost.com/software/the-page-is-lying)
+records all five calls against production version 3.0.0 on the original
+demo site on Nov 23, 2026. The checklist below is for a separate installation.
+
 1. Record the Confluence site, Forge environment and installed version, and
    external client name and version.
 2. In **Connected apps**, verify **Expose tools to MCP-compatible apps** is
