@@ -53,6 +53,16 @@ describe('manifest.yml contract', () => {
     expect(mod('confluence:globalSettings')[1]?.['useAsGetStarted']).toBe(true);
   });
 
+  it('lists every MCP tool exactly once in both judge setup tables', () => {
+    const root = join(import.meta.dirname, '..', '..');
+    const tools = (mod('rovo:mcp')[0]?.['tools'] as string[]).slice().sort();
+    for (const doc of ['docs/setup.md', 'docs/agent-eval.md']) {
+      const text = readFileSync(join(root, doc), 'utf8');
+      const documentedTools = Array.from(text.matchAll(/^\| `([a-z-]+)` \|/gm), (match) => match[1]);
+      expect(documentedTools.sort(), doc).toEqual(tools);
+    }
+  });
+
   it('keeps every action read-only (actionVerb GET)', () => {
     for (const action of mod('action')) expect(action['actionVerb']).toBe('GET');
   });
