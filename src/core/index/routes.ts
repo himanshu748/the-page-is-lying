@@ -618,7 +618,10 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
     const open = text.indexOf('{', start);
     return { start, end: open === -1 ? -1 : findClose(text, open) };
   });
-  const classPrefixes = new Map<number, string[] | null>();
+  const classMappings = new Map<number, { paths: string[] | null; methods: Array<HttpMethod | 'ANY'> }>();
+  const staticMethods = new Set([...text.matchAll(/^\s*import\s+static\s+org\.springframework\.web\.bind\.annotation\.RequestMethod\.([A-Z]+|\*)\s*;/gm)]
+    .filter((match) => !insideSpan(ctx.spans, match.index))
+    .map((match) => match[1] as string));
 
   const annoRe = /@(Get|Post|Put|Patch|Delete|Request)Mapping\b(?:\s*\(([^)]*)\))?/g;
   const pathsIn = (args: string | undefined): string[] | undefined => {
@@ -637,6 +640,26 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
     const path = stringLiteral(spec);
     return path === undefined ? undefined : [path];
   };
+  const methodsIn = (args: string | undefined): Array<HttpMethod | 'ANY'> => {
+    const option = splitArgs(args ?? '').find((part) => /^method\s*=/.test(part.src));
+    if (!option) return ['ANY'];
+    const spec = option.src.replace(/^method\s*=\s*/, '');
+    const values = spec.startsWith('{') && findClose(spec, 0) === spec.length - 1
+      ? splitArgs(spec.slice(1, -1)).map(({ src }) => src).filter(Boolean)
+      : [spec];
+    if (values.length === 0) return ['ANY'];
+
+    const methods: HttpMethod[] = [];
+    for (const value of values) {
+      const qualified = /^(?:org\.springframework\.web\.bind\.annotation\.)?RequestMethod\s*\.\s*([A-Z]+)$/.exec(value);
+      const imported = /^[A-Z]+$/.test(value) && (staticMethods.has(value) || staticMethods.has('*'));
+      const name = qualified?.[1] ?? (imported ? value : undefined);
+      const method = name === undefined ? undefined : toHttpMethod(name);
+      if (method === undefined) acc.partial.routes = true;
+      else methods.push(method);
+    }
+    return methods;
+  };
 
   for (const m of text.matchAll(annoRe)) {
     const kind = m[1] as string;
@@ -647,7 +670,7 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
     const isClassLevel = kind === 'Request' && /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:(?:public|protected|private|abstract|final|static|strictfp|sealed|non-sealed)\s+)*(?:class|interface)\b/.test(text.slice(after, after + 400));
     if (isClassLevel) {
       const owner = classPos.find((position) => position >= after);
-      if (owner !== undefined) classPrefixes.set(owner, paths ?? null);
+      if (owner !== undefined) classMappings.set(owner, { paths: paths ?? null, methods: methodsIn(args) });
       if (paths === undefined) acc.partial.routes = true;
       continue;
     }
@@ -660,14 +683,13 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
       acc.partial.routes = true;
       continue;
     }
-    const prefixes = classPrefixes.get(scope.start);
-    if (prefixes === null) continue;
-    let methods: Array<HttpMethod | 'ANY'>;
-    if (kind === 'Request') {
-      const found = [...(args ?? '').matchAll(/RequestMethod\s*\.\s*(\w+)/g)].map((x) => methodFromName(x[1] as string)).filter((x): x is HttpMethod | 'ANY' => x !== undefined);
-      methods = found.length > 0 ? found : ['ANY'];
-    } else methods = [methodFromName(kind) as HttpMethod];
-    for (const prefix of prefixes ?? ['']) {
+    const mapping = classMappings.get(scope.start);
+    if (mapping?.paths === null) continue;
+    const local = kind === 'Request' ? methodsIn(args) : [methodFromName(kind) as HttpMethod];
+    const shared: Array<HttpMethod | 'ANY'> = mapping?.methods ?? ['ANY'];
+    // Spring's combined condition is the union of its explicit method restrictions.
+    const methods = local.includes('ANY') ? shared : shared.includes('ANY') ? local : [...new Set([...shared, ...local])];
+    for (const prefix of mapping?.paths ?? ['']) {
       for (const p of paths) for (const mt of methods) addRoute(ctx, m.index, '', 'spring', mt, joinRoute(prefix, p));
     }
   }

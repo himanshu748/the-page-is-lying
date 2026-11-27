@@ -565,6 +565,34 @@ describe('Java', () => {
     expect(route(i, 'PUT', '/api/orders/bulk')).toHaveLength(1);
     expect(i.routes.map((r) => r.path)).not.toContain('/api/orders/commented');
   });
+  it('requires actual Spring method conditions instead of guessing from annotation text', () => {
+    const source = [
+      'import static org.springframework.web.bind.annotation.RequestMethod.POST;',
+      '@RestController',
+      'class Controller {',
+      '  @RequestMapping(path="/submit", method=POST) void submit() {}',
+      '  @RequestMapping(path="/mixed", method={RequestMethod.GET, RequestMethod.TRACE}) void mixed() {}',
+      '  @RequestMapping(path="/trace", method=RequestMethod.TRACE) void trace() {}',
+      '  @RequestMapping(path="/header", headers="X-Test=RequestMethod.DELETE") void header() {}',
+      '  @RequestMapping(path="/any", method={}) void any() {}',
+      '}',
+      '@RestController',
+      '@RequestMapping(path="/admin", method=POST)',
+      'class AdminController {',
+      '  @RequestMapping("/submit") void submit() {}',
+      '  @GetMapping("/mixed") void mixed() {}',
+      '}',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'Controller.java', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ method, path }) => `${method} ${path}`).sort()).toEqual([
+      'ANY /any', 'ANY /header', 'GET /admin/mixed', 'GET /mixed',
+      'POST /admin/mixed', 'POST /admin/submit', 'POST /submit',
+    ]);
+    expect(index.coverage.routes).toBe('partial');
+  });
   it('scopes Spring prefixes to each controller and skips an unresolved prefix', () => {
     const source = [
       '@RestController',
