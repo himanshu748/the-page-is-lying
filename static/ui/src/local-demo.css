@@ -1,0 +1,53 @@
+.local-demo {
+  max-width: 54rem;
+  margin: 1.5rem auto;
+  padding: 0 clamp(.75rem, 4vw, 2rem);
+}
+
+.local-demo header {
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 1.25rem;
+}
+
+.local-demo h1 {
+  font-size: clamp(1.8rem, 6vw, 2.8rem);
+  line-height: 1.15;
+  margin: .25rem 0;
+}
+
+.local-demo-context,
+.local-demo-change {
+  font-weight: 600;
+}
+
+.local-demo-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  flex-wrap: wrap;
+}
+
+.local-demo-toolbar h2,
+.local-demo-toolbar h3 {
+  margin: 0;
+}
+
+.local-demo-results {
+  list-style: none;
+  padding: 0;
+}
+
+.local-demo-results > li {
+  border-bottom: 1px solid var(--c-border);
+  padding: .8rem 0;
+}
+
+.local-demo-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .6rem;
+  background: var(--c-button-bg);
+  padding: .45rem .6rem;
+  overflow-wrap: anywhere;
+}
