@@ -39,7 +39,7 @@ interface Pushed {
   reason: string;
 }
 
-function setup() {
+function setup(failFirstEnqueue = false) {
   const kvs = new FakeKvs();
   const pushed: Pushed[] = [];
   const routes: Route[] = [
@@ -48,6 +48,10 @@ function setup() {
   ];
   const f = fakeFetch(routes);
   const enqueue = async (body: Pushed): Promise<void> => {
+    if (failFirstEnqueue) {
+      failFirstEnqueue = false;
+      throw new Error('queue unavailable');
+    }
     pushed.push(body);
   };
   const checkDeps: CheckDeps = {
@@ -71,6 +75,16 @@ const saved = { repoUrl: 'https://github.com/himanshu748/payments-api', ref: 'ma
 beforeEach(() => clearIndexCache());
 
 describe('full flow over the real modules', () => {
+  it('allows a manual retry immediately after the queue rejects the first request', async () => {
+    const { pushed, backend } = setup(true);
+    await backend.saveSettings(saved, {});
+    await expect(backend.enqueueIndex()).rejects.toThrow('queue unavailable');
+    expect(await backend.getIndexStatus()).toEqual({ state: 'none' });
+    await backend.enqueueIndex();
+    expect(pushed).toEqual([{ repoKey: KEY, reason: 'manual' }]);
+    expect((await backend.getIndexStatus()).state).toBe('indexing');
+  });
+
   it('walks from empty settings to a green page', async () => {
     const { kvs, f, pushed, checkDeps, backend } = setup();
     const adf = page('payments-api-runbook.adf.json');

@@ -5,7 +5,7 @@ import type { RepoSource } from '../../src/repo/source';
 import { FRESH_MS, HEAD_TTL_MS, getHeadSha, getIndexForCheck } from '../../src/storage/freshness';
 import type { FreshnessDeps } from '../../src/storage/freshness';
 import { clearIndexCache, writeIndex } from '../../src/storage/indexStore';
-import { headKey, repoKeyOf } from '../../src/storage/keys';
+import { headKey, repoKeyOf, statusKey } from '../../src/storage/keys';
 import { getStatus, setStatus } from '../../src/storage/status';
 import { loadFixture } from '../repo/helpers';
 import { FakeKvs } from './fakeKvs';
@@ -138,6 +138,22 @@ describe('getIndexForCheck', () => {
     const r = await getIndexForCheck(deps(kvs, source, q), REPO_KEY, 'main');
     expect(r).toMatchObject({ state: 'ready', stale: false, staleReason: 'rate_limited', resetAt: '2026-11-15T11:00:00.000Z', reindexQueued: false });
     expect(q).toEqual([]);
+  });
+
+  it('keeps the prior status when a stale-index rebuild cannot be queued', async () => {
+    const kvs = new FakeKvs();
+    await seed(kvs, t - FRESH_MS - 1000);
+    const previous = { state: 'ok' as const, updatedAt: new Date(t).toISOString(), sha: SHA_OLD };
+    await setStatus(kvs, REPO_KEY, previous);
+    const { source } = fakeSource([() => SHA_NEW]);
+    const unavailable = { ...deps(kvs, source, []), enqueue: async () => { throw new Error('queue unavailable'); } };
+    await expect(getIndexForCheck(unavailable, REPO_KEY, 'main')).rejects.toThrow('queue unavailable');
+    expect(await getStatus(kvs, REPO_KEY)).toEqual(previous);
+    // Rollback must never write the status key a worker might have just advanced.
+    expect(kvs.writeOrder().filter((key) => key === statusKey(REPO_KEY))).toHaveLength(2);
+    const pushed: unknown[] = [];
+    await expect(getIndexForCheck(deps(kvs, source, pushed), REPO_KEY, 'main')).resolves.toMatchObject({ state: 'ready', stale: true, reindexQueued: true });
+    expect(pushed).toEqual([{ repoKey: REPO_KEY, reason: 'stale' }]);
   });
 
   it('keeps serving the old index when the repo disappears', async () => {

@@ -14,7 +14,7 @@ import type { KvsLike } from './kvs';
 import { StorageError } from './kvs';
 import { loadIndex, readPointer } from './indexStore';
 import type { IndexPointer } from './indexStore';
-import { getStatus, isInFlight, setStatus } from './status';
+import { getStatus, isInFlight, queueIndexJob } from './status';
 
 export const HEAD_TTL_MS = 10 * 60 * 1000;
 export const FRESH_MS = 15 * 60 * 1000;
@@ -96,12 +96,7 @@ export interface FreshnessDeps {
 }
 
 async function queueIndex(deps: FreshnessDeps, repoKey: string, reason: 'missing' | 'stale'): Promise<boolean> {
-  const status = await getStatus(deps.kvs, repoKey);
-  if (isInFlight(status, deps.now())) return false;
-  const iso = new Date(deps.now()).toISOString();
-  await setStatus(deps.kvs, repoKey, { ...(status ?? {}), state: 'queued', updatedAt: iso, startedAt: iso });
-  await deps.enqueue({ repoKey, reason });
-  return true;
+  return queueIndexJob(deps.kvs, repoKey, deps.now(), () => deps.enqueue({ repoKey, reason }));
 }
 
 export async function getIndexForCheck(deps: FreshnessDeps, repoKey: string, ref: string | undefined, kinds: readonly IndexKind[] = INDEX_KINDS): Promise<IndexLookup> {
