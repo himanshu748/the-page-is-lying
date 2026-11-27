@@ -41,7 +41,8 @@ export interface Mount {
   file: string;
   /** Name of the parent receiver in `file`. */
   parent: string;
-  prefix: string;
+  /** Literal mount prefix, or null when the runtime determines the prefix. */
+  prefix: string | null;
   /** Local receiver name, resolved later against receivers in the same file. */
   local?: string;
   /** Import target as written; resolved later against the repo file list. */
