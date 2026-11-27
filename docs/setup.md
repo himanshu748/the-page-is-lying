@@ -52,17 +52,33 @@ repository coordinates from the saved settings.
 
 ## External MCP clients
 
-On a site where the app is installed, a site administrator can enable external
-tools under the app's details in **Connected apps**. The tools are
-`check-page`, `check-claim`, `explain-claim`, `suggest-fix`, and `audit-space`.
+On the authorized Confluence site where the app is installed, a site or
+organization administrator opens **Atlassian Administration → Apps → Sites →
+the site → Connected apps → The Page Is Lying → View app details → Tools** and
+enables all five tools. Atlassian saves this selection per installation.
+
+| Tool | What it returns |
+| --- | --- |
+| `check-page` | Checks an accessible Confluence page against the repository index. |
+| `check-claim` | Checks one claim against the index. |
+| `explain-claim` | Explains the verdict and its supporting evidence. |
+| `suggest-fix` | Returns a grounded correction for a contradicted claim. |
+| `audit-space` | Summarizes findings across accessible pages in a Confluence space. |
+
+In Claude Code, add the server and open `/mcp` in a new session.
 
 ~~~sh
 claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0
 ~~~
 
-Complete Atlassian OAuth in your client. The consent screen shows the gateway's
-permissions. The app's MCP tools are read-only and use the caller's page
-permissions. See the [consent screenshot](screenshots/mcp-oauth-consent-production.png)
-and [Rovo and MCP verification notes](agent-eval.md).
+Complete Atlassian OAuth in the client. Select the same Confluence site and
+review the consent screen. In the client, select `runbook-checker` and compare
+the discovered tool list with the five keys above. In MCP Inspector, the
+equivalent is **Tools → List Tools** on the Streamable HTTP connection to the
+same endpoint. Record any environment suffix on the returned tool names.
+
+The app's tools are read-only and use the caller's page permissions. See the
+[consent screenshot](screenshots/mcp-oauth-consent-production.png) and the
+[fresh-install checklist](agent-eval.md#3-mcp-server-fresh-install-checklist).
 
 [Privacy policy](../PRIVACY.md)
