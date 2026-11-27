@@ -5,7 +5,7 @@ import type { RepoSource } from '../../src/repo/source';
 import { FRESH_MS, HEAD_TTL_MS, getHeadSha, getIndexForCheck } from '../../src/storage/freshness';
 import type { FreshnessDeps } from '../../src/storage/freshness';
 import { clearIndexCache, writeIndex } from '../../src/storage/indexStore';
-import { headKey, repoKeyOf } from '../../src/storage/keys';
+import { headKey, repoKeyOf, statusKey } from '../../src/storage/keys';
 import { getStatus, setStatus } from '../../src/storage/status';
 import { loadFixture } from '../repo/helpers';
 import { FakeKvs } from './fakeKvs';
@@ -149,6 +149,8 @@ describe('getIndexForCheck', () => {
     const unavailable = { ...deps(kvs, source, []), enqueue: async () => { throw new Error('queue unavailable'); } };
     await expect(getIndexForCheck(unavailable, REPO_KEY, 'main')).rejects.toThrow('queue unavailable');
     expect(await getStatus(kvs, REPO_KEY)).toEqual(previous);
+    // Rollback must never write the status key a worker might have just advanced.
+    expect(kvs.writeOrder().filter((key) => key === statusKey(REPO_KEY))).toHaveLength(2);
     const pushed: unknown[] = [];
     await expect(getIndexForCheck(deps(kvs, source, pushed), REPO_KEY, 'main')).resolves.toMatchObject({ state: 'ready', stale: true, reindexQueued: true });
     expect(pushed).toEqual([{ repoKey: REPO_KEY, reason: 'stale' }]);

@@ -10,6 +10,7 @@ export interface IndexStatus {
   updatedAt: string;
   startedAt?: string;
   queueAttempt?: string;
+  previousStatus?: IndexStatus;
   /** Commit of the last good index. */
   sha?: string;
   filesIndexed?: number;
@@ -21,7 +22,12 @@ export interface IndexStatus {
 }
 
 export async function getStatus(kvs: KvsLike, repoKey: string): Promise<IndexStatus | undefined> {
-  return kvs.get<IndexStatus>(statusKey(repoKey));
+  const status = await kvs.get<IndexStatus>(statusKey(repoKey));
+  if (status?.state === 'queued' && status.queueAttempt) {
+    const pending = await kvs.get<boolean>(attemptKey(repoKey, status.queueAttempt));
+    if (!pending) return status.previousStatus;
+  }
+  return status;
 }
 
 export async function setStatus(kvs: KvsLike, repoKey: string, status: IndexStatus): Promise<void> {
@@ -30,6 +36,8 @@ export async function setStatus(kvs: KvsLike, repoKey: string, status: IndexStat
 
 /** A queued or indexing status younger than this blocks another push. */
 export const IN_FLIGHT_MS = 6 * 60 * 1000;
+
+const attemptKey = (repoKey: string, attempt: string): string => `queue:${repoKey}:${attempt}`;
 
 export function isInFlight(status: IndexStatus | undefined, now: number): boolean {
   if (!status || (status.state !== 'queued' && status.state !== 'indexing')) return false;
@@ -43,18 +51,21 @@ export async function queueIndexJob(kvs: KvsLike, repoKey: string, now: number, 
   if (isInFlight(previous, now)) return false;
   const iso = new Date(now).toISOString();
   const queueAttempt = randomUUID();
-  await setStatus(kvs, repoKey, { ...previous, state: 'queued', updatedAt: iso, startedAt: iso, queueAttempt });
+  const key = attemptKey(repoKey, queueAttempt);
+  const terminal = previous?.state === 'ok' || previous?.state === 'error' ? previous : previous?.previousStatus;
+  await kvs.set(key, true, { ttl: { value: IN_FLIGHT_MS / 1000, unit: 'SECONDS' } });
   try {
+    await setStatus(kvs, repoKey, {
+      ...terminal, state: 'queued', updatedAt: iso, startedAt: iso, queueAttempt,
+      ...(terminal ? { previousStatus: terminal } : {}),
+    });
     await push();
   } catch (error) {
     try {
-      const current = await getStatus(kvs, repoKey);
-      if (current?.state === 'queued' && current.queueAttempt === queueAttempt) {
-        if (previous) await setStatus(kvs, repoKey, previous);
-        else await kvs.delete(statusKey(repoKey));
-      }
+      // The consumer owns the index status. Remove only this dispatch marker.
+      await kvs.delete(key);
     } catch {
-      console.warn('Could not restore the index status after a failed queue request.');
+      console.warn('Could not clear the failed index queue marker. It will expire.');
     }
     throw error;
   }
