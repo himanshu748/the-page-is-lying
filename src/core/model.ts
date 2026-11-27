@@ -124,6 +124,7 @@ export type ReasonCode =
   // verified
   | 'route_exact'
   | 'route_any_method'
+  | 'route_implicit_head'
   | 'env_read_in_code'
   | 'env_listed_in_config'
   | 'cli_defined'
@@ -149,6 +150,7 @@ export type ReasonCode =
   | 'coverage_none'
   | 'external_host'
   | 'route_wildcard_only'
+  | 'route_head_unconfirmed'
   | 'program_not_in_repo'
   | 'dynamic_definition'
   | 'cli_default_unresolved'
@@ -246,6 +248,8 @@ export interface RouteEntry extends SourceLocation {
   /** Normalized like HttpEndpointClaim.path. */
   path: string;
   framework: string;
+  /** The indexed GET route is registered on a confirmed Express receiver. */
+  implicitHead?: true;
 }
 
 export interface EnvEntry extends SourceLocation {

@@ -15,6 +15,44 @@ function index(name: string, extra: { truncated?: boolean } = {}): RepoIndex {
 
 const route = (i: RepoIndex, method: string, path: string) => i.routes.filter((r) => r.method === method && r.path === path);
 
+it('cites Express GET routes for implicit HEAD without replacing explicit HEAD evidence', () => {
+  const source = [
+    "import express from 'express';",
+    'const app = express();',
+    "app.get('/health', readHealth);",
+    'const router = express.Router();',
+    "router.head('/explicit', headStatus);",
+    "router.get('/explicit', getStatus);",
+    "router.get('/items/:id', readItem);",
+    "router.post('/post-only', writeItem);",
+    "router.get('/fallback/{*splat}', serveFrontend);",
+    "app.use('/v1', router);",
+    "app.get('/setting');",
+  ].join('\n');
+  const repoIndex = buildRepoIndex([{ path: 'src/server.ts', text: source }], {
+    repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+    stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+  });
+  const page = [
+    '`curl -I https://api.example.com/health`',
+    '`HEAD /v1/items/123`',
+    '`HEAD /v1/explicit`',
+    '`HEAD /v1/post-only`',
+    '`HEAD /v1/fallback/unlisted`',
+    '`HEAD /setting`',
+  ].join('\n\n');
+  const results = extractClaimsFromText(page).claims.map((claim) => matchClaim(claim, repoIndex, { serviceHosts: ['api.example.com'] }));
+  expect(results).toMatchObject([
+    { verdict: 'verified', reason: 'route_implicit_head', evidence: [{ file: 'src/server.ts', line: 3 }] },
+    { verdict: 'verified', reason: 'route_implicit_head', evidence: [{ file: 'src/server.ts', line: 7 }] },
+    { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/server.ts', line: 5 }] },
+    { verdict: 'contradicted' },
+    { verdict: 'unknown', reason: 'route_wildcard_only', evidence: [{ file: 'src/server.ts', line: 9 }] },
+    { verdict: 'contradicted' },
+  ]);
+  expect(results[0]?.statement).toContain('Express supports HEAD through the GET route at src/server.ts:3');
+});
+
 it.each([
   { fallback: '*', pattern: '/*' },
   { fallback: '/*splat', pattern: '/*splat' },

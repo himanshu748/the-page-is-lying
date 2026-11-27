@@ -42,6 +42,14 @@ describe('http_endpoint rules (7.2)', () => {
     expect(check({ type: 'http_endpoint', method: 'GET', path: '/v2/payments/:param' }, index).verdict).toBe('verified');
     expect(check({ type: 'http_endpoint', method: 'GET', path: '/v2/payments/123' }, index).verdict).toBe('verified');
   });
+  it('keeps an Express-shaped GET route without confirmed HEAD support unknown', () => {
+    const r = check({ type: 'http_endpoint', method: 'HEAD', path: '/v2/payments/123' }, index);
+    expect(r).toMatchObject({ verdict: 'unknown', reason: 'route_head_unconfirmed', evidence: [{ line: 92 }] });
+  });
+  it('does not infer HEAD from an OpenAPI GET operation', () => {
+    const declared = makeIndex({ routes: [{ ...route('GET', '/health', 12), framework: 'openapi' }] });
+    expect(check({ type: 'http_endpoint', method: 'HEAD', path: '/health' }, declared).verdict).toBe('contradicted');
+  });
   it('contradicted: complete coverage, no route, cites nearest', () => {
     const r = check({ type: 'http_endpoint', method: 'POST', path: '/v1/charge' }, index);
     expect(r).toMatchObject({ verdict: 'contradicted', reason: 'route_absent_nearest' });
