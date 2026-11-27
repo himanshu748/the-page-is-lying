@@ -63,12 +63,30 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
       let method: string | undefined;
       let hasData = false;
       let hasForm = false;
+      let uploadFile: string | undefined;
       let head = false;
       let get = false;
       let url: string | undefined;
+      let end = tokens.length;
       for (let i = 1; i < tokens.length; i++) {
         const value = tokens[i]?.value ?? '';
-        if (value === '-X' || value === '--request') {
+        if (value === '--next' || value === '-:') {
+          end = i; // An independent transfer has its own option group.
+          break;
+        }
+        const uploadOption = /^-([fGILsSv]*)T(.*)$/.exec(value);
+        if (uploadOption || value === '--upload-file' || value.startsWith('--upload-file=')) {
+          if (uploadOption?.[1]?.includes('I')) head = true;
+          if (uploadOption?.[1]?.includes('G')) get = true;
+          const file = value.startsWith('--upload-file=')
+            ? value.slice('--upload-file='.length)
+            : uploadOption?.[2] || tokens[++i]?.value;
+          if (file === undefined) {
+            url = undefined;
+            break;
+          }
+          uploadFile ??= file;
+        } else if (value === '-X' || value === '--request') {
           method = tokens[i + 1]?.value.toUpperCase();
           i++;
         } else if (/^-X[A-Za-z]+$/.test(value)) {
@@ -91,7 +109,7 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
           // The options in these bundles do not take arguments.
           if (value.includes('I')) head = true;
           if (value.includes('G')) get = true;
-        } else if (/^https?:\/\//i.test(value) && url === undefined) {
+        } else if (/^[a-z][a-z\d+.-]*:\/\//i.test(value) && url === undefined) {
           url = value;
         }
       }
@@ -100,10 +118,13 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
       if (!parsed) continue;
       // Curl rejects multipart with HEAD or raw data, and HEAD with a body.
       if ((hasForm && (head || hasData)) || (head && hasData && !get)) continue;
+      // Curl can append the local filename to an upload directory target.
+      const hasUpload = uploadFile !== undefined && uploadFile !== '';
+      if (hasUpload && (head || hasForm || hasData || url.split(/[?#]/, 1)[0]?.endsWith('/'))) continue;
       const posts = hasForm || (hasData && !get);
-      const resolved = method ?? (head ? 'HEAD' : posts ? 'POST' : 'GET');
+      const resolved = method ?? (hasUpload ? 'PUT' : head ? 'HEAD' : posts ? 'POST' : 'GET');
       if (!isMethod(resolved)) continue;
-      const last = tokens[tokens.length - 1] ?? first;
+      const last = tokens[end - 1] ?? first;
       out.push({
         start: first.start,
         end: last.end,

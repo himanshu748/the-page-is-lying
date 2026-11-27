@@ -31,20 +31,23 @@ function setup(over: Partial<CheckDeps> & { load?: IndexLoadResult; page?: PageR
 }
 
 describe('checkDocument', () => {
-  it('cites the declared HEAD route for curl --head runbook examples', async () => {
+  it.each([
+    { method: 'HEAD', path: '/health', call: 'curl --head https://api.example.com/health' },
+    { method: 'PUT', path: '/reports/42', call: 'curl -T report.json https://api.example.com/reports/42' },
+  ] as const)('cites the declared $method route for curl runbook examples', async ({ method, path, call }) => {
     const index = demoIndex();
-    index.routes = [{ file: 'src/routes.ts', line: 24, snippet: "router.head('/health', health);", method: 'HEAD', path: '/health', framework: 'express' }];
+    index.routes = [{ file: 'src/routes.ts', line: 24, snippet: `router.${method.toLowerCase()}('${path}', handler);`, method, path, framework: 'express' }];
     const { deps } = setup({
       extractor: createClaimExtractor(),
       load: { ok: true, index, stale: false },
       matchOptions: { serviceHosts: ['api.example.com'] },
     });
     const command = { type: 'doc', content: [{ type: 'codeBlock', content: [
-      { type: 'text', text: 'curl --head https://api.example.com/health' },
+      { type: 'text', text: call },
     ] }] };
     const out = await checkDocument(deps, { adf: command });
     expect(out).toMatchObject({ ok: true, report: { counts: { claims: 1, verified: 1, contradicted: 0 }, results: [
-      { claim: { normalized: { type: 'http_endpoint', method: 'HEAD', path: '/health' } }, verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 24 }] },
+      { claim: { normalized: { type: 'http_endpoint', method, path } }, verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 24 }] },
     ] } });
   });
 
