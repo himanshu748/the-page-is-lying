@@ -108,6 +108,19 @@ function hasSpec(imports: JsImports, test: (s: string) => boolean): boolean {
   return false;
 }
 
+function fastifyMountPrefix(options: string | undefined): string | null {
+  if (options === undefined) return '';
+  if (!options.startsWith('{') || findClose(options, 0) !== options.length - 1) return null;
+  let prefix: string | null = '';
+  for (const { src } of splitArgs(options.slice(1, -1))) {
+    // A later explicit key overrides a spread or computed property.
+    if (/^(?:\.\.\.|\[|(?:get|set)\s+prefix\b)/.test(src)) prefix = null;
+    const property = /^(?:prefix|(['"])prefix\1)\s*(?::\s*([\s\S]+))?$/.exec(src);
+    if (property) prefix = stringLiteral(property[2] ?? '') ?? null;
+  }
+  return prefix;
+}
+
 export function indexJsRoutes(acc: IndexAcc, file: string, original: string, masked: string): void {
   const ctx = makeCtx(acc, file, masked, original);
   const text = masked;
@@ -271,18 +284,10 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     const kind = m[2] as string;
     let prefix: string | null = '';
     let target: string | undefined;
-    let optsArg: string | undefined;
     if (kind === 'register') {
       target = args[0]?.src;
-      optsArg = args[1]?.src;
-      if (optsArg !== undefined) {
-        const pm = /\bprefix\s*:\s*(['"`])([^'"`]*)\1/.exec(optsArg);
-        if (pm) prefix = pm[2] as string;
-        else if (/\bprefix\s*:/.test(optsArg)) {
-          acc.partial.routes = true;
-          continue;
-        }
-      }
+      prefix = fastifyMountPrefix(args[1]?.src || undefined);
+      if (prefix === null) acc.partial.routes = true;
       if (target && /^(?:async\b|function\b|\()/.test(target)) {
         if (prefix !== '') acc.partial.routes = true; // inline plugin with a prefix: routes inside are not prefixed by us
         continue;

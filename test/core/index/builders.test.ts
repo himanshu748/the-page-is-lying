@@ -203,6 +203,45 @@ describe('Fastify, Hono, Koa', () => {
     expect(route(i, 'POST', '/webhook')).toHaveLength(1);
     expect(i.coverage.routes).toBe('complete');
   });
+  it.each([
+    '{ prefix: process.env.API_PREFIX }',
+    '{ prefix: `/${version}` }',
+    '{ prefix }',
+    'pluginOptions',
+    '{ prefix: "/overridden", ...pluginOptions }',
+  ])('Fastify: unresolved plugin options %s cannot confirm an unprefixed route', (options) => {
+    const fixture = index('fastify-app');
+    const i = buildRepoIndex([
+      { path: 'src/server.ts', text: [
+        "import Fastify from 'fastify';",
+        "import catalog from './catalog';",
+        "import status from './status';",
+        'const app = Fastify();',
+        `app.register(catalog, ${options});`,
+        "app.register(status, { ...pluginOptions, prefix: '/stable' });",
+        "app.get('/health', handler);",
+      ].join('\n') },
+      { path: 'src/catalog.ts', text: [
+        "import type { FastifyInstance } from 'fastify';",
+        'export default function catalog(instance: FastifyInstance) {',
+        "  instance.get('/books', handler);",
+        '}',
+      ].join('\n') },
+      { path: 'src/status.ts', text: [
+        "import type { FastifyInstance } from 'fastify';",
+        'export default function status(instance: FastifyInstance) {',
+        "  instance.get('/status', handler);",
+        '}',
+      ].join('\n') },
+    ], { repo: fixture.repo, stats: { filesIndexed: 3, filesSkipped: 0, truncated: false } });
+    expect(i.coverage.routes).toBe('partial');
+    expect(i.routes.map((r) => r.path)).toEqual(['/health', '/stable/status']);
+    const { claims } = extractClaimsFromText('`GET /books`\n\n`GET /stable/status`');
+    expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/status.ts', line: 3 }] },
+    ]);
+  });
   it('Hono: basePath and route()', () => {
     const i = index('hono-app');
     expect(route(i, 'GET', '/api/hello')).toHaveLength(1);
