@@ -23,6 +23,10 @@ export function verifiedStatement(args: { claim: string; file: string; line: num
   return `Verified in code: ${args.claim} matches ${args.file}:${args.line}.`;
 }
 
+export function verifiedImplicitHeadStatement(args: { claim: string; file: string; line: number }): string {
+  return `Verified in code: ${args.claim} matches because Express supports HEAD through the GET route at ${args.file}:${args.line}.`;
+}
+
 export function contradictedRouteStatement(args: {
   claim: string;
   nearest?: { text: string; file: string; line: number };
@@ -81,6 +85,7 @@ export type UnknownReasonKey =
   | 'coverage_none'
   | 'external_host'
   | 'route_wildcard_only'
+  | 'route_head_unconfirmed'
   | 'program_not_in_repo'
   | 'dynamic_definition'
   | 'cli_default_unresolved'
@@ -100,6 +105,7 @@ const UNKNOWN_REASON_TEXT: Record<UnknownReasonKey, string> = {
   coverage_none: 'the code index found nothing of this kind in the repository',
   external_host: 'the claim names a host that is not one of the configured service hosts',
   route_wildcard_only: 'a catch-all route matches the path, and the index found no specific endpoint declaration',
+  route_head_unconfirmed: 'a GET route matches the path, but this index does not establish implicit HEAD support',
   program_not_in_repo: 'the program is not defined in this repository',
   dynamic_definition: 'the definition in code is built dynamically or could not be parsed',
   cli_default_unresolved: 'no unambiguous literal option default was indexed',
@@ -138,6 +144,7 @@ export const NO_SUGGESTION_UNKNOWN = `No edit suggested: no evidence was found e
 const REASON_EXPLANATION: Record<string, string> = {
   route_exact: 'A route with the same method and path is defined in the code.',
   route_any_method: 'The claim names no method, and a route with this path is defined in the code.',
+  route_implicit_head: 'The matching GET route belongs to an Express app or router, which handles HEAD through GET when no earlier HEAD handler applies.',
   env_read_in_code: 'The code reads an environment variable with this exact name.',
   env_listed_in_config: 'An env example, compose or Kubernetes file lists a variable with this exact name.',
   cli_defined: 'The command and every flag in the claim are defined in the code.',

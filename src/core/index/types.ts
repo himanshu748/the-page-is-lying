@@ -23,6 +23,8 @@ export interface Receiver {
   name: string;
   kind: ReceiverKind;
   framework: string;
+  /** Bound to an Express import, whose GET routes also handle HEAD. */
+  implicitHead?: true;
   /** Own prefix (Koa `prefix`, Flask `url_prefix`, FastAPI `prefix`, Hono `basePath`), or null if unresolved. */
   ownPrefix: string | null;
 }

@@ -98,7 +98,7 @@ export type CheckOutcome = { ok: true; report: Report; staleReason?: ReasonCode 
 export type PageCheckOutcome = { ok: true; report: Report; envelope: AgentEnvelope; page: PageContent } | CheckError;
 
 /** Part of the report cache key. Bump it when matching rules change the report. */
-export const MATCHER_VERSION = 'match-v4';
+export const MATCHER_VERSION = 'match-v5';
 
 /** Largest ADF the service accepts (PLAN.md 5.2: the front-end request limit is 500 KB). */
 export const MAX_ADF_BYTES = 400 * 1024;

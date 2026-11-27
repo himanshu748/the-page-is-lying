@@ -4,6 +4,7 @@ import { catchAllMinimumSegments } from '../route-path';
 import {
   contradictedRouteStatement,
   contradictedGenericStatement,
+  verifiedImplicitHeadStatement,
   verifiedStatement,
 } from '../wording';
 import { describeClaim, makeEvidence, makeSuggestion, toResult } from './evidence';
@@ -29,22 +30,27 @@ export function matchHttp(claim: Claim, n: HttpEndpointClaim, ctx: MatchContext)
   }
 
   const claimSegments = pathSegments(n.path);
-  const matching = index.routes.filter(
-    (route) => methodMatches(n.method, route.method) && segmentsMatch(claimSegments, pathSegments(route.path)),
-  );
+  const matchesPath = (route: RouteEntry): boolean => segmentsMatch(claimSegments, pathSegments(route.path));
+  const implicitHead = (route: RouteEntry): boolean => n.method === 'HEAD' && route.method === 'GET' && route.implicitHead === true;
+  const matching = index.routes.filter((route) => (methodMatches(n.method, route.method) || implicitHead(route)) && matchesPath(route));
   const specific = matching.filter((route) => isSpecificEvidence(route.path, n.path));
-  const hit = specific.find((route) => route.method === n.method) ?? specific[0];
+  const hit = specific.find((route) => route.method === n.method) ?? specific.find((route) => route.method === 'ANY') ?? specific[0];
   if (hit) {
+    const implied = implicitHead(hit);
     return toResult(
       claim,
       'verified',
-      n.method === 'ANY' ? 'route_any_method' : 'route_exact',
-      verifiedStatement({ claim: text, file: hit.file, line: hit.line }),
+      implied ? 'route_implicit_head' : n.method === 'ANY' ? 'route_any_method' : 'route_exact',
+      (implied ? verifiedImplicitHeadStatement : verifiedStatement)({ claim: text, file: hit.file, line: hit.line }),
       [makeEvidence(index, 'match', hit)],
     );
   }
   const catchAll = matching[0];
   if (catchAll) return unknownResult(claim, ctx, 'route_wildcard_only', undefined, [makeEvidence(index, 'nearest', catchAll)]);
+
+  // Old indexes and Express-shaped receivers without a confirmed binding cannot prove the fallback.
+  const unconfirmed = n.method === 'HEAD' && index.routes.find((route) => route.method === 'GET' && route.framework === 'express' && matchesPath(route));
+  if (unconfirmed) return unknownResult(claim, ctx, 'route_head_unconfirmed', undefined, [makeEvidence(index, 'nearest', unconfirmed)]);
 
   const coverage = index.coverage.routes;
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'routes');

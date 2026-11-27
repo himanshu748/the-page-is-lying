@@ -46,9 +46,9 @@ function makeCtx(acc: IndexAcc, file: string, masked: string, original: string):
   return { acc, file, text: masked, starts: lineStarts(masked), lines: splitLines(original), spans: stringSpans(masked, { backtickStrings: !file.endsWith('.java') }) };
 }
 
-function addReceiver(ctx: Ctx, name: string, kind: ReceiverKind, framework: string, ownPrefix: string | null = ''): void {
+function addReceiver(ctx: Ctx, name: string, kind: ReceiverKind, framework: string, ownPrefix: string | null = '', implicitHead = false): void {
   if (ctx.acc.receivers.some((r) => r.file === ctx.file && r.name === name)) return;
-  ctx.acc.receivers.push({ file: ctx.file, name, kind, framework, ownPrefix });
+  ctx.acc.receivers.push({ file: ctx.file, name, kind, framework, ownPrefix, ...(implicitHead ? { implicitHead: true } : {}) });
 }
 
 function addRoute(ctx: Ctx, offset: number, recv: string, framework: string, method: HttpMethod | 'ANY', path: string): void {
@@ -162,7 +162,9 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     const name = m[1] as string;
     const ctor = m[2] as string;
     const after = m.index + m[0].length;
-    if (/^express\s*\(/.test(ctor) || /^new\s+App\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express');
+    const binding = /^(?:new\s+)?([\w$]+)/.exec(ctor)?.[1];
+    const confirmedExpress = binding !== undefined && imports.byIdent.get(binding) === 'express';
+    if (/^express\s*\(/.test(ctor) || /^new\s+App\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'express', '', confirmedExpress);
     else if (/^new\s+Koa\s*\(/.test(ctor)) addReceiver(ctx, name, 'root', 'koa');
     else if (/^new\s+Hono/.test(ctor)) {
       const ctorArgs = /^\s*(?:<[^>]*>)?\s*\(/.exec(text.slice(after, after + 300));
@@ -193,7 +195,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
           else if (/\bprefix\s*:/.test(text.slice(open, close))) acc.partial.routes = true;
         }
       }
-      addReceiver(ctx, name, 'sub', routerFramework, prefix);
+      addReceiver(ctx, name, 'sub', routerFramework, prefix, routerFramework === 'express' && confirmedExpress);
     }
   }
   // Receivers typed by annotation or plugin signature.
@@ -241,6 +243,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     if (!first) continue;
     const method = methodFromName(m[2] as string);
     if (!method) continue;
+    if (recv.implicitHead && method === 'GET' && args.length < 2) continue; // A GET handler is required.
     if (first.src.startsWith('[')) {
       const arrClose = findClose(text, first.offset);
       const items = arrClose === -1 ? [] : splitArgs(text.slice(first.offset + 1, arrClose), first.offset + 1);
@@ -875,12 +878,8 @@ export function resolveRoutes(acc: IndexAcc): void {
   const seenRoute = new Set<string>();
   for (const d of acc.routeDefs) {
     if (acc.taintedRouteFiles.has(d.file)) continue;
-    let prefixes: string[] | undefined;
-    if (d.recv === '') prefixes = [''];
-    else {
-      const r = byKey.get(`${d.file}\u0000${d.recv}`);
-      prefixes = r ? prefixesFor(r, 0, new Set()) : undefined;
-    }
+    const receiver = byKey.get(`${d.file}\u0000${d.recv}`);
+    const prefixes = d.recv === '' ? [''] : receiver ? prefixesFor(receiver, 0, new Set()) : undefined;
     if (!prefixes) {
       acc.partial.routes = true;
       continue;
@@ -890,7 +889,10 @@ export function resolveRoutes(acc: IndexAcc): void {
       const k = `${d.method} ${path} ${d.file}:${d.line}`;
       if (seenRoute.has(k)) continue;
       seenRoute.add(k);
-      acc.routes.push({ file: d.file, line: d.line, snippet: d.snippet, method: d.method, path, framework: d.framework });
+      acc.routes.push({
+        file: d.file, line: d.line, snippet: d.snippet, method: d.method, path, framework: d.framework,
+        ...(d.method === 'GET' && receiver?.implicitHead ? { implicitHead: true } : {}),
+      });
     }
   }
 }
