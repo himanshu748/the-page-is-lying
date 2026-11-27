@@ -446,15 +446,14 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
         const entries = collection && findClose(value, 0) === value.length - 1
           ? splitArgs(value.slice(1, -1)).filter((arg, i, list) => arg.src !== '' || i < list.length - 1)
           : [];
-        const literalMethods = entries
-          .map(({ literal }) => literal === undefined ? undefined : toHttpMethod(literal))
-          .filter((method): method is HttpMethod => method !== undefined);
+        const literals = entries.map(({ literal }) => literal).filter((literal): literal is string => literal !== undefined);
         const parenthesizedString = value.startsWith('(') && entries.length === 1 && !/,\s*\)$/.test(value);
-        if (parenthesizedString || literalMethods.length === 0 || literalMethods.length !== entries.length) {
+        if (parenthesizedString || literals.length === 0 || literals.length !== entries.length) {
           acc.partial.routes = true;
           continue;
         }
-        methods = literalMethods;
+        methods = literals.map(toHttpMethod).filter((method): method is HttpMethod => method !== undefined);
+        if (methods.length !== literals.length) acc.partial.routes = true;
       } else if (args.some((arg) => arg.src.startsWith('**')) || verb === 'api_route') {
         acc.partial.routes = true;
       } else methods = ['GET'];

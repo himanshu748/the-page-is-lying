@@ -450,6 +450,8 @@ describe('Python', () => {
       'def expression_route(): pass',
       "@app.route('/explicit', methods=('GET', 'POST'))",
       'def explicit_route(): pass',
+      "@app.route('/mixed', methods=['GET', 'TRACE'])",
+      'def mixed_route(): pass',
       "@app.route('/default')",
       'def default_route(): pass',
       'from fastapi import FastAPI',
@@ -464,7 +466,7 @@ describe('Python', () => {
       stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
     });
     expect(index.routes.map(({ method, path }) => `${method} ${path}`).sort()).toEqual([
-      'GET /default', 'GET /explicit', 'PATCH /literal', 'POST /explicit', 'PUT /literal',
+      'GET /default', 'GET /explicit', 'GET /mixed', 'PATCH /literal', 'POST /explicit', 'PUT /literal',
     ]);
     expect(index.coverage.routes).toBe('partial');
   });
