@@ -80,6 +80,7 @@ export type UnknownReasonKey =
   | 'coverage_partial'
   | 'coverage_none'
   | 'external_host'
+  | 'route_wildcard_only'
   | 'program_not_in_repo'
   | 'dynamic_definition'
   | 'cli_default_unresolved'
@@ -98,6 +99,7 @@ const UNKNOWN_REASON_TEXT: Record<UnknownReasonKey, string> = {
   coverage_partial: 'the code index for this kind of claim is only partly complete',
   coverage_none: 'the code index found nothing of this kind in the repository',
   external_host: 'the claim names a host that is not one of the configured service hosts',
+  route_wildcard_only: 'a catch-all route matches the path, and the index found no specific endpoint declaration',
   program_not_in_repo: 'the program is not defined in this repository',
   dynamic_definition: 'the definition in code is built dynamically or could not be parsed',
   cli_default_unresolved: 'no unambiguous literal option default was indexed',

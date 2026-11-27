@@ -20,6 +20,16 @@
   font-weight: 600;
 }
 
+.local-demo label.local-demo-context {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.local-demo select {
+  font: inherit;
+  max-width: 100%;
+}
+
 .local-demo-toolbar {
   display: flex;
   align-items: center;

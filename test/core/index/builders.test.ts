@@ -15,6 +15,31 @@ function index(name: string, extra: { truncated?: boolean } = {}): RepoIndex {
 
 const route = (i: RepoIndex, method: string, path: string) => i.routes.filter((r) => r.method === method && r.path === path);
 
+it('does not verify removed API endpoints through a frontend fallback route', () => {
+  const source = [
+    "import express from 'express';",
+    'const app = express();',
+    "app.get('/v2/refunds/:id', readRefund);",
+    "app.get('*', serveFrontend);",
+  ].join('\n');
+  const repoIndex = buildRepoIndex([{ path: 'src/server.ts', text: source }], {
+    repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+    stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+  });
+  const page = [
+    '`GET /v1/refunds/123`',
+    '`GET /v2/refunds/123`',
+    '`GET /*`',
+    '`POST /v1/refunds/123`',
+  ].join('\n\n');
+  expect(extractClaimsFromText(page).claims.map((claim) => matchClaim(claim, repoIndex))).toMatchObject([
+    { verdict: 'unknown', reason: 'route_wildcard_only', evidence: [{ file: 'src/server.ts', line: 4 }] },
+    { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/server.ts', line: 3 }] },
+    { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/server.ts', line: 4 }] },
+    { verdict: 'contradicted', evidence: [{ file: 'src/server.ts', line: 3 }, { kind: 'absence' }] },
+  ]);
+});
+
 it('checks literal defaults in a Markdown option table independently of flag names', () => {
   const source = [
     "import { Command } from 'commander';",

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { extractClaims } from '@core/claims/index';
+import { extractClaims, extractClaimsFromText } from '@core/claims/index';
 import { buildRepoIndex } from '@core/index/build';
 import { buildReport, matchClaims } from '@core/match/index';
 import brokenPage from '../../../demo/confluence/payments-api-runbook.adf.json?raw';
 import fixedPage from '../../../demo/confluence/payments-api-runbook.fixed.adf.json?raw';
+import catchAllSource from '../../../demo/fixtures/catch-all/server.js?raw';
 import { STATUS_LABEL, StatusIcon } from './status';
 import './styles.css';
 import './local-demo.css';
@@ -36,31 +37,55 @@ function checkRunbook(page: string) {
 
 const original = checkRunbook(brokenPage);
 const corrected = checkRunbook(fixedPage);
+const catchAllIndex = buildRepoIndex([{ path: 'server.js', text: catchAllSource }], {
+  repo: { ...index.repo, fullName: 'local/express-frontend', sha: 'local-fixture' },
+  stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+});
+const catchAllClaims = extractClaimsFromText('`GET /v1/refunds/123`\n\n`GET /v2/refunds/{id}`\n\n`GET /*`');
+const catchAllReport = buildReport({
+  index: catchAllIndex,
+  results: matchClaims(catchAllClaims.claims, catchAllIndex),
+  claimsTruncated: catchAllClaims.claimsTruncated,
+});
 const verdicts = ['verified', 'contradicted', 'unknown'] as const;
 
 function LocalDemo() {
   const [fixed, setFixed] = useState(false);
-  const report = fixed ? corrected : original;
+  const [showCatchAll, setShowCatchAll] = useState(false);
+  const report = showCatchAll ? catchAllReport : fixed ? corrected : original;
 
   return (
     <main className="local-demo">
       <header>
-        <p className="local-demo-context">Local demo · Bundled payments fixture</p>
+        <p className="local-demo-context">Local demo · Bundled code fixtures</p>
         <h1>The Page Is Lying</h1>
-        <p>Check a runbook against its code, correct one outdated route, and see which verdict changes.</p>
+        <p>Check a runbook against its code and follow each verdict to its source.</p>
         <p className="muted">The checker runs in this browser. For the live Forge and Rovo flow, use the Confluence setup.</p>
       </header>
       <section aria-labelledby="local-demo-title">
+        <label className="local-demo-context">
+          Runbook example{' '}
+          <select value={showCatchAll ? 'catch-all' : 'payments'} onChange={(event) => setShowCatchAll(event.target.value === 'catch-all')}>
+            <option value="payments">Outdated payments route</option>
+            <option value="catch-all">Removed API behind a catch-all</option>
+          </select>
+        </label>
         <div className="local-demo-toolbar">
-          <h2 id="local-demo-title">Payments runbook</h2>
-          <button className="btn" type="button" onClick={() => setFixed(!fixed)}>
-            {fixed ? 'Restore original runbook' : 'Apply route correction'}
-          </button>
+          <h2 id="local-demo-title">{showCatchAll ? 'Refunds runbook' : 'Payments runbook'}</h2>
+          {!showCatchAll && (
+            <button className="btn" type="button" onClick={() => setFixed(!fixed)}>
+              {fixed ? 'Restore original runbook' : 'Apply route correction'}
+            </button>
+          )}
         </div>
-        <p className="local-demo-change">
-          {fixed ? 'Updated the route to ' : 'The runbook still says '}
-          <code>{fixed ? 'POST /v2/payments' : 'POST /v1/charge'}</code>.
-        </p>
+        {showCatchAll ? (
+          <p className="local-demo-change">The app has a frontend fallback and a refunds handler on the new path.</p>
+        ) : (
+          <p className="local-demo-change">
+            {fixed ? 'Updated the route to ' : 'The runbook still says '}
+            <code>{fixed ? 'POST /v2/payments' : 'POST /v1/charge'}</code>.
+          </p>
+        )}
         <ul className="counts" aria-label="Claims by status" aria-live="polite">
           {verdicts.map((verdict) => (
             <li key={verdict} className={`count count-${verdict}`}>
