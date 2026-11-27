@@ -290,6 +290,33 @@ describe('Fastify, Hono, Koa', () => {
     expect(route(i, 'GET', '/v1/status')[0]?.line).toBe(5);
     expect(route(i, 'POST', '/v1/jobs')).toHaveLength(1);
   });
+  it.each([
+    '{ prefix: process.env.API_PREFIX }',
+    '{ prefix: `/v${version}` }',
+    '{ prefix }',
+    'routerOptions',
+    '{ prefix: "/overridden", ...routerOptions }',
+  ])('Koa: unresolved router options %s cannot confirm an unprefixed route', (options) => {
+    const fixture = index('koa-app');
+    const i = buildRepoIndex([{ path: 'src/server.ts', text: [
+      "import Koa from 'koa';",
+      "import Router from '@koa/router';",
+      'const app = new Koa();',
+      `const catalog = new Router(${options});`,
+      "const status = new Router({ ...routerOptions, prefix: '/stable' });",
+      "catalog.get('/books', handler);",
+      "status.get('/status', handler);",
+      'app.use(catalog.routes());',
+      'app.use(status.routes());',
+    ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+    expect(i.coverage.routes).toBe('partial');
+    expect(i.routes.map((r) => r.path)).toEqual(['/stable/status']);
+    const { claims } = extractClaimsFromText('`GET /books`\n\n`GET /stable/status`');
+    expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/server.ts', line: 7 }] },
+    ]);
+  });
 });
 
 describe('yargs', () => {
