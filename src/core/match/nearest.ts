@@ -1,5 +1,6 @@
 /** Nearest-alternative ranking (PLAN.md 7.2). Pure and deterministic: ties break by file then line. Top 3. */
 import type { ConfigEntry, EnvEntry, FileEntry, HttpEndpointClaim, RouteEntry } from '../model';
+import { catchAllMinimumSegments } from '../route-path';
 import { jaroWinkler, sharedTokenScore } from './similarity';
 
 export const NEAREST_LIMIT = 3;
@@ -26,7 +27,8 @@ function isParam(segment: string): boolean {
 export function segmentsMatch(claimSegments: readonly string[], routeSegments: readonly string[]): boolean {
   for (let i = 0; i < routeSegments.length; i++) {
     const route = routeSegments[i] ?? '';
-    if (route === '*' && i === routeSegments.length - 1) return claimSegments.length >= i;
+    const minimum = catchAllMinimumSegments(route);
+    if (minimum !== undefined && i === routeSegments.length - 1) return claimSegments.length >= i + minimum;
     const claim = claimSegments[i];
     if (claim === undefined) return false;
     if (isParam(route)) continue;

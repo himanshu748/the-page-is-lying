@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { claimId, evidenceId, hash8, stableStringify } from '../../../src/core/ids';
-import { rankEnv, rankMovedFiles, rankNames, rankRoutes } from '../../../src/core/match/nearest';
+import { rankEnv, rankMovedFiles, rankNames, rankRoutes, segmentsMatch } from '../../../src/core/match/nearest';
 import { jaroWinkler, sharedTokenScore, tokens } from '../../../src/core/match/similarity';
 import { rangesIntersect } from '../../../src/core/match/semver';
 import { buildAgentEnvelope, buildReport, matchClaim, sanitizeUntrusted } from '../../../src/core/match';
@@ -31,6 +31,11 @@ describe('route ranking', () => {
   it('drops unrelated routes of another method', () => {
     expect(rankRoutes(claim, [r('GET', '/zzzzzzzz/qqqq/wwww', 1)])).toEqual([]);
   });
+});
+
+it('distinguishes a named wildcard from its root-inclusive form', () => {
+  expect(segmentsMatch([], ['*splat'])).toBe(false);
+  expect(segmentsMatch([], ['{*splat}'])).toBe(true);
 });
 
 describe('env ranking', () => {

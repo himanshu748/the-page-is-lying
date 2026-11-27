@@ -1,4 +1,5 @@
 import type { HttpMethod } from '../model';
+import { catchAllMinimumSegments } from '../route-path';
 import { inCode, overlaps, type BlockContext, type Candidate } from './context';
 import { stripPrefix, tokenizeSegment } from './shell';
 
@@ -19,7 +20,10 @@ export function normalizeHttpPath(input: string): string {
     .split('/')
     .filter((s) => s !== '' && s !== '.')
     .slice(0, MAX_SEGMENTS)
-    .map((s) => (/^\{.*\}$/.test(s) || /^<.*>$/.test(s) || /^\[.*\]$/.test(s) || /^:.+$/.test(s) ? ':param' : s));
+    .map((s) => {
+      if (catchAllMinimumSegments(s) !== undefined) return s;
+      return /^\{.*\}$/.test(s) || /^<.*>$/.test(s) || /^\[.*\]$/.test(s) || /^:.+$/.test(s) ? ':param' : s;
+    });
   return '/' + segments.join('/');
 }
 

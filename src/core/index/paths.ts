@@ -3,6 +3,8 @@
  * src/core/model.ts: params become ":param", no query, fragment or trailing slash.
  */
 
+import { catchAllMinimumSegments } from '../route-path';
+
 const MAX_PATH_LENGTH = 512;
 
 export function normalizeRoutePath(input: string): string {
@@ -22,7 +24,7 @@ function normalizeOnce(input: string): string {
   // Express style ":id", ":id?", ":id(\\d+)"
   p = p.replace(/:[A-Za-z_][\w-]*(?:\([^)]*\))?\??/g, ':param');
   // OpenAPI / FastAPI / Go 1.22 style "{id}", "{id:regex}", "{id...}"
-  p = p.replace(/\{[^{}/]*\}/g, ':param');
+  p = p.replace(/\{[^{}/]*\}/g, (segment) => catchAllMinimumSegments(segment) === undefined ? ':param' : segment);
   // Flask style "<id>", "<int:id>"
   p = p.replace(/<[^<>/]*>/g, ':param');
   p = p.replace(/\/{2,}/g, '/');
