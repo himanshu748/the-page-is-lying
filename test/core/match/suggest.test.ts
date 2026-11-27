@@ -55,6 +55,26 @@ describe('fix suggestions on contradicted results', () => {
     });
   });
 
+  it('cli flag: prefers the declared dash spelling and preserves the assigned value', () => {
+    const index = makeIndex({
+      cli: [
+        { ...loc('bin/http-server', 13), program: 'http-server', subcommands: [], flags: ['--port', '--dir-overrides-404'], kind: 'command', flagLines: { '--dir-overrides-404': 203 } },
+      ],
+    });
+    const result = matchClaim(
+      makeClaim({ type: 'cli', program: 'http-server', subcommands: [], flags: ['-dir-overrides-404', '--port'] },
+        'http-server -dir-overrides-404=false --port 3000'),
+      index,
+    );
+    expect(result.suggestion).toMatchObject({
+      kind: 'replace',
+      replacement: 'http-server --dir-overrides-404=false --port 3000',
+      evidenceId: result.evidence[0]?.id,
+    });
+    expect(result.evidence[0]).toMatchObject({ file: 'bin/http-server', line: 203 });
+    expect(result.statement).toContain('It defines --dir-overrides-404 at bin/http-server:203.');
+  });
+
   it('cli: the proposed command keeps the arguments and flag values the page wrote', () => {
     const index = makeIndex({
       cli: [

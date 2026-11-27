@@ -89,7 +89,7 @@ function swapToken(n: CliClaim, from: string, to: string): string {
  * program, so `deploy deploy` edits the subcommand and not the executable. Undefined when a token is not in
  * the text.
  */
-function editCommand(raw: string, program: string, remove: readonly string[], insert: string): string | undefined {
+function editCommand(raw: string, program: string, remove: readonly string[], insert: string, keepAssignment = false): string | undefined {
   const tokens = raw.trim().split(/\s+/);
   const at: number[] = [];
   let from = tokens.indexOf(program) + 1;
@@ -103,7 +103,8 @@ function editCommand(raw: string, program: string, remove: readonly string[], in
   const first = at[0];
   if (first === undefined) return undefined;
   const drop = new Set(at);
-  return tokens.flatMap((token, i) => (i === first && insert !== '' ? [insert] : drop.has(i) ? [] : [token])).join(' ');
+  const assigned = keepAssignment && tokens[first]?.includes('=') ? tokens[first].slice(tokens[first].indexOf('=')) : '';
+  return tokens.flatMap((token, i) => (i === first && insert !== '' ? [insert + assigned] : drop.has(i) ? [] : [token])).join(' ');
 }
 
 export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimResult {
@@ -234,13 +235,20 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
   if (coverage !== 'complete' && (target.flagsComplete !== true || incompleteDefinition || incompleteRoot)) {
     return unknownResult(claim, ctx, coverageReason(coverage), 'cli', [makeEvidence(index, 'nearest', target)]);
   }
-  const definition = makeEvidence(index, 'nearest', target);
   // The command without any flag the code does not define, so the proposed edit is not itself contradicted.
   // The defined flags the page does not already use are the alternatives.
   const kept = [n.program, ...n.subcommands, ...n.flags.filter((flag) => !unsupportedFlags.includes(flag))];
   const withoutFlag = editCommand(claim.raw, n.program, unsupportedFlags, '') ?? kept.join(' ');
   const withFlag = (flag: string): string => editCommand(claim.raw, n.program, unsupportedFlags, flag) ?? [...kept, flag].join(' ');
   const unused = target.flags.filter((flag) => !n.flags.includes(flag));
+  const otherSpelling = missing.startsWith('--') ? missing.slice(1) : `-${missing}`;
+  const correctedFlag = unsupportedFlags.length === 1 && unused.includes(otherSpelling) ? otherSpelling : undefined;
+  const correctedLine = correctedFlag === undefined ? undefined : target.flagLines?.[correctedFlag];
+  const definition = makeEvidence(index, 'nearest', correctedLine === undefined ? target : { file: target.file, line: correctedLine });
+  const repairs = [withoutFlag, ...unused.map(withFlag)];
+  if (correctedFlag !== undefined) {
+    repairs.unshift(editCommand(claim.raw, n.program, unsupportedFlags, correctedFlag, true) ?? withFlag(correctedFlag));
+  }
   return toResult(
     claim,
     'contradicted',
@@ -249,12 +257,12 @@ export function matchCli(claim: Claim, n: CliClaim, ctx: MatchContext): ClaimRes
       program: n.program,
       subcommand: subs.join(' '),
       flag: missing,
-      defined: target.flags,
+      defined: correctedFlag === undefined ? target.flags : [correctedFlag],
       file: target.file,
-      line: target.line,
+      line: correctedLine ?? target.line,
     }),
-    [definition, ...declaredFlagEvidence(index, target), absenceEvidence(ctx, 'cli')],
-    makeSuggestion([withoutFlag, ...unused.map(withFlag)], definition),
+    [definition, ...declaredFlagEvidence(index, target).filter((item) => item.id !== definition.id), absenceEvidence(ctx, 'cli')],
+    makeSuggestion(repairs, definition),
   );
 }
 
