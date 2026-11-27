@@ -11,6 +11,7 @@ import { joinRoute, normalizeRoutePath } from './paths';
 import { parseJsonTree, parseYamlTrees, mapGet, scalarString } from './structured';
 import type { TreeNode } from './structured';
 import {
+  type Arg,
   dirName,
   extOf,
   findClose,
@@ -119,6 +120,22 @@ function optionsPrefix(options: string | undefined): string | null {
     if (property) prefix = stringLiteral(property[2] ?? '') ?? null;
   }
   return prefix;
+}
+
+function fastifyRouteFields(options: Arg): Partial<Record<'method' | 'url' | 'path', Arg | null>> {
+  const fields: Partial<Record<'method' | 'url' | 'path', Arg | null>> = {};
+  for (const { src, offset } of splitArgs(options.src.slice(1, -1), options.offset + 1)) {
+    if (/^(?:\.\.\.|(?:(?:get|set|async)\s+)?\*?\s*\[)/.test(src)) {
+      fields.method = fields.url = fields.path = null;
+      continue;
+    }
+    const property = /^(?:(?:get|set|async)\s+)?\*?\s*(?:(['"])(method|url|path)\1|(method|url|path)(?![\w$]))\s*([\s\S]*)$/.exec(src);
+    if (!property) continue;
+    const key = (property[2] ?? property[3]) as keyof typeof fields;
+    const tail = property[4] ?? '';
+    fields[key] = tail.startsWith(':') ? { src: tail.slice(1).trim(), offset } : null;
+  }
+  return fields;
 }
 
 export function indexJsRoutes(acc: IndexAcc, file: string, original: string, masked: string): void {
@@ -254,27 +271,31 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
   }
 
   // Fastify: app.route({ method, url })
-  for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*route\s*\(\s*\{/g)) {
+  for (const m of text.matchAll(/\b([\w$]+)\s*\.\s*route\s*\(/g)) {
     if (insideSpan(ctx.spans, m.index)) continue;
     const recv = recvByName(m[1] as string);
-    if (!recv) continue;
+    if (recv?.framework !== 'fastify') continue;
     const open = m.index + m[0].length - 1;
     const close = findClose(text, open);
-    if (close === -1) continue;
-    const body = text.slice(open, close);
-    const url = /\b(?:url|path)\s*:\s*(['"`])([^'"`]*)\1/.exec(body);
-    if (!url) {
+    const options = close === -1 ? undefined : splitArgs(text.slice(open + 1, close), open + 1)[0];
+    if (!options?.src.startsWith('{') || findClose(options.src, 0) !== options.src.length - 1) {
       acc.partial.routes = true;
       continue;
     }
-    const arr = /\bmethod\s*:\s*\[([^\]]*)\]/.exec(body);
-    const one = /\bmethod\s*:\s*(['"])(\w+)\1/.exec(body);
-    const methods = arr ? [...(arr[1] as string).matchAll(/['"](\w+)['"]/g)].map((x) => x[1] as string) : one ? [one[2] as string] : [];
-    if (methods.length === 0) acc.partial.routes = true;
-    for (const mt of methods) {
-      const hm = methodFromName(mt);
-      if (hm) addRoute(ctx, open + (url.index ?? 0), recv.name, recv.framework, hm, url[2] as string);
+    const fields = fastifyRouteFields(options);
+    const url = fields.url === undefined ? '' : fields.url ? stringLiteral(fields.url.src) : undefined;
+    const urlField = url === '' ? fields.path : fields.url;
+    const path = urlField ? stringLiteral(urlField.src) : undefined;
+    const method = fields.method?.src ?? '';
+    const values = method.startsWith('[') && findClose(method, 0) === method.length - 1
+      ? splitArgs(method.slice(1, -1)).filter((arg, i, args) => arg.src !== '' || i < args.length - 1).map((arg) => arg.literal)
+      : [stringLiteral(method)];
+    const methods = values.map((value) => toHttpMethod(value ?? '')).filter((value) => value !== undefined);
+    if (!urlField || !path || (!path.startsWith('/') && path !== '*') || methods.length === 0 || methods.length !== values.length) {
+      acc.partial.routes = true;
+      continue;
     }
+    for (const method of methods) addRoute(ctx, urlField.offset, recv.name, recv.framework, method, path);
   }
 
   // Mounts: parent.use('/p', child), parent.route('/p', child) (Hono), parent.register(plugin, { prefix })

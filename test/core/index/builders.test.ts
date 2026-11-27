@@ -203,6 +203,33 @@ describe('Fastify, Hono, Koa', () => {
     expect(route(i, 'POST', '/webhook')).toHaveLength(1);
     expect(i.coverage.routes).toBe('complete');
   });
+  it('Fastify: full declarations use effective top-level route options', () => {
+    const fixture = index('fastify-app');
+    const i = buildRepoIndex([{ path: 'src/server.ts', text: [
+      "import Fastify from 'fastify';",
+      'const app = Fastify();',
+      "app.route({ method: 'GET', url: '/overridden', ...runtimeOptions });",
+      "app.route({ method: ['GET', process.env.METHOD], url: '/runtime-method' });",
+      "app.route({ config: { method: 'GET', url: '/nested' }, method: 'POST', path: '/alias' });",
+      "app.route({ ...runtimeOptions, 'method': ['PUT', 'DELETE',], 'url': '/stable', handler });",
+      "app.route({ method: 'GET', path: '/shadowed', url: '/preferred', handler });",
+      "app.route({ method: 'GET', url: '/getter-shadowed', get url() { return process.env.REPORT_PATH; } });",
+      "app.route({ method: ['GET', 'CUSTOM'], url: '/unsupported-method' });",
+    ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+    expect(i.coverage.routes).toBe('partial');
+    expect(i.routes.map(({ method, path }) => [method, path])).toEqual([
+      ['POST', '/alias'], ['PUT', '/stable'], ['DELETE', '/stable'], ['GET', '/preferred'],
+    ]);
+    const { claims } = extractClaimsFromText('`GET /overridden`\n\n`GET /runtime-method`\n\n`GET /nested`\n\n`GET /getter-shadowed`\n\n`GET /unsupported-method`\n\n`PUT /stable`');
+    expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'unknown', reason: 'coverage_partial' },
+      { verdict: 'verified', reason: 'route_exact', evidence: [{ file: 'src/server.ts', line: 6 }] },
+    ]);
+  });
   it.each([
     '{ prefix: process.env.API_PREFIX }',
     '{ prefix: `/${version}` }',
