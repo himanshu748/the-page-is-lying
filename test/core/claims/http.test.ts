@@ -42,6 +42,8 @@ describe('http_endpoint extraction', () => {
     ['curl default GET', 'Run `curl https://h.io:8443/v1/a`', [http('GET', '/v1/a', 'h.io')]],
     ['curl with data defaults to POST', 'Run `curl -d @x.json https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
     ['curl -T uploads to an explicit path with PUT', 'Run `curl -T report.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl upload query ending with a slash leaves the explicit path intact', 'Run `curl -T report.json "https://h.io/v1/reports/42?redirect=/"`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl upload fragment ending with a slash leaves the explicit path intact', 'Run `curl -T report.json "https://h.io/v1/reports/42#redirect/"`', [http('PUT', '/v1/reports/42', 'h.io')]],
     ['curl --upload-file consumes a flag-shaped filename', 'Run `curl --upload-file "-I" https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
     ['curl --upload-file equals syntax in current curl', 'Run `curl --upload-file=report.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
     ['curl accepts an upload file joined to bundled short options', 'Run `curl -sSTreport.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],

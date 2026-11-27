@@ -120,7 +120,7 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
       if ((hasForm && (head || hasData)) || (head && hasData && !get)) continue;
       // Curl can append the local filename to an upload directory target.
       const hasUpload = uploadFile !== undefined && uploadFile !== '';
-      if (hasUpload && (head || hasForm || hasData || /\/(?:[?#].*)?$/.test(url))) continue;
+      if (hasUpload && (head || hasForm || hasData || url.split(/[?#]/, 1)[0]?.endsWith('/'))) continue;
       const posts = hasForm || (hasData && !get);
       const resolved = method ?? (hasUpload ? 'PUT' : head ? 'HEAD' : posts ? 'POST' : 'GET');
       if (!isMethod(resolved)) continue;
