@@ -108,7 +108,7 @@ function hasSpec(imports: JsImports, test: (s: string) => boolean): boolean {
   return false;
 }
 
-function fastifyMountPrefix(options: string | undefined): string | null {
+function optionsPrefix(options: string | undefined): string | null {
   if (options === undefined) return '';
   if (!options.startsWith('{') || findClose(options, 0) !== options.length - 1) return null;
   let prefix: string | null = '';
@@ -161,8 +161,13 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
       addReceiver(ctx, name, 'plugin', 'hono', prefix);
     } else if (/^[Ff]astify/.test(ctor)) addReceiver(ctx, name, 'root', 'fastify');
     else {
-      let prefix = '';
-      if (/^new\s/.test(ctor)) {
+      let prefix: string | null = '';
+      if (routerFramework === 'koa' && /^new\s/.test(ctor)) {
+        const open = after - 1;
+        const close = findClose(text, open);
+        prefix = close === -1 ? null : optionsPrefix(splitArgs(text.slice(open + 1, close))[0]?.src || undefined);
+        if (prefix === null) acc.partial.routes = true;
+      } else if (/^new\s/.test(ctor)) {
         const open = text.indexOf('(', m.index + m[0].length - 1);
         const close = open === -1 ? -1 : findClose(text, open);
         if (close !== -1) {
@@ -286,7 +291,7 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     let target: string | undefined;
     if (kind === 'register') {
       target = args[0]?.src;
-      prefix = fastifyMountPrefix(args[1]?.src || undefined);
+      prefix = optionsPrefix(args[1]?.src || undefined);
       if (prefix === null) acc.partial.routes = true;
       if (target && /^(?:async\b|function\b|\()/.test(target)) {
         if (prefix !== '') acc.partial.routes = true; // inline plugin with a prefix: routes inside are not prefixed by us
