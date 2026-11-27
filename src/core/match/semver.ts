@@ -175,3 +175,27 @@ export function rangesIntersect(a: string, b: string): boolean | undefined {
   if (!left || !right) return undefined;
   return left.some((l) => right.some((r) => intersectIntervals(l, r) !== undefined));
 }
+
+/** Does a literal minimum in the claim precede every declared runtime alternative? */
+export function startsBelowDeclaredMinimum(declared: string, claim: string, runtime: string): boolean {
+  const requested = /^>=(\d+(?:\.\d+){0,2})$/.exec(claim)?.[1];
+  if (!requested) return false;
+  const minimum = full(requested.split('.').map(Number));
+
+  const normalized = declared.trim().replace(/([<>=^~])\s+/g, '$1');
+  // The intersection parser discards version qualifiers. Only use stable numeric
+  // bounds for a stronger conclusion about where support begins.
+  if (!normalized.split(/[\s,|]+/).every((word) => /^(?:<=|>=|==|~=|~>|[<>=^~])?\d+(?:\.\d+){0,2}$/.test(word))) return false;
+  // Python >3.10 excludes 3.10.0 and permits 3.10.1. npm's partial comparator
+  // >3.10 instead turns into >=3.11.0.
+  const range = runtime === 'python'
+    ? normalized.replace(/(^|[\s,|])>(\d+(?:\.\d+){0,2})(?=$|[\s,|])/g,
+      (_match, prefix: string, version: string) => `${prefix}>${full(version.split('.').map(Number)).join('.')}`)
+    : normalized;
+  const supported = parseRange(range);
+  return supported !== undefined && supported.length > 0 && supported.every(({ lo }) => {
+    if (!lo) return false;
+    const order = cmp(lo.v, minimum);
+    return order > 0 || (order === 0 && !lo.inc);
+  });
+}

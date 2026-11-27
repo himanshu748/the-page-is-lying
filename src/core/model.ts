@@ -143,6 +143,7 @@ export type ReasonCode =
   | 'config_key_absent'
   | 'file_absent'
   | 'package_range_conflict'
+  | 'runtime_minimum_conflict'
   // unknown (no evidence found)
   | 'coverage_partial'
   | 'coverage_none'

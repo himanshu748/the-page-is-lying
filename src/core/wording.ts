@@ -156,6 +156,7 @@ const REASON_EXPLANATION: Record<string, string> = {
   config_key_absent: 'Config coverage is complete and no parsed file defines this key.',
   file_absent: 'The repository tree is complete and has no file at this path.',
   package_range_conflict: 'A manifest declares this package with a version range that does not overlap the claim.',
+  runtime_minimum_conflict: 'The claim promises an earlier minimum runtime version than any range in the manifest supports.',
 };
 
 export function reasonExplanation(reason: string): string {

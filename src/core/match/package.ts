@@ -3,7 +3,7 @@ import type { Claim, ClaimResult, PackageEntry, PackageVersionClaim } from '../m
 import { contradictedGenericStatement, verifiedStatement } from '../wording';
 import { describeClaim, makeEvidence, makeSuggestion, sanitizeUntrusted, toResult } from './evidence';
 import { absenceEvidence, coverageReason, unknownResult, type MatchContext } from './results';
-import { rangesIntersect } from './semver';
+import { rangesIntersect, startsBelowDeclaredMinimum } from './semver';
 
 function normalizeName(ecosystem: string, name: string): string {
   const lower = name.toLowerCase();
@@ -44,7 +44,11 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
 
   // Prefer runtime dependencies over dev dependencies.
   const ordered = [...sameName].sort((a, b) => Number(a.dev) - Number(b.dev));
-  const outcomes = ordered.map((entry) => ({ entry, intersects: rangesIntersect(entry.range, n.range) }));
+  const outcomes = ordered.map((entry) => {
+    const intersects = rangesIntersect(entry.range, n.range);
+    const belowMinimum = intersects === true && n.ecosystem === 'runtime' && startsBelowDeclaredMinimum(entry.range, n.range, n.name);
+    return { entry, intersects: belowMinimum ? false : intersects, belowMinimum };
+  });
   const hit = outcomes.find((o) => o.intersects === true);
   const text = describeClaim(n);
   if (hit) {
@@ -60,17 +64,21 @@ export function matchPackage(claim: Claim, n: PackageVersionClaim, ctx: MatchCon
   const coverage = index.coverage.packages;
   if (coverage !== 'complete') return unknownResult(claim, ctx, coverageReason(coverage), 'packages');
 
-  const first: PackageEntry | undefined = ordered[0];
-  if (!first) return unknownResult(claim, ctx, 'package_not_direct_dependency', 'packages');
+  const selected = outcomes[0];
+  if (!selected) return unknownResult(claim, ctx, 'package_not_direct_dependency', 'packages');
+  const { entry: first, belowMinimum } = selected;
   const declared = makeEvidence(index, 'nearest', first);
   const quoted = declaredAs(first);
+  const declaredText = belowMinimum && quoted ? quoted : `${first.name}@${first.range}`;
   return toResult(
     claim,
     'contradicted',
-    'package_range_conflict',
+    belowMinimum ? 'runtime_minimum_conflict' : 'package_range_conflict',
     contradictedGenericStatement({
-      claim: `${text} does not match the declared version`,
-      detail: `The manifest declares ${sanitizeUntrusted(first.name)}@${sanitizeUntrusted(first.range)} at ${first.file}:${first.line}.`,
+      claim: belowMinimum
+        ? `${RUNTIME_LABEL[n.name] ?? n.name} ${n.range} starts below the supported minimum`
+        : `${text} does not match the declared version`,
+      detail: `The manifest declares ${sanitizeUntrusted(declaredText)} at ${first.file}:${first.line}.`,
     }),
     [declared, absenceEvidence(ctx, 'packages')],
     quoted === undefined ? undefined : makeSuggestion([quoted], declared),

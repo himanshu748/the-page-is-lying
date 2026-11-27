@@ -353,6 +353,33 @@ describe('package_version rules (7.2)', () => {
     expect(r.statement).toBe('Contradicted by code: express@3.x does not match the declared version. The manifest declares express@^4.19.2 at package.json:15.');
     expect(check(pkg('runtime', 'node', '<18'), index).verdict).toBe('contradicted');
   });
+  it('contradicts an outdated minimum runtime even when later versions overlap', () => {
+    const r = check(pkg('runtime', 'node', '>=19'), index);
+    expect(r).toMatchObject({
+      verdict: 'contradicted',
+      reason: 'runtime_minimum_conflict',
+      suggestion: { replacement: 'Node.js >=20' },
+    });
+    expect(r.evidence[0]).toMatchObject({ file: 'package.json', line: 8 });
+    expect(check(pkg('runtime', 'node', '>=20'), index).verdict).toBe('verified');
+    expect(check(pkg('runtime', 'node', '>=22'), index).verdict).toBe('verified');
+  });
+  it('checks the earliest supported alternative, including an exclusive floor', () => {
+    const makeRuntimeIndex = (range: string) => makeIndex({
+      packages: [{ ...loc('pyproject.toml', 22), ecosystem: 'runtime', name: 'python', range, dev: false }],
+    });
+    const claim = pkg('runtime', 'python', '>=3.10');
+    expect(check(claim, makeRuntimeIndex('>=3.11 || >=3.9,<3.11')).verdict).toBe('verified');
+    expect(check(claim, makeRuntimeIndex('>3.10.0 || >=3.12')).reason).toBe('runtime_minimum_conflict');
+    expect(check(claim, makeRuntimeIndex('>3.10')).reason).toBe('runtime_minimum_conflict');
+    expect(check(pkg('runtime', 'python', '>=3.10.1'), makeRuntimeIndex('>3.10')).verdict).toBe('verified');
+  });
+  it('does not infer a strict minimum from a prerelease comparator', () => {
+    const prerelease = makeIndex({
+      packages: [{ ...loc('package.json', 8), ecosystem: 'runtime', name: 'node', range: '>20.0.0-rc.1', dev: false }],
+    });
+    expect(check(pkg('runtime', 'node', '>=20.0.0'), prerelease).verdict).toBe('verified');
+  });
   it('unknown: not a direct dependency, manifest missing, unparseable range, partial coverage', () => {
     expect(check(pkg('npm', 'stripe', '14.x'), index).reason).toBe('package_not_direct_dependency');
     const missing = check(pkg('pypi', 'x', '1'), makeIndex());
