@@ -290,15 +290,12 @@ export function indexJsRoutes(acc: IndexAcc, file: string, original: string, mas
     const values = method.startsWith('[') && findClose(method, 0) === method.length - 1
       ? splitArgs(method.slice(1, -1)).filter((arg, i, args) => arg.src !== '' || i < args.length - 1).map((arg) => arg.literal)
       : [stringLiteral(method)];
-    if (!urlField || !path || (!path.startsWith('/') && path !== '*') || values.length === 0 || values.some((value) => value === undefined)) {
+    const methods = values.map((value) => toHttpMethod(value ?? '')).filter((value) => value !== undefined);
+    if (!urlField || !path || (!path.startsWith('/') && path !== '*') || methods.length === 0 || methods.length !== values.length) {
       acc.partial.routes = true;
       continue;
     }
-    for (const value of values) {
-      const hm = value === undefined ? undefined : methodFromName(value);
-      if (hm) addRoute(ctx, urlField.offset, recv.name, recv.framework, hm, path);
-      else acc.partial.routes = true;
-    }
+    for (const method of methods) addRoute(ctx, urlField.offset, recv.name, recv.framework, method, path);
   }
 
   // Mounts: parent.use('/p', child), parent.route('/p', child) (Hono), parent.register(plugin, { prefix })

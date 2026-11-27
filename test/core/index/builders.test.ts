@@ -214,13 +214,15 @@ describe('Fastify, Hono, Koa', () => {
       "app.route({ ...runtimeOptions, 'method': ['PUT', 'DELETE',], 'url': '/stable', handler });",
       "app.route({ method: 'GET', path: '/shadowed', url: '/preferred', handler });",
       "app.route({ method: 'GET', url: '/getter-shadowed', get url() { return process.env.REPORT_PATH; } });",
+      "app.route({ method: ['GET', 'CUSTOM'], url: '/unsupported-method' });",
     ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
     expect(i.coverage.routes).toBe('partial');
     expect(i.routes.map(({ method, path }) => [method, path])).toEqual([
       ['POST', '/alias'], ['PUT', '/stable'], ['DELETE', '/stable'], ['GET', '/preferred'],
     ]);
-    const { claims } = extractClaimsFromText('`GET /overridden`\n\n`GET /runtime-method`\n\n`GET /nested`\n\n`GET /getter-shadowed`\n\n`PUT /stable`');
+    const { claims } = extractClaimsFromText('`GET /overridden`\n\n`GET /runtime-method`\n\n`GET /nested`\n\n`GET /getter-shadowed`\n\n`GET /unsupported-method`\n\n`PUT /stable`');
     expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+      { verdict: 'unknown', reason: 'coverage_partial' },
       { verdict: 'unknown', reason: 'coverage_partial' },
       { verdict: 'unknown', reason: 'coverage_partial' },
       { verdict: 'unknown', reason: 'coverage_partial' },
