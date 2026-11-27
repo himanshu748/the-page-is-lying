@@ -62,6 +62,9 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
       if (!first || first.value !== 'curl') continue;
       let method: string | undefined;
       let hasData = false;
+      let hasForm = false;
+      let head = false;
+      let get = false;
       let url: string | undefined;
       for (let i = 1; i < tokens.length; i++) {
         const value = tokens[i]?.value ?? '';
@@ -72,8 +75,22 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
           method = value.slice(2).toUpperCase();
         } else if (value.startsWith('--request=')) {
           method = value.slice('--request='.length).toUpperCase();
-        } else if (/^(-d|--data(-raw|-binary|-urlencode)?|-F|--form|--json)(=|$)/.test(value)) {
+        } else if (/^(-d|--data(-ascii|-raw|-binary|-urlencode)?|--json)(=|$)/.test(value)) {
           hasData = true;
+          if (!value.includes('=')) i++;
+        } else if (/^(-F|--form(-string)?)(=|$)/.test(value)) {
+          hasForm = true;
+          if (!value.includes('=')) i++;
+        } else if (value === '-H' || value === '--header') {
+          i++;
+        } else if (value === '--head' || value === '--no-head') {
+          head = value === '--head';
+        } else if (value === '--get' || value === '--no-get') {
+          get = value === '--get';
+        } else if (/^-[fGILsSv]+$/.test(value)) {
+          // The options in these bundles do not take arguments.
+          if (value.includes('I')) head = true;
+          if (value.includes('G')) get = true;
         } else if (/^https?:\/\//i.test(value) && url === undefined) {
           url = value;
         }
@@ -81,7 +98,10 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
       if (url === undefined) continue;
       const parsed = parseUrl(url);
       if (!parsed) continue;
-      const resolved = method ?? (hasData ? 'POST' : 'GET');
+      // Curl rejects multipart with HEAD or raw data, and HEAD with a body.
+      if ((hasForm && (head || hasData)) || (head && hasData && !get)) continue;
+      const posts = hasForm || (hasData && !get);
+      const resolved = method ?? (head ? 'HEAD' : posts ? 'POST' : 'GET');
       if (!isMethod(resolved)) continue;
       const last = tokens[tokens.length - 1] ?? first;
       out.push({
