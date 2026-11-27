@@ -25,6 +25,8 @@ export type IndexLoadResult =
       ok: true;
       index: RepoIndex;
       stale: boolean;
+      /** Matching settings saved alongside the selected repository. */
+      matchOptions?: MatchOptions;
       /** Set when the index is old because the freshness check failed, for example `rate_limited`. */
       staleReason?: ReasonCode;
     }
@@ -126,7 +128,7 @@ function sha256(text: string): string {
 async function loadIndex(
   deps: CheckDeps,
   repoRef: RepoSelector,
-): Promise<{ ok: true; index: RepoIndex; stale: boolean; staleReason?: ReasonCode } | CheckError> {
+): Promise<Extract<IndexLoadResult, { ok: true }> | CheckError> {
   const loaded = await deps.indexLoader.loadIndex(repoRef);
   if (loaded.ok) return loaded;
   if (loaded.reason === 'indexing' || loaded.reason === 'no_repo') {
@@ -136,9 +138,9 @@ async function loadIndex(
   return failure(loaded.reason, unknownStatement({ reason: text }));
 }
 
-function runMatch(deps: CheckDeps, index: RepoIndex, stale: boolean, claims: Claim[], truncated: boolean): Report {
+function runMatch(index: RepoIndex, stale: boolean, claims: Claim[], truncated: boolean, options?: MatchOptions): Report {
   const capped = claims.slice(0, MAX_CLAIMS);
-  const results: ClaimResult[] = matchClaims(capped, index, deps.matchOptions);
+  const results: ClaimResult[] = matchClaims(capped, index, options);
   return buildReport({ index, results, stale, claimsTruncated: truncated || claims.length > MAX_CLAIMS });
 }
 
@@ -156,14 +158,15 @@ export async function checkDocument(deps: CheckDeps, input: { adf: unknown; repo
   const loaded = await loadIndex(deps, repoRef);
   if (!loaded.ok) return loaded;
   const { index, stale, staleReason } = loaded;
+  const matchOptions = loaded.matchOptions ?? deps.matchOptions;
 
   const cacheKey = `report:${sha256(
-    [serialized, index.repo.sha, index.repo.indexedAt, deps.extractor.version ?? '', MATCHER_VERSION, String(stale), JSON.stringify(deps.matchOptions ?? {})].join('\u0000'),
+    [serialized, index.repo.sha, index.repo.indexedAt, deps.extractor.version ?? '', MATCHER_VERSION, String(stale), JSON.stringify(matchOptions ?? {})].join('\u0000'),
   ).slice(0, 32)}`;
   let report = deps.reportCache ? await deps.reportCache.get(cacheKey) : undefined;
   if (!report) {
     const extracted = deps.extractor.extractClaims(input.adf);
-    report = runMatch(deps, index, stale, extracted.claims, extracted.truncated);
+    report = runMatch(index, stale, extracted.claims, extracted.truncated, matchOptions);
     if (deps.reportCache) await deps.reportCache.set(cacheKey, report);
   }
   await recordCounts(deps, report, input.contentId, input.version);
@@ -198,7 +201,7 @@ export async function checkClaim(deps: CheckDeps, input: { text: string; repoRef
   if (!loaded.ok) return loaded;
   return {
     ok: true,
-    report: runMatch(deps, loaded.index, loaded.stale, extracted.claims, extracted.truncated),
+    report: runMatch(loaded.index, loaded.stale, extracted.claims, extracted.truncated, loaded.matchOptions ?? deps.matchOptions),
     ...(loaded.staleReason !== undefined ? { staleReason: loaded.staleReason } : {}),
   };
 }

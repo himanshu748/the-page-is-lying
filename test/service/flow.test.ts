@@ -6,6 +6,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { runIndexJob } from '../../src/consumers/indexJob';
+import type { Report } from '../../src/core/model';
 import { createStorageBackend } from '../../src/resolvers/storageBackend';
 import type { UiBackend } from '../../src/resolvers/backend';
 import { createAgentService } from '../../src/service/agentService';
@@ -153,6 +154,38 @@ describe('full flow over the real modules', () => {
     await backend.saveSettings(saved, {});
     const out = await backend.checkDocument({ adf: page('payments-api-runbook.adf.json'), repoUrl: 'https://github.com/someone/else' });
     expect(out.state).toBe('error');
+  });
+
+  it('checks absolute curl routes against the saved service hosts on the page and agent', async () => {
+    const { backend, pushed, kvs, f, checkDeps } = setup();
+    const reports = new Map<string, Report>();
+    checkDeps.reportCache = {
+      get: async (key) => reports.get(key),
+      set: async (key, report) => { reports.set(key, report); },
+    };
+    await backend.saveSettings(saved, {});
+    await backend.enqueueIndex();
+    await runIndexJob({ kvs, fetch: f.fetch, now: () => NOW }, { body: pushed[0] as { repoKey: string; reason: 'manual' } });
+    const curl = 'curl https://api.example.test/v2/payments/123';
+    const adf = { type: 'doc', content: [
+      { type: 'codeBlock', content: [{ type: 'text', text: curl }] },
+      { type: 'codeBlock', content: [{ type: 'text', text: 'curl https://other.example.test/v2/payments/123' }] },
+    ] };
+    expect(await backend.checkDocument({ adf })).toMatchObject({ state: 'ready', report: { counts: { unknown: 2 } } });
+
+    // Reuse the same index, but a changed setting must also invalidate the document's cached answer.
+    await backend.saveSettings({ ...saved, serviceHosts: [' API.Example.Test '] }, {});
+    expect(await backend.checkDocument({ adf })).toMatchObject({
+      state: 'ready',
+      report: { results: [
+        { verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 92 }] },
+        { verdict: 'unknown', reason: 'external_host' },
+      ] },
+    });
+    expect(await createAgentService(checkDeps).checkClaim({ claimText: curl })).toMatchObject({
+      ok: true,
+      report: { results: [{ verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 92 }] }] },
+    });
   });
 
   it('shows an index error from the consumer in the status and never as a verdict', async () => {
