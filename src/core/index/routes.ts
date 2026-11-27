@@ -616,8 +616,9 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
   if (classPos.length === 0) return;
   const classScopes = classPos.map((start) => {
     const open = text.indexOf('{', start);
-    return { start, end: open === -1 ? -1 : findClose(text, open) };
+    return { start, open, end: open === -1 ? -1 : findClose(text, open) };
   });
+  const startsType = (after: number): boolean => /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:(?:public|protected|private|abstract|final|static|strictfp|sealed|non-sealed)\s+)*(?:class|interface)\b/.test(text.slice(after, after + 400));
   const classMappings = new Map<number, { paths: string[] | null; methods: Array<HttpMethod | 'ANY'> }>();
   const staticMethods = new Set([...text.matchAll(/^\s*import\s+static\s+org\.springframework\.web\.bind\.annotation\.RequestMethod\.([A-Z]+|\*)\s*;/gm)]
     .filter((match) => !insideSpan(ctx.spans, match.index))
@@ -667,7 +668,7 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
     if (insideSpan(ctx.spans, m.index)) continue;
     const paths = pathsIn(args);
     const after = m.index + m[0].length;
-    const isClassLevel = kind === 'Request' && /^\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:(?:public|protected|private|abstract|final|static|strictfp|sealed|non-sealed)\s+)*(?:class|interface)\b/.test(text.slice(after, after + 400));
+    const isClassLevel = kind === 'Request' && startsType(after);
     if (isClassLevel) {
       const owner = classPos.find((position) => position >= after);
       if (owner !== undefined) classMappings.set(owner, { paths: paths ?? null, methods: methodsIn(args) });
@@ -695,14 +696,41 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
   }
 
   // JAX-RS
-  let jaxClassPath = '';
-  const cp = /@Path\s*\(\s*"([^"]*)"\s*\)\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:public\s+|abstract\s+|final\s+)*(?:class|interface)\b/.exec(text);
-  if (cp) jaxClassPath = cp[1] as string;
+  const jaxClassPaths = new Map<number, string | null>();
+  const jaxMethodPaths: Array<{ offset: number; path: string | null }> = [];
+  const annotationSpans: Array<[number, number]> = [];
+  for (const m of text.matchAll(/@([\w.]+)\s*\(/g)) {
+    if (insideSpan(ctx.spans, m.index) || m.index < (annotationSpans.at(-1)?.[1] ?? -1)) continue;
+    const open = m.index + m[0].length - 1;
+    const end = findClose(text, open);
+    if (end === -1) continue;
+    annotationSpans.push([open, end + 1]);
+    if (m[1] !== 'Path') continue;
+    const spec = text.slice(open + 1, end).trim().replace(/^value\s*=\s*/, '');
+    const path = stringLiteral(spec) ?? null;
+    if (startsType(end + 1)) {
+      const owner = classPos.find((position) => position > end);
+      if (owner !== undefined) jaxClassPaths.set(owner, path);
+    } else {
+      jaxMethodPaths.push({ offset: m.index, path });
+    }
+  }
   for (const m of text.matchAll(/@(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\b(?!\w)/g)) {
     const idx = m.index;
-    const before = Math.max(text.lastIndexOf(';', idx), text.lastIndexOf('{', idx), text.lastIndexOf('}', idx));
+    if (insideSpan(ctx.spans, idx) || insideSpan(annotationSpans, idx)) continue;
+    const scope = classScopes.findLast(({ open, end }) => open < idx && end > idx);
+    const prefix = scope && jaxClassPaths.get(scope.start);
+    if (!scope || prefix == null) {
+      acc.partial.routes = true;
+      continue;
+    }
+    let before = idx - 1;
+    while (before > scope.open) {
+      if (/[;{}]/.test(text[before] ?? '') && !insideSpan(ctx.spans, before) && !insideSpan(annotationSpans, before)) break;
+      before--;
+    }
     let endSig = idx;
-    while (endSig < text.length) {
+    while (endSig < scope.end) {
       const ch = text[endSig];
       if (ch === '{' || ch === ';') break;
       if (ch === '(') {
@@ -712,10 +740,13 @@ export function indexJavaRoutes(acc: IndexAcc, file: string, original: string, m
       }
       endSig++;
     }
-    const window = text.slice(before + 1, endSig);
-    const pm = /@Path\s*\(\s*"([^"]*)"\s*\)/.exec(window);
+    const path = jaxMethodPaths.find(({ offset }) => before < offset && offset < endSig)?.path;
+    if (path === null) {
+      acc.partial.routes = true;
+      continue;
+    }
     const method = toHttpMethod(m[1] as string);
-    if (method) addRoute(ctx, idx, '', 'jaxrs', method, joinRoute(jaxClassPath, pm?.[1] ?? ''));
+    if (method) addRoute(ctx, idx, '', 'jaxrs', method, joinRoute(prefix, path ?? ''));
   }
   for (const m of text.matchAll(/@WebServlet\s*\(\s*(?:urlPatterns\s*=\s*|value\s*=\s*)?\{?\s*"([^"]+)"/g)) {
     addRoute(ctx, m.index, '', 'servlet', 'ANY', m[1] as string);
