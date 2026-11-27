@@ -11,7 +11,7 @@ Owner: Task E (FEAT-006). Last updated Nov 15, 2026.
 | Installation on the demo site | Passed | `forge install list` shows installation `a3b0e75c-f080-4961-a81f-eb286ec6761d`, development, `one-atlas-obka.atlassian.net: Confluence`, status **Up-to-date**. No `forge install --upgrade` was needed. |
 | `asUser()` inside Rovo actions | **Not verified yet** | Needs an invocation by a signed-in user. The agent has no Atlassian login (the preview browser landed on the Atlassian login page), and `forge function invoke` does not carry a user token. Steps in section 2. |
 | Agent "Runbook checker" visible in Rovo chat and calling the action | **Not verified yet** | Needs the browser. Steps in section 2. |
-| `rovo:mcp` URL and admin enable steps | URL and steps confirmed in the docs; **not exercised** | See section 3. |
+| `rovo:mcp` URL and admin enable steps | URL and steps confirmed for this development run | See section 3 for the current five-tool verification. |
 
 The deployed handlers log one JSON line per step (ids and HTTP status only, never page text), so `forge logs -e development` answers the `asUser` question directly:
 
@@ -42,22 +42,25 @@ The page is never read as the app when `asUser()` fails: the handler returns a t
 6. Optional: ask "Can I still call POST /v1/charge?" and confirm a `check-claim` invocation in the logs .
 7. Also note whether the developer space name "LotZero" appears anywhere an agent user or MCP client sees it: the agent card in Rovo chat, the Connected apps page, and the OAuth consent screen in section 3. Record yes or no per screen.
 
-## 3. MCP server: URL and admin steps
+## 3. MCP server fresh-install checklist
 
-The `rovo:mcp` module "Runbook checker" (key `runbook-checker-mcp`) exposes `check-page` and `check-claim`. Facts from the Atlassian docs (rovo:mcp is Preview, checked Nov 15, 2026):
+Follow the [external MCP setup guide](setup.md#external-mcp-clients) to enable
+and discover all five tools on a fresh, authorized Confluence installation.
+The earlier [development integration results](integration-results.md) record
+the two-tool version that was deployed at the time.
 
-- Endpoint: `https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0` (the UUID after `ari:cloud:ecosystem::app/`).
-- External exposure is off by default. A site or org admin enables it per installation: Atlassian Administration > Apps > Sites > the site > **Connected apps** > "The Page Is Lying" > **View app details** > **Tools** tab > select `check-page` and `check-claim`.
-- Client setup (Claude Code): `claude mcp add --transport http runbook-checker https://mcp.atlassian.com/forge/49ffa6f4-93eb-41fb-8f2a-6a087aac4ac0`, then `/mcp` in the session and finish the OAuth 2.1 consent in the browser (choose the site, review scopes and tools, approve).
-- Tools run with the signed-in user's permissions. Rovo credits for MCP calls come from the customer organisation's pool.
-- Requires Forge CLI 13.3.0 or later (15.1.0 is installed).
-
-Steps for the user (needs admin consent in the browser):
-
-1. Go to `https://admin.atlassian.com`, select the organisation, then Apps > Sites > `one-atlas-obka.atlassian.net` > Connected apps.
-2. Open "The Page Is Lying" > View app details > Tools. Tick both tools. Record what the tab shows.
-3. Run the `claude mcp add` line above, start Claude Code, run `/mcp`, authenticate, approve.
-4. Ask: "Using runbook-checker, is page `<page id>` still true?" Check `forge logs -e development` for `"source":"input"` in the `check-page` line (an MCP client has no page context, so the id comes from the validated input).
+1. Record the Confluence site, Forge environment and installed version, and
+   external client name and version.
+2. In **Connected apps**, verify all five tools in the setup guide are enabled
+   for that installation. Complete OAuth in a fresh client session and select
+   the same site.
+3. Capture the names returned by `tools/list` in MCP Inspector or by the
+   equivalent server details in the external client. Verify that all five
+   tool keys are present, accounting for any environment suffix.
+4. Call `check-page` on an accessible test page with a configured repository
+   index. Record the verdict and its evidence. When Forge logs are available,
+   confirm `"source":"input"` in the `check-page` line because the external
+   client supplies the page ID explicitly.
 
 ## 4. If `asUser()` does not work in actions: fallback
 
