@@ -12,6 +12,21 @@ was also checked on its own where the cap would have dropped it.
 | [typicode/json-server](https://github.com/typicode/json-server) | `89a34a44b7a6a5311dc84f3b8a1b8b45c0905aea` | Route list and `json-server db.json -s` | Verified against the tinyhttp routes and `parseArgs`. |
 | [pallets/flask](https://github.com/pallets/flask) | `49943b5a94413a530761350f04e896f76e8d620e` | `docs/installation.rst` | "Python 3.11 and newer" matches `requires-python`. |
 
+## Run the three public examples
+
+From the project root, install dependencies with `npm ci` and run:
+
+```sh
+LIVE_GITHUB=1 npx vitest run test/live/github.live.test.ts --reporter=default -t 'http-party/http-server|typicode/json-server|pallets/flask'
+```
+
+The replay fetches the documentation at each pinned commit and uses the app's
+GitHub index job and claim checker. It prints a link to each checked document
+line and its code citation. It covers the documented and corrected
+`http-server` flag, JSON Server's nine route examples, a route with a query
+string, its static-directory flag, and Flask's Python requirement. It uses
+unauthenticated public GitHub requests.
+
 Details: [http-server](http-server.md), [json-server](json-server.md), [flask](flask.md).
 
 Example filenames the reader is told to create (`db.json`, `404.html`) still
