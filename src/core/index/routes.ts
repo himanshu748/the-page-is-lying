@@ -441,11 +441,22 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
     if (verb === 'route' || verb === 'api_route') {
       const mk = args.find((a) => /^methods\s*=/.test(a.src));
       if (mk) {
-        const found = [...mk.src.matchAll(/(['"])(\w+)\1/g)].map((x) => methodFromName(x[2] as string)).filter((x): x is HttpMethod | 'ANY' => x !== undefined);
-        if (found.length === 0) acc.partial.routes = true;
-        methods = found;
-      } else methods = verb === 'route' ? ['GET'] : [];
-      if (methods.length === 0 && !mk) acc.partial.routes = true;
+        const value = mk.src.replace(/^methods\s*=\s*/, '');
+        const entries = /^[\[({]/.test(value) && findClose(value, 0) === value.length - 1
+          ? splitArgs(value.slice(1, -1)).filter((arg, i, list) => arg.src !== '' || i < list.length - 1)
+          : [];
+        const literalMethods = entries
+          .map(({ literal }) => literal === undefined ? undefined : toHttpMethod(literal))
+          .filter((method): method is HttpMethod => method !== undefined);
+        const parenthesizedString = value.startsWith('(') && entries.length === 1 && !/,\s*\)$/.test(value);
+        if (parenthesizedString || literalMethods.length === 0 || literalMethods.length !== entries.length) {
+          acc.partial.routes = true;
+          continue;
+        }
+        methods = literalMethods;
+      } else if (args.some((arg) => arg.src.startsWith('**')) || verb === 'api_route') {
+        acc.partial.routes = true;
+      } else methods = ['GET'];
     } else {
       const hm = methodFromName(verb);
       if (hm) methods = [hm];
