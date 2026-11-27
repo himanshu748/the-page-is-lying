@@ -317,6 +317,29 @@ describe('Fastify, Hono, Koa', () => {
     expect(route(i, 'GET', '/v1/status')[0]?.line).toBe(5);
     expect(route(i, 'POST', '/v1/jobs')).toHaveLength(1);
   });
+  it.each(["'/api'", 'process.env.API_PREFIX'])(
+    'Koa: a router prefix changed by %s cannot confirm the original route',
+    (prefix) => {
+      const fixture = index('koa-app');
+      const i = buildRepoIndex([{ path: 'src/server.ts', text: [
+        "import Koa from 'koa';",
+        "import Router from '@koa/router';",
+        'const app = new Koa();',
+        'const catalog = new Router();',
+        "const health = new Router({ prefix: '/stable' });",
+        "catalog.get('/books', handler);",
+        `catalog.prefix(${prefix});`,
+        "health.get('/status', handler);",
+        'app.use(catalog.routes());',
+        'app.use(health.routes());',
+      ].join('\n') }], { repo: fixture.repo, stats: { filesIndexed: 1, filesSkipped: 0, truncated: false } });
+      const { claims } = extractClaimsFromText('`GET /books`\n\n`GET /stable/status`');
+      expect(claims.map((claim) => matchClaim(claim, i))).toMatchObject([
+        { verdict: 'unknown', reason: 'coverage_partial' },
+        { verdict: 'verified', reason: 'route_exact' },
+      ]);
+    },
+  );
   it.each([
     '{ prefix: process.env.API_PREFIX }',
     '{ prefix: `/v${version}` }',
