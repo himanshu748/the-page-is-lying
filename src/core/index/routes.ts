@@ -442,7 +442,8 @@ export function indexPythonRoutes(acc: IndexAcc, file: string, original: string,
       const mk = args.find((a) => /^methods\s*=/.test(a.src));
       if (mk) {
         const value = mk.src.replace(/^methods\s*=\s*/, '');
-        const entries = /^[\[({]/.test(value) && findClose(value, 0) === value.length - 1
+        const collection = ['[', '(', '{'].includes(value[0] ?? '');
+        const entries = collection && findClose(value, 0) === value.length - 1
           ? splitArgs(value.slice(1, -1)).filter((arg, i, list) => arg.src !== '' || i < list.length - 1)
           : [];
         const literalMethods = entries
