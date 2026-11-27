@@ -845,6 +845,6 @@ export function resolveRoutes(acc: IndexAcc): void {
 export function maskFor(path: string, text: string): string {
   const ext = extOf(path);
   if (ext === 'py') return maskPython(text);
-  if (ext === 'go' || ext === 'java') return maskCStyleComments(text, { backtickStrings: ext === 'go' });
+  if (ext === 'go' || ext === 'java') return maskCStyleComments(text, { backtickStrings: ext === 'go', javaTextBlocks: ext === 'java' });
   return maskCStyleComments(text);
 }

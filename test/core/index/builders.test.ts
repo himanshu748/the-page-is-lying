@@ -589,6 +589,24 @@ describe('Java', () => {
     expect(index.routes.map(({ path }) => path).sort()).toEqual(['/admin/status', '/health', '/ops/status']);
     expect(index.coverage.routes).toBe('partial');
   });
+  it('keeps Spring routes after Java text blocks containing quoted braces', () => {
+    const source = [
+      '@RestController',
+      '@RequestMapping("/api")',
+      'class Controller {',
+      '  static final String JSON = """',
+      '    {"value": "}"}',
+      '    @GetMapping("/fake")',
+      '    """;',
+      '  @GetMapping("/health") void health() {}',
+      '}',
+    ].join('\n');
+    const index = buildRepoIndex([{ path: 'Controller.java', text: source }], {
+      repo: { provider: 'github', fullName: 'o/r', ref: 'main', sha: 'a'.repeat(40), indexedAt: '2026-11-15T00:00:00.000Z' },
+      stats: { filesIndexed: 1, filesSkipped: 0, truncated: false },
+    });
+    expect(index.routes.map(({ path, line }) => ({ path, line }))).toEqual([{ path: '/api/health', line: 8 }]);
+  });
   it('JAX-RS', () => {
     expect(route(i, 'GET', '/ping/:param')).toHaveLength(1);
   });
