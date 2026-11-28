@@ -364,6 +364,6 @@ export interface AgentEnvelope {
 /** Returned instead of an envelope when a check cannot run. Never a Verified. */
 export interface AgentError {
   schema: 'pil.agent.error.v1';
-  error: ReasonCode | 'invalid_input' | 'page_not_found' | 'forbidden' | 'internal_error';
+  error: ReasonCode | 'invalid_input' | 'page_not_found' | 'forbidden' | 'space_read_timed_out' | 'internal_error';
   message: string;
 }
