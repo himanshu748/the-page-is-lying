@@ -34,6 +34,7 @@ describe('checkDocument', () => {
   it.each([
     { method: 'HEAD', path: '/health', call: 'curl --head https://api.example.com/health' },
     { method: 'PUT', path: '/reports/42', call: 'curl -T report.json https://api.example.com/reports/42' },
+    { method: 'POST', path: '/orders', call: 'curl -sSdname=sample https://api.example.com/orders' },
   ] as const)('cites the declared $method route for curl runbook examples', async ({ method, path, call }) => {
     const index = demoIndex();
     index.routes = [{ file: 'src/routes.ts', line: 24, snippet: `router.${method.toLowerCase()}('${path}', handler);`, method, path, framework: 'express' }];

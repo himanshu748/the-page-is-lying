@@ -75,7 +75,17 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
           break;
         }
         const uploadOption = /^-([fGILsSv]*)T(.*)$/.exec(value);
-        if (uploadOption || value === '--upload-file' || value.startsWith('--upload-file=')) {
+        const shortBody = /^-([fGILsSv]*)([dF])(.*)$/.exec(value);
+        if (shortBody) {
+          if (shortBody[1]?.includes('I')) head = true;
+          if (shortBody[1]?.includes('G')) get = true;
+          if (!shortBody[3] && tokens[++i] === undefined) {
+            url = undefined;
+            break;
+          }
+          if (shortBody[2] === 'd') hasData = true;
+          else hasForm = true;
+        } else if (uploadOption || value === '--upload-file' || value.startsWith('--upload-file=')) {
           if (uploadOption?.[1]?.includes('I')) head = true;
           if (uploadOption?.[1]?.includes('G')) get = true;
           const file = value.startsWith('--upload-file=')
@@ -93,10 +103,10 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
           method = value.slice(2).toUpperCase();
         } else if (value.startsWith('--request=')) {
           method = value.slice('--request='.length).toUpperCase();
-        } else if (/^(-d|--data(-ascii|-raw|-binary|-urlencode)?|--json)(=|$)/.test(value)) {
+        } else if (/^(--data(-ascii|-raw|-binary|-urlencode)?|--json)(=|$)/.test(value)) {
           hasData = true;
           if (!value.includes('=')) i++;
-        } else if (/^(-F|--form(-string)?)(=|$)/.test(value)) {
+        } else if (/^--form(-string)?(=|$)/.test(value)) {
           hasForm = true;
           if (!value.includes('=')) i++;
         } else if (value === '-H' || value === '--header') {
