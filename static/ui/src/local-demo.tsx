@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { extractClaims, extractClaimsFromText } from '@core/claims/index';
 import { buildRepoIndex } from '@core/index/build';
 import { buildReport, matchClaims } from '@core/match/index';
+import type { ClaimResult } from '@core/model';
 import brokenPage from '../../../demo/confluence/payments-api-runbook.adf.json?raw';
 import fixedPage from '../../../demo/confluence/payments-api-runbook.fixed.adf.json?raw';
 import catchAllSource from '../../../demo/fixtures/catch-all/server.js?raw';
@@ -49,10 +50,42 @@ const catchAllReport = buildReport({
 });
 const verdicts = ['verified', 'contradicted', 'unknown'] as const;
 
+function ClaimResults({ results, catchAll }: { results: readonly ClaimResult[]; catchAll: boolean }) {
+  return (
+    <ol className="local-demo-results">
+      {results.map(({ claim, verdict, statement, evidence }) => (
+        <li key={claim.id}>
+          <div className="local-demo-toolbar">
+            <h3><code>{claim.raw}</code></h3>
+            <span className={`count count-${verdict}`}><StatusIcon verdict={verdict} /> {STATUS_LABEL[verdict]}</span>
+          </div>
+          <p>{statement}</p>
+          {evidence.map(({ id, file, line, snippet, permalink }) => {
+            if (file === undefined || line === undefined) return null;
+            const source = catchAll
+              ? `https://github.com/himanshu748/the-page-is-lying/blob/main/demo/fixtures/catch-all/server.js#L${line}`
+              : permalink;
+            return (
+              <p className="local-demo-evidence" key={id}>
+                {source ? <a href={source} target="_blank" rel="noreferrer">{file}:{line}</a> : <strong>{file}:{line}</strong>}
+                {snippet && <code>{snippet}</code>}
+              </p>
+            );
+          })}
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function LocalDemo() {
   const [fixed, setFixed] = useState(false);
   const [showCatchAll, setShowCatchAll] = useState(false);
+  const [draft, setDraft] = useState('');
+  const [checkedClaim, setCheckedClaim] = useState('');
   const report = showCatchAll ? catchAllReport : fixed ? corrected : original;
+  const activeIndex = showCatchAll ? catchAllIndex : index;
+  const customResults = checkedClaim ? matchClaims(extractClaimsFromText(checkedClaim).claims, activeIndex) : [];
 
   return (
     <main className="local-demo">
@@ -70,6 +103,25 @@ function LocalDemo() {
             <option value="catch-all">Removed API behind a catch-all</option>
           </select>
         </label>
+        <section className="local-demo-custom" aria-labelledby="custom-claim-title">
+          <h2 id="custom-claim-title">Check your own claim</h2>
+          <form onSubmit={(event) => {
+            event.preventDefault();
+            setCheckedClaim(draft.trim());
+          }}>
+            <label htmlFor="custom-claim">Claim from a runbook</label>
+            <div className="local-demo-claim-input">
+              <input id="custom-claim" type="text" value={draft} onChange={(event) => setDraft(event.target.value)}
+                maxLength={300} placeholder={showCatchAll ? 'GET /v2/refunds/123' : 'GET /health'} />
+              <button className="btn" type="submit" disabled={draft.trim() === ''}>Check claim</button>
+            </div>
+          </form>
+          <div aria-live="polite">
+            {checkedClaim && (customResults.length > 0
+              ? <ClaimResults results={customResults} catchAll={showCatchAll} />
+              : <p>No checkable claim found. Try an HTTP method and path, such as <code>{showCatchAll ? 'GET /v2/refunds/123' : 'GET /health'}</code>.</p>)}
+          </div>
+        </section>
         <div className="local-demo-toolbar">
           <h2 id="local-demo-title">{showCatchAll ? 'Refunds runbook' : 'Payments runbook'}</h2>
           {!showCatchAll && (
@@ -93,22 +145,7 @@ function LocalDemo() {
             </li>
           ))}
         </ul>
-        <ol className="local-demo-results">
-          {report.results.map(({ claim, verdict, statement, evidence }) => (
-            <li key={claim.id}>
-              <div className="local-demo-toolbar">
-                <h3><code>{claim.raw}</code></h3>
-                <span className={`count count-${verdict}`}><StatusIcon verdict={verdict} /> {STATUS_LABEL[verdict]}</span>
-              </div>
-              <p>{statement}</p>
-              {evidence.map(({ id, file, line, snippet }) => file !== undefined && line !== undefined && (
-                <p className="local-demo-evidence" key={id}>
-                  <strong>{file}:{line}</strong> {snippet && <code>{snippet}</code>}
-                </p>
-              ))}
-            </li>
-          ))}
-        </ol>
+        <ClaimResults results={report.results} catchAll={showCatchAll} />
       </section>
     </main>
   );
