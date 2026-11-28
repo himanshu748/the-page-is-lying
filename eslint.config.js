@@ -5,7 +5,7 @@ import tseslint from 'typescript-eslint';
 const networkModules = ['http', 'https', 'http2', 'net', 'tls', 'dgram', 'dns', 'child_process', 'worker_threads', 'cluster'];
 
 export default tseslint.config(
-  { ignores: ['node_modules/**', 'static/ui/dist/**', 'coverage/**', 'playwright-report/**', 'test-results/**', '.forge/**', 'demo/payments-api/**'] },
+  { ignores: ['node_modules/**', 'static/ui/dist/**', 'dist/judge-demo/**', 'coverage/**', 'playwright-report/**', 'test-results/**', '.forge/**', 'demo/payments-api/**'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {

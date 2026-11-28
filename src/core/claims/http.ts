@@ -76,6 +76,7 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
         }
         const uploadOption = /^-([fGILsSv]*)T(.*)$/.exec(value);
         const shortBody = /^-([fGILsSv]*)([dF])(.*)$/.exec(value);
+        const shortReferer = /^-([fGILsSv]*)e(.*)$/.exec(value);
         if (shortBody) {
           if (shortBody[1]?.includes('I')) head = true;
           if (shortBody[1]?.includes('G')) get = true;
@@ -109,6 +110,14 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
         } else if (/^--form(-string)?(=|$)/.test(value)) {
           hasForm = true;
           if (!value.includes('=')) i++;
+        } else if (shortReferer || value === '--referer') {
+          if (shortReferer?.[1]?.includes('I')) head = true;
+          if (shortReferer?.[1]?.includes('G')) get = true;
+          // A Referer URL is a request header value, not a transfer target.
+          if (!shortReferer?.[2] && tokens[++i] === undefined) {
+            url = undefined;
+            break;
+          }
         } else if (value === '-H' || value === '--header') {
           i++;
         } else if (value === '--head' || value === '--no-head') {

@@ -66,6 +66,9 @@ describe('http_endpoint extraction', () => {
     ['curl explicit request overrides --head', 'Run `curl --head -X GET https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
     ['curl data that looks like a method flag stays data', 'Run `curl -d "-I" https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
     ['curl with prompt and headers', 'Run `$ curl -s -H "Accept: x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl skips a long referer URL when selecting the request target', 'Run `curl --referer https://docs.example/v1/origin https://h.io/v1/target`', [http('GET', '/v1/target', 'h.io')]],
+    ['curl keeps HEAD from a short bundle before a separate referer URL', 'Run `curl -sSIe https://docs.example/v1/origin https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
+    ['curl keeps HEAD before an attached referer URL', 'Run `curl -Iehttps://docs.example/v1/origin https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'http_endpoint')).toEqual(expected);
   });
@@ -79,6 +82,8 @@ describe('http_endpoint extraction', () => {
     ['versioned segment inside a file path', 'Edit `src/v1/routes.ts`'],
     ['url inside code is not bare', 'Open `https://example.com/v1/x`'],
     ['curl without url', 'Run `curl --help`'],
+    ['curl does not treat a lone referer URL as a target', 'Run `curl -e https://docs.example/v1/origin`'],
+    ['curl referer option requires an argument', 'Run `curl https://h.io/v1/target --referer`'],
     ['curl to a variable host', 'Run `curl $BASE/v1/a`'],
     ['curl with unknown method', 'Run `curl -X PROPFIND https://h.io/v1/a`'],
     ['curl cannot send HEAD with a multipart body', 'Run `curl -I -G -F name=x https://h.io/v1/a`'],
