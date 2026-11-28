@@ -144,6 +144,7 @@ const ERROR_MESSAGES: Partial<Record<AgentError['error'], string>> = {
   invalid_input: 'The input was not valid, so nothing was checked. No verdict was produced.',
   page_not_found: 'The page was not found or is not visible to the current user. No verdict was produced.',
   forbidden: 'The current user is not allowed to view this page. No verdict was produced.',
+  space_read_timed_out: 'Reading the space took too long. Try again in a minute. No verdict was produced.',
   internal_error: 'The check failed unexpectedly. No verdict was produced.',
   index_missing: 'No repository index is available yet. Configure a repository in the app settings and wait for indexing. No verdict was produced.',
   repo_not_found_or_private: 'The configured repository was not found or is private. No verdict was produced.',
