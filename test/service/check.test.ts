@@ -1,1 +1,179 @@
-aW1wb3J0IHsgZGVzY3JpYmUsIGV4cGVjdCwgaXQsIHZpIH0gZnJvbSAndml0ZXN0JzsKaW1wb3J0IHR5cGUgeyBSZXBvcnQgfSBmcm9tICcuLi8uLi9zcmMvY29yZS9tb2RlbCc7CmltcG9ydCB7CiAgY2hlY2tDbGFpbSwKICBjaGVja0RvY3VtZW50LAogIGNoZWNrUGFnZSwKICB0eXBlIENoZWNrRGVwcywKICB0eXBlIENsYWltRXh0cmFjdG9yLAogIHR5cGUgSW5kZXhMb2FkUmVzdWx0LAogIHR5cGUgUGFnZVJlYWRSZXN1bHQsCn0gZnJvbSAnLi4vLi4vc3JjL3NlcnZpY2UvY2hlY2snOwppbXBvcnQgeyBkZW1vQ2xhaW1zLCBkZW1vSW5kZXggfSBmcm9tICcuLi9maXh0dXJlcy9tYXRjaC9kZW1vJzsKaW1wb3J0IHsgY3JlYXRlQ2xhaW1FeHRyYWN0b3IgfSBmcm9tICcuLi8uLi9zcmMvc2VydmljZS9leHRyYWN0b3InOwoKY29uc3QgYWRmID0geyB0eXBlOiAnZG9jJywgdmVyc2lvbjogMSwgY29udGVudDogW3sgdHlwZTogJ3BhcmFncmFwaCcsIGNvbnRlbnQ6IFt7IHR5cGU6ICd0ZXh0JywgdGV4dDogJ1BPU1QgL3YxL2NoYXJnZScgfV0gfV0gfTsKCmZ1bmN0aW9uIHNldHVwKG92ZXI6IFBhcnRpYWw8Q2hlY2tEZXBzPiAmIHsgbG9hZD86IEluZGV4TG9hZFJlc3VsdDsgcGFnZT86IFBhZ2VSZWFkUmVzdWx0IH0gPSB7fSkgewogIGNvbnN0IGV4dHJhY3RDbGFpbXMgPSB2aS5mbigoKSA9PiAoeyBjbGFpbXM6IGRlbW9DbGFpbXMoKSwgdHJ1bmNhdGVkOiBmYWxzZSB9KSk7CiAgY29uc3QgZXh0cmFjdENsYWltc0Zyb21UZXh0ID0gdmkuZm4oKHRleHQ6IHN0cmluZykgPT4gKHsgY2xhaW1zOiB0ZXh0LmluY2x1ZGVzKCdQT1NUJykgPyBkZW1vQ2xhaW1zKCkuc2xpY2UoMCwgMSkgOiBbXSwgdHJ1bmNhdGVkOiBmYWxzZSB9KSk7CiAgY29uc3QgZXh0cmFjdG9yOiBDbGFpbUV4dHJhY3RvciA9IHsgdmVyc2lvbjogJ3YxJywgZXh0cmFjdENsYWltcywgZXh0cmFjdENsYWltc0Zyb21UZXh0IH07CiAgY29uc3QgbG9hZEluZGV4ID0gdmkuZm4oYXN5bmMgKCk6IFByb21pc2U8SW5kZXhMb2FkUmVzdWx0PiA9PiBvdmVyLmxvYWQgPz8geyBvazogdHJ1ZSwgaW5kZXg6IGRlbW9JbmRleCgpLCBzdGFsZTogZmFsc2UgfSk7CiAgY29uc3QgcmVhZFBhZ2UgPSB2aS5mbihhc3luYyAoKTogUHJvbWlzZTxQYWdlUmVhZFJlc3VsdD4gPT4gb3Zlci5wYWdlID8/IHsgb2s6IHRydWUsIHBhZ2U6IHsgaWQ6ICcxMjMnLCB0aXRsZTogJ1BheW1lbnRzIEFQSSBydW5ib29rJywgdmVyc2lvbjogNywgYWRmIH0gfSk7CiAgY29uc3QgZGVwczogQ2hlY2tEZXBzID0gewogICAgaW5kZXhMb2FkZXI6IHsgbG9hZEluZGV4IH0sCiAgICBleHRyYWN0b3IsCiAgICBjbG9jazogeyBub3c6ICgpID0+IG5ldyBEYXRlKCcyMDI2LTEyLTAxVDEyOjAwOjAwLjAwMFonKSB9LAogICAgcGFnZVJlYWRlcjogeyByZWFkUGFnZSB9LAogICAgLi4ub3ZlciwKICB9OwogIHJldHVybiB7IGRlcHMsIGV4dHJhY3RDbGFpbXMsIGV4dHJhY3RDbGFpbXNGcm9tVGV4dCwgbG9hZEluZGV4LCByZWFkUGFnZSB9Owp9CgpkZXNjcmliZSgnY2hlY2tEb2N1bWVudCcsICgpID0+IHsKICBpdC5lYWNoKFsKICAgIHsgbWV0aG9kOiAnSEVBRCcsIHBhdGg6ICcvaGVhbHRoJywgY2FsbDogJ2N1cmwgLS1oZWFkIGh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL2hlYWx0aCcgfSwKICAgIHsgbWV0aG9kOiAnUFVUJywgcGF0aDogJy9yZXBvcnRzLzQyJywgY2FsbDogJ2N1cmwgLVQgcmVwb3J0Lmpzb24gaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vcmVwb3J0cy80MicgfSwKICAgIHsgbWV0aG9kOiAnUE9TVCcsIHBhdGg6ICcvb3JkZXJzJywgY2FsbDogJ2N1cmwgLXNTZG5hbWU9c2FtcGxlIGh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL29yZGVycycgfSwKICBdIGFzIGNvbnN0KSgnY2l0ZXMgdGhlIGRlY2xhcmVkICRtZXRob2Qgcm91dGUgZm9yIGN1cmwgcnVuYm9vayBleGFtcGxlcycsIGFzeW5jICh7IG1ldGhvZCwgcGF0aCwgY2FsbCB9KSA9PiB7CiAgICBjb25zdCBpbmRleCA9IGRlbW9JbmRleCgpOwogICAgaW5kZXgucm91dGVzID0gW3sgZmlsZTogJ3NyYy9yb3V0ZXMudHMnLCBsaW5lOiAyNCwgc25pcHBldDogYHJvdXRlci4ke21ldGhvZC50b0xvd2VyQ2FzZSgpfSgnJHtwYXRofScsIGhhbmRsZXIpO2AsIG1ldGhvZCwgcGF0aCwgZnJhbWV3b3JrOiAnZXhwcmVzcycgfV07CiAgICBjb25zdCB7IGRlcHMgfSA9IHNldHVwKHsKICAgICAgZXh0cmFjdG9yOiBjcmVhdGVDbGFpbUV4dHJhY3RvcigpLAogICAgICBsb2FkOiB7IG9rOiB0cnVlLCBpbmRleCwgc3RhbGU6IGZhbHNlIH0sCiAgICAgIG1hdGNoT3B0aW9uczogeyBzZXJ2aWNlSG9zdHM6IFsnYXBpLmV4YW1wbGUuY29tJ10gfSwKICAgIH0pOwogICAgY29uc3QgY29tbWFuZCA9IHsgdHlwZTogJ2RvYycsIGNvbnRlbnQ6IFt7IHR5cGU6ICdjb2RlQmxvY2snLCBjb250ZW50OiBbCiAgICAgIHsgdHlwZTogJ3RleHQnLCB0ZXh0OiBjYWxsIH0sCiAgICBdIH1dIH07CiAgICBjb25zdCBvdXQgPSBhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmOiBjb21tYW5kIH0pOwogICAgZXhwZWN0KG91dCkudG9NYXRjaE9iamVjdCh7IG9rOiB0cnVlLCByZXBvcnQ6IHsgY291bnRzOiB7IGNsYWltczogMSwgdmVyaWZpZWQ6IDEsIGNvbnRyYWRpY3RlZDogMCB9LCByZXN1bHRzOiBbCiAgICAgIHsgY2xhaW06IHsgbm9ybWFsaXplZDogeyB0eXBlOiAnaHR0cF9lbmRwb2ludCcsIG1ldGhvZCwgcGF0aCB9IH0sIHZlcmRpY3Q6ICd2ZXJpZmllZCcsIGV2aWRlbmNlOiBbeyBmaWxlOiAnc3JjL3JvdXRlcy50cycsIGxpbmU6IDI0IH1dIH0sCiAgICBdIH0gfSk7CiAgfSk7CgogIGl0KCdyZXR1cm5zIGEgcmVwb3J0IHdpdGggY291bnRzIGZvciB0aGUgZGVtbyBjbGFpbXMnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCB7IGRlcHMsIGxvYWRJbmRleCB9ID0gc2V0dXAoKTsKICAgIGNvbnN0IG91dCA9IGF3YWl0IGNoZWNrRG9jdW1lbnQoZGVwcywgeyBhZGYsIHJlcG9SZWY6IHsgcmVwb1VybDogJ2h0dHBzOi8vZ2l0aHViLmNvbS9oaW1hbnNodTc0OC9wYXltZW50cy1hcGknIH0gfSk7CiAgICBleHBlY3Qob3V0Lm9rKS50b0JlKHRydWUpOwogICAgaWYgKCFvdXQub2spIHJldHVybjsKICAgIGV4cGVjdChvdXQucmVwb3J0LmNvdW50cykudG9FcXVhbCh7IGNsYWltczogNiwgdmVyaWZpZWQ6IDIsIGNvbnRyYWRpY3RlZDogMywgdW5rbm93bjogMSB9KTsKICAgIGV4cGVjdChsb2FkSW5kZXgpLnRvSGF2ZUJlZW5DYWxsZWRXaXRoKHsgcmVwb1VybDogJ2h0dHBzOi8vZ2l0aHViLmNvbS9oaW1hbnNodTc0OC9wYXltZW50cy1hcGknIH0pOwogIH0pOwoKICBpdCgnbWFya3MgdGhlIHJlcG9ydCBzdGFsZSB3aGVuIHRoZSBsb2FkZXIgc2F5cyBzbycsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHsgZGVwcyB9ID0gc2V0dXAoeyBsb2FkOiB7IG9rOiB0cnVlLCBpbmRleDogZGVtb0luZGV4KCksIHN0YWxlOiB0cnVlIH0gfSk7CiAgICBjb25zdCBvdXQgPSBhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmIH0pOwogICAgZXhwZWN0KG91dC5vayAmJiBvdXQucmVwb3J0LnN0YWxlKS50b0JlKHRydWUpOwogIH0pOwoKICBpdC5lYWNoKFsnaW5kZXhfbWlzc2luZycsICdyZXBvX25vdF9mb3VuZF9vcl9wcml2YXRlJywgJ3JhdGVfbGltaXRlZCcsICd0YXJiYWxsX3Rvb19sYXJnZSddIGFzIGNvbnN0KSgnbWFwcyBsb2FkZXIgZmFpbHVyZSAlcyB0byBhbiBlcnJvciwgbmV2ZXIgYSB2ZXJkaWN0JywgYXN5bmMgKHJlYXNvbikgPT4gewogICAgY29uc3QgeyBkZXBzLCBleHRyYWN0Q2xhaW1zIH0gPSBzZXR1cCh7IGxvYWQ6IHsgb2s6IGZhbHNlLCByZWFzb24gfSB9KTsKICAgIGNvbnN0IG91dCA9IGF3YWl0IGNoZWNrRG9jdW1lbnQoZGVwcywgeyBhZGYgfSk7CiAgICBleHBlY3Qob3V0KS50b01hdGNoT2JqZWN0KHsgb2s6IGZhbHNlLCBlcnJvcjogcmVhc29uIH0pOwogICAgaWYgKG91dC5vaykgcmV0dXJuOwogICAgZXhwZWN0KG91dC5tZXNzYWdlKS50b0NvbnRhaW4oJ25vdCBhIGNvbmZpcm1hdGlvbicpOwogICAgZXhwZWN0KGV4dHJhY3RDbGFpbXMpLm5vdC50b0hhdmVCZWVuQ2FsbGVkKCk7CiAgfSk7CgogIGl0KCdyZWplY3RzIGVtcHR5LCB1bnNlcmlhbGl6YWJsZSBhbmQgb3ZlcnNpemVkIGRvY3VtZW50cycsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHsgZGVwcyB9ID0gc2V0dXAoKTsKICAgIGV4cGVjdChhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmOiB1bmRlZmluZWQgfSkpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAnaW52YWxpZF9pbnB1dCcgfSk7CiAgICBjb25zdCBjeWNsaWM6IFJlY29yZDxzdHJpbmcsIHVua25vd24+ID0ge307CiAgICBjeWNsaWNbJ3NlbGYnXSA9IGN5Y2xpYzsKICAgIGV4cGVjdChhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmOiBjeWNsaWMgfSkpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAnaW52YWxpZF9pbnB1dCcgfSk7CiAgICBleHBlY3QoYXdhaXQgY2hlY2tEb2N1bWVudChkZXBzLCB7IGFkZjogeyB0ZXh0OiAneCcucmVwZWF0KDQwMCAqIDEwMjQpIH0gfSkpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAnaW52YWxpZF9pbnB1dCcgfSk7CiAgfSk7CgogIGl0KCdjYXBzIGNsYWltcyBhdCAyMDAgYW5kIHJlcG9ydHMgdHJ1bmNhdGlvbicsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IG1hbnkgPSBBcnJheS5mcm9tKHsgbGVuZ3RoOiAyNTAgfSwgKCkgPT4gZGVtb0NsYWltcygpLnNsaWNlKDAsIDEpKS5mbGF0KCk7CiAgICBjb25zdCB7IGRlcHMgfSA9IHNldHVwKCk7CiAgICBkZXBzLmV4dHJhY3RvciA9IHsgZXh0cmFjdENsYWltczogKCkgPT4gKHsgY2xhaW1zOiBtYW55LCB0cnVuY2F0ZWQ6IGZhbHNlIH0pLCBleHRyYWN0Q2xhaW1zRnJvbVRleHQ6ICgpID0+ICh7IGNsYWltczogW10sIHRydW5jYXRlZDogZmFsc2UgfSkgfTsKICAgIGNvbnN0IG91dCA9IGF3YWl0IGNoZWNrRG9jdW1lbnQoZGVwcywgeyBhZGYgfSk7CiAgICBleHBlY3Qob3V0Lm9rICYmIG91dC5yZXBvcnQucmVzdWx0cykudG9IYXZlTGVuZ3RoKDIwMCk7CiAgICBleHBlY3Qob3V0Lm9rICYmIG91dC5yZXBvcnQubGltaXRzLmNsYWltc1RydW5jYXRlZCkudG9CZSh0cnVlKTsKICB9KTsKCiAgaXQoJ3VzZXMgdGhlIHJlcG9ydCBjYWNoZSBhbmQga2V5cyBpdCBieSBkb2N1bWVudCwgY29tbWl0IGFuZCBleHRyYWN0b3IgdmVyc2lvbicsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHN0b3JlID0gbmV3IE1hcDxzdHJpbmcsIFJlcG9ydD4oKTsKICAgIGNvbnN0IHJlcG9ydENhY2hlID0gewogICAgICBnZXQ6IHZpLmZuKGFzeW5jIChrZXk6IHN0cmluZykgPT4gc3RvcmUuZ2V0KGtleSkpLAogICAgICBzZXQ6IHZpLmZuKGFzeW5jIChrZXk6IHN0cmluZywgcmVwb3J0OiBSZXBvcnQpID0+IHZvaWQgc3RvcmUuc2V0KGtleSwgcmVwb3J0KSksCiAgICB9OwogICAgY29uc3QgeyBkZXBzLCBleHRyYWN0Q2xhaW1zIH0gPSBzZXR1cCh7IHJlcG9ydENhY2hlIH0pOwogICAgY29uc3QgZmlyc3QgPSBhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmIH0pOwogICAgY29uc3Qgc2Vjb25kID0gYXdhaXQgY2hlY2tEb2N1bWVudChkZXBzLCB7IGFkZiB9KTsKICAgIGV4cGVjdChleHRyYWN0Q2xhaW1zKS50b0hhdmVCZWVuQ2FsbGVkVGltZXMoMSk7CiAgICBleHBlY3Qoc2Vjb25kKS50b0VxdWFsKGZpcnN0KTsKICAgIGNvbnN0IFtrZXldID0gWy4uLnN0b3JlLmtleXMoKV07CiAgICBleHBlY3Qoa2V5KS50b01hdGNoKC9ecmVwb3J0OlswLTlhLWZdezMyfSQvKTsKICAgIGF3YWl0IGNoZWNrRG9jdW1lbnQoZGVwcywgeyBhZGY6IHsgLi4uYWRmLCB2ZXJzaW9uOiAyIH0gfSk7CiAgICBleHBlY3QoZXh0cmFjdENsYWltcykudG9IYXZlQmVlbkNhbGxlZFRpbWVzKDIpOwogICAgZGVwcy5leHRyYWN0b3IgPSB7IC4uLmRlcHMuZXh0cmFjdG9yLCB2ZXJzaW9uOiAndjInIH07CiAgICBhd2FpdCBjaGVja0RvY3VtZW50KGRlcHMsIHsgYWRmIH0pOwogICAgZXhwZWN0KGV4dHJhY3RDbGFpbXMpLnRvSGF2ZUJlZW5DYWxsZWRUaW1lcygzKTsKICB9KTsKCiAgaXQoJ3JlY29yZHMgY291bnRzIGZvciB0aGUgYnlsaW5lIHdoZW4gY29udGVudCBpZCBhbmQgdmVyc2lvbiBhcmUga25vd24nLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCBzZXQgPSB2aS5mbihhc3luYyAoKSA9PiB1bmRlZmluZWQpOwogICAgY29uc3QgeyBkZXBzIH0gPSBzZXR1cCh7IGNvdW50c1N0b3JlOiB7IHNldCB9IH0pOwogICAgYXdhaXQgY2hlY2tEb2N1bWVudChkZXBzLCB7IGFkZiwgY29udGVudElkOiAnMTIzJywgdmVyc2lvbjogNyB9KTsKICAgIGV4cGVjdChzZXQpLnRvSGF2ZUJlZW5DYWxsZWRXaXRoKCdjb3VudHM6MTIzOjcnLCB7IGNvdW50czogeyBjbGFpbXM6IDYsIHZlcmlmaWVkOiAyLCBjb250cmFkaWN0ZWQ6IDMsIHVua25vd246IDEgfSwgY2hlY2tlZEF0OiAnMjAyNi0xMi0wMVQxMjowMDowMC4wMDBaJyB9KTsKICAgIHNldC5tb2NrQ2xlYXIoKTsKICAgIGF3YWl0IGNoZWNrRG9jdW1lbnQoZGVwcywgeyBhZGYgfSk7CiAgICBleHBlY3Qoc2V0KS5ub3QudG9IYXZlQmVlbkNhbGxlZCgpOwogIH0pOwp9KTsKCmRlc2NyaWJlKCdjaGVja0NsYWltJywgKCkgPT4gewogIGl0KCdjaGVja3MgdGhlIGNsYWltcyBmb3VuZCBpbiBhIHNob3J0IHRleHQnLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCB7IGRlcHMgfSA9IHNldHVwKCk7CiAgICBjb25zdCBvdXQgPSBhd2FpdCBjaGVja0NsYWltKGRlcHMsIHsgdGV4dDogJyBQT1NUIC92MS9jaGFyZ2UgJyB9KTsKICAgIGV4cGVjdChvdXQub2spLnRvQmUodHJ1ZSk7CiAgICBpZiAoIW91dC5vaykgcmV0dXJuOwogICAgZXhwZWN0KG91dC5yZXBvcnQuY291bnRzLmNvbnRyYWRpY3RlZCkudG9CZSgxKTsKICAgIGV4cGVjdChvdXQucmVwb3J0LnJlc3VsdHNbMF0/LmV2aWRlbmNlWzBdKS50b01hdGNoT2JqZWN0KHsgZmlsZTogJ3NyYy9yb3V0ZXMudHMnLCBsaW5lOiA4OCB9KTsKICB9KTsKICBpdCgncmVqZWN0cyBlbXB0eSBhbmQgbG9uZyB0ZXh0JywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgeyBkZXBzIH0gPSBzZXR1cCgpOwogICAgZXhwZWN0KGF3YWl0IGNoZWNrQ2xhaW0oZGVwcywgeyB0ZXh0OiAnICAgJyB9KSkudG9NYXRjaE9iamVjdCh7IG9rOiBmYWxzZSwgZXJyb3I6ICdpbnZhbGlkX2lucHV0JyB9KTsKICAgIGV4cGVjdChhd2FpdCBjaGVja0NsYWltKGRlcHMsIHsgdGV4dDogJ3gnLnJlcGVhdCgzMDEpIH0pKS50b01hdGNoT2JqZWN0KHsgb2s6IGZhbHNlLCBlcnJvcjogJ2ludmFsaWRfaW5wdXQnIH0pOwogICAgZXhwZWN0KGF3YWl0IGNoZWNrQ2xhaW0oZGVwcywgeyB0ZXh0OiA1IGFzIHVua25vd24gYXMgc3RyaW5nIH0pKS50b01hdGNoT2JqZWN0KHsgb2s6IGZhbHNlLCBlcnJvcjogJ2ludmFsaWRfaW5wdXQnIH0pOwogIH0pOwogIGl0KCdhbnN3ZXJzIG5vdF9hX2NoZWNrYWJsZV9jbGFpbSB3aXRob3V0IGxvYWRpbmcgdGhlIGluZGV4JywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgeyBkZXBzLCBsb2FkSW5kZXggfSA9IHNldHVwKCk7CiAgICBjb25zdCBvdXQgPSBhd2FpdCBjaGVja0NsYWltKGRlcHMsIHsgdGV4dDogJ2hlbGxvIHRoZXJlJyB9KTsKICAgIGV4cGVjdChvdXQpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAnbm90X2FfY2hlY2thYmxlX2NsYWltJyB9KTsKICAgIGV4cGVjdChvdXQub2sgPyAnJyA6IG91dC5tZXNzYWdlKS50b0NvbnRhaW4oJ25vdCBhIGNvbmZpcm1hdGlvbicpOwogICAgZXhwZWN0KGxvYWRJbmRleCkubm90LnRvSGF2ZUJlZW5DYWxsZWQoKTsKICB9KTsKICBpdCgncGFzc2VzIGxvYWRlciBmYWlsdXJlcyB0aHJvdWdoJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgeyBkZXBzIH0gPSBzZXR1cCh7IGxvYWQ6IHsgb2s6IGZhbHNlLCByZWFzb246ICdyYXRlX2xpbWl0ZWQnIH0gfSk7CiAgICBleHBlY3QoYXdhaXQgY2hlY2tDbGFpbShkZXBzLCB7IHRleHQ6ICdQT1NUIC92MS9jaGFyZ2UnIH0pKS50b01hdGNoT2JqZWN0KHsgb2s6IGZhbHNlLCBlcnJvcjogJ3JhdGVfbGltaXRlZCcgfSk7CiAgfSk7Cn0pOwoKZGVzY3JpYmUoJ2NoZWNrUGFnZScsICgpID0+IHsKICBpdCgncmVhZHMgdGhlIHBhZ2UsIGNoZWNrcyBpdCBhbmQgYnVpbGRzIHRoZSBhZ2VudCBlbnZlbG9wZScsIGFzeW5jICgpID0+IHsKICAgIGNvbnN0IHsgZGVwcywgcmVhZFBhZ2UgfSA9IHNldHVwKCk7CiAgICBjb25zdCBvdXQgPSBhd2FpdCBjaGVja1BhZ2UoZGVwcywgeyBwYWdlSWQ6ICcxMjMnIH0pOwogICAgZXhwZWN0KHJlYWRQYWdlKS50b0hhdmVCZWVuQ2FsbGVkV2l0aCgnMTIzJyk7CiAgICBleHBlY3Qob3V0Lm9rKS50b0JlKHRydWUpOwogICAgaWYgKCFvdXQub2spIHJldHVybjsKICAgIGV4cGVjdChvdXQuZW52ZWxvcGUpLnRvTWF0Y2hPYmplY3QoeyBzY2hlbWE6ICdwaWwuYWdlbnQudjEnLCBwYWdlOiB7IGlkOiAnMTIzJywgdW50cnVzdGVkVGl0bGU6ICdQYXltZW50cyBBUEkgcnVuYm9vaycsIHZlcnNpb246IDcgfSwgY291bnRzOiB7IGNsYWltczogNiB9IH0pOwogIH0pOwogIGl0KCdyZWplY3RzIGJhZCBpZHMsIHVucmVhZGFibGUgcGFnZXMgYW5kIGEgbWlzc2luZyByZWFkZXInLCBhc3luYyAoKSA9PiB7CiAgICBjb25zdCB7IGRlcHMgfSA9IHNldHVwKCk7CiAgICBleHBlY3QoYXdhaXQgY2hlY2tQYWdlKGRlcHMsIHsgcGFnZUlkOiAnMTI7IGRyb3AnIH0pKS50b01hdGNoT2JqZWN0KHsgb2s6IGZhbHNlLCBlcnJvcjogJ2ludmFsaWRfaW5wdXQnIH0pOwogICAgY29uc3QgZGVuaWVkID0gc2V0dXAoeyBwYWdlOiB7IG9rOiBmYWxzZSwgcmVhc29uOiAnZm9yYmlkZGVuJyB9IH0pOwogICAgZXhwZWN0KGF3YWl0IGNoZWNrUGFnZShkZW5pZWQuZGVwcywgeyBwYWdlSWQ6ICcxJyB9KSkudG9NYXRjaE9iamVjdCh7IG9rOiBmYWxzZSwgZXJyb3I6ICdmb3JiaWRkZW4nIH0pOwogICAgY29uc3QgbWlzc2luZyA9IHNldHVwKHsgcGFnZTogeyBvazogZmFsc2UsIHJlYXNvbjogJ3BhZ2Vfbm90X2ZvdW5kJyB9IH0pOwogICAgZXhwZWN0KGF3YWl0IGNoZWNrUGFnZShtaXNzaW5nLmRlcHMsIHsgcGFnZUlkOiAnMScgfSkpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAncGFnZV9ub3RfZm91bmQnIH0pOwogICAgY29uc3QgeyBwYWdlUmVhZGVyOiBfdW51c2VkLCAuLi5ub1JlYWRlciB9ID0gZGVwczsKICAgIGV4cGVjdChhd2FpdCBjaGVja1BhZ2Uobm9SZWFkZXIsIHsgcGFnZUlkOiAnMScgfSkpLnRvTWF0Y2hPYmplY3QoeyBvazogZmFsc2UsIGVycm9yOiAnaW50ZXJuYWxfZXJyb3InIH0pOwogIH0pOwogIGl0KCdwYXNzZXMgYSBsb2FkZXIgZmFpbHVyZSB0aHJvdWdoJywgYXN5bmMgKCkgPT4gewogICAgY29uc3QgeyBkZXBzIH0gPSBzZXR1cCh7IGxvYWQ6IHsgb2s6IGZhbHNlLCByZWFzb246ICdpbmRleF9taXNzaW5nJyB9IH0pOwogICAgZXhwZWN0KGF3YWl0IGNoZWNrUGFnZShkZXBzLCB7IHBhZ2VJZDogJzEnLCByZXBvUmVmOiB7IHJlZjogJ2RldicgfSB9KSkudG9NYXRjaE9iamVjdCh7IG9rOiBmYWxzZSwgZXJyb3I6ICdpbmRleF9taXNzaW5nJyB9KTsKICB9KTsKfSk7Cg==
+import { describe, expect, it, vi } from 'vitest';
+import type { Report } from '../../src/core/model';
+import {
+  checkClaim,
+  checkDocument,
+  checkPage,
+  type CheckDeps,
+  type ClaimExtractor,
+  type IndexLoadResult,
+  type PageReadResult,
+} from '../../src/service/check';
+import { demoClaims, demoIndex } from '../fixtures/match/demo';
+import { createClaimExtractor } from '../../src/service/extractor';
+
+const adf = { type: 'doc', version: 1, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'POST /v1/charge' }] }] };
+
+function setup(over: Partial<CheckDeps> & { load?: IndexLoadResult; page?: PageReadResult } = {}) {
+  const extractClaims = vi.fn(() => ({ claims: demoClaims(), truncated: false }));
+  const extractClaimsFromText = vi.fn((text: string) => ({ claims: text.includes('POST') ? demoClaims().slice(0, 1) : [], truncated: false }));
+  const extractor: ClaimExtractor = { version: 'v1', extractClaims, extractClaimsFromText };
+  const loadIndex = vi.fn(async (): Promise<IndexLoadResult> => over.load ?? { ok: true, index: demoIndex(), stale: false });
+  const readPage = vi.fn(async (): Promise<PageReadResult> => over.page ?? { ok: true, page: { id: '123', title: 'Payments API runbook', version: 7, adf } });
+  const deps: CheckDeps = {
+    indexLoader: { loadIndex },
+    extractor,
+    clock: { now: () => new Date('2026-12-01T12:00:00.000Z') },
+    pageReader: { readPage },
+    ...over,
+  };
+  return { deps, extractClaims, extractClaimsFromText, loadIndex, readPage };
+}
+
+describe('checkDocument', () => {
+  it.each([
+    { method: 'HEAD', path: '/health', call: 'curl --head https://api.example.com/health' },
+    { method: 'PUT', path: '/reports/42', call: 'curl -T report.json https://api.example.com/reports/42' },
+    { method: 'POST', path: '/orders', call: 'curl -sSdname=sample https://api.example.com/orders' },
+  ] as const)('cites the declared $method route for curl runbook examples', async ({ method, path, call }) => {
+    const index = demoIndex();
+    index.routes = [{ file: 'src/routes.ts', line: 24, snippet: `router.${method.toLowerCase()}('${path}', handler);`, method, path, framework: 'express' }];
+    const { deps } = setup({
+      extractor: createClaimExtractor(),
+      load: { ok: true, index, stale: false },
+      matchOptions: { serviceHosts: ['api.example.com'] },
+    });
+    const command = { type: 'doc', content: [{ type: 'codeBlock', content: [
+      { type: 'text', text: call },
+    ] }] };
+    const out = await checkDocument(deps, { adf: command });
+    expect(out).toMatchObject({ ok: true, report: { counts: { claims: 1, verified: 1, contradicted: 0 }, results: [
+      { claim: { normalized: { type: 'http_endpoint', method, path } }, verdict: 'verified', evidence: [{ file: 'src/routes.ts', line: 24 }] },
+    ] } });
+  });
+
+  it('returns a report with counts for the demo claims', async () => {
+    const { deps, loadIndex } = setup();
+    const out = await checkDocument(deps, { adf, repoRef: { repoUrl: 'https://github.com/himanshu748/payments-api' } });
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.report.counts).toEqual({ claims: 6, verified: 2, contradicted: 3, unknown: 1 });
+    expect(loadIndex).toHaveBeenCalledWith({ repoUrl: 'https://github.com/himanshu748/payments-api' });
+  });
+
+  it('marks the report stale when the loader says so', async () => {
+    const { deps } = setup({ load: { ok: true, index: demoIndex(), stale: true } });
+    const out = await checkDocument(deps, { adf });
+    expect(out.ok && out.report.stale).toBe(true);
+  });
+
+  it.each(['index_missing', 'repo_not_found_or_private', 'rate_limited', 'tarball_too_large'] as const)('maps loader failure %s to an error, never a verdict', async (reason) => {
+    const { deps, extractClaims } = setup({ load: { ok: false, reason } });
+    const out = await checkDocument(deps, { adf });
+    expect(out).toMatchObject({ ok: false, error: reason });
+    if (out.ok) return;
+    expect(out.message).toContain('not a confirmation');
+    expect(extractClaims).not.toHaveBeenCalled();
+  });
+
+  it('rejects empty, unserializable and oversized documents', async () => {
+    const { deps } = setup();
+    expect(await checkDocument(deps, { adf: undefined })).toMatchObject({ ok: false, error: 'invalid_input' });
+    const cyclic: Record<string, unknown> = {};
+    cyclic['self'] = cyclic;
+    expect(await checkDocument(deps, { adf: cyclic })).toMatchObject({ ok: false, error: 'invalid_input' });
+    expect(await checkDocument(deps, { adf: { text: 'x'.repeat(400 * 1024) } })).toMatchObject({ ok: false, error: 'invalid_input' });
+  });
+
+  it('caps claims at 200 and reports truncation', async () => {
+    const many = Array.from({ length: 250 }, () => demoClaims().slice(0, 1)).flat();
+    const { deps } = setup();
+    deps.extractor = { extractClaims: () => ({ claims: many, truncated: false }), extractClaimsFromText: () => ({ claims: [], truncated: false }) };
+    const out = await checkDocument(deps, { adf });
+    expect(out.ok && out.report.results).toHaveLength(200);
+    expect(out.ok && out.report.limits.claimsTruncated).toBe(true);
+  });
+
+  it('uses the report cache and keys it by document, commit and extractor version', async () => {
+    const store = new Map<string, Report>();
+    const reportCache = {
+      get: vi.fn(async (key: string) => store.get(key)),
+      set: vi.fn(async (key: string, report: Report) => void store.set(key, report)),
+    };
+    const { deps, extractClaims } = setup({ reportCache });
+    const first = await checkDocument(deps, { adf });
+    const second = await checkDocument(deps, { adf });
+    expect(extractClaims).toHaveBeenCalledTimes(1);
+    expect(second).toEqual(first);
+    const [key] = [...store.keys()];
+    expect(key).toMatch(/^report:[0-9a-f]{32}$/);
+    await checkDocument(deps, { adf: { ...adf, version: 2 } });
+    expect(extractClaims).toHaveBeenCalledTimes(2);
+    deps.extractor = { ...deps.extractor, version: 'v2' };
+    await checkDocument(deps, { adf });
+    expect(extractClaims).toHaveBeenCalledTimes(3);
+  });
+
+  it('records counts for the byline when content id and version are known', async () => {
+    const set = vi.fn(async () => undefined);
+    const { deps } = setup({ countsStore: { set } });
+    await checkDocument(deps, { adf, contentId: '123', version: 7 });
+    expect(set).toHaveBeenCalledWith('counts:123:7', { counts: { claims: 6, verified: 2, contradicted: 3, unknown: 1 }, checkedAt: '2026-12-01T12:00:00.000Z' });
+    set.mockClear();
+    await checkDocument(deps, { adf });
+    expect(set).not.toHaveBeenCalled();
+  });
+});
+
+describe('checkClaim', () => {
+  it('checks the claims found in a short text', async () => {
+    const { deps } = setup();
+    const out = await checkClaim(deps, { text: ' POST /v1/charge ' });
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.report.counts.contradicted).toBe(1);
+    expect(out.report.results[0]?.evidence[0]).toMatchObject({ file: 'src/routes.ts', line: 88 });
+  });
+  it('rejects empty and long text', async () => {
+    const { deps } = setup();
+    expect(await checkClaim(deps, { text: '   ' })).toMatchObject({ ok: false, error: 'invalid_input' });
+    expect(await checkClaim(deps, { text: 'x'.repeat(301) })).toMatchObject({ ok: false, error: 'invalid_input' });
+    expect(await checkClaim(deps, { text: 5 as unknown as string })).toMatchObject({ ok: false, error: 'invalid_input' });
+  });
+  it('answers not_a_checkable_claim without loading the index', async () => {
+    const { deps, loadIndex } = setup();
+    const out = await checkClaim(deps, { text: 'hello there' });
+    expect(out).toMatchObject({ ok: false, error: 'not_a_checkable_claim' });
+    expect(out.ok ? '' : out.message).toContain('not a confirmation');
+    expect(loadIndex).not.toHaveBeenCalled();
+  });
+  it('passes loader failures through', async () => {
+    const { deps } = setup({ load: { ok: false, reason: 'rate_limited' } });
+    expect(await checkClaim(deps, { text: 'POST /v1/charge' })).toMatchObject({ ok: false, error: 'rate_limited' });
+  });
+});
+
+describe('checkPage', () => {
+  it('reads the page, checks it and builds the agent envelope', async () => {
+    const { deps, readPage } = setup();
+    const out = await checkPage(deps, { pageId: '123' });
+    expect(readPage).toHaveBeenCalledWith('123');
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(out.envelope).toMatchObject({ schema: 'pil.agent.v1', page: { id: '123', untrustedTitle: 'Payments API runbook', version: 7 }, counts: { claims: 6 } });
+  });
+  it('rejects bad ids, unreadable pages and a missing reader', async () => {
+    const { deps } = setup();
+    expect(await checkPage(deps, { pageId: '12; drop' })).toMatchObject({ ok: false, error: 'invalid_input' });
+    const denied = setup({ page: { ok: false, reason: 'forbidden' } });
+    expect(await checkPage(denied.deps, { pageId: '1' })).toMatchObject({ ok: false, error: 'forbidden' });
+    const missing = setup({ page: { ok: false, reason: 'page_not_found' } });
+    expect(await checkPage(missing.deps, { pageId: '1' })).toMatchObject({ ok: false, error: 'page_not_found' });
+    const { pageReader: _unused, ...noReader } = deps;
+    expect(await checkPage(noReader, { pageId: '1' })).toMatchObject({ ok: false, error: 'internal_error' });
+  });
+  it('passes a loader failure through', async () => {
+    const { deps } = setup({ load: { ok: false, reason: 'index_missing' } });
+    expect(await checkPage(deps, { pageId: '1', repoRef: { ref: 'dev' } })).toMatchObject({ ok: false, error: 'index_missing' });
+  });
+});
