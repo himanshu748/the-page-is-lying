@@ -15,6 +15,13 @@
   margin: .25rem 0;
 }
 
+.local-demo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.25rem;
+  margin: 0 0 1rem;
+}
+
 .local-demo-context,
 .local-demo-change {
   font-weight: 600;
