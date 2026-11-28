@@ -69,6 +69,10 @@ describe('http_endpoint extraction', () => {
     ['curl skips a long referer URL when selecting the request target', 'Run `curl --referer https://docs.example/v1/origin https://h.io/v1/target`', [http('GET', '/v1/target', 'h.io')]],
     ['curl keeps HEAD from a short bundle before a separate referer URL', 'Run `curl -sSIe https://docs.example/v1/origin https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
     ['curl keeps HEAD before an attached referer URL', 'Run `curl -Iehttps://docs.example/v1/origin https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
+    ['curl finds the target past a proxy URL', 'Run `curl --proxy http://proxy.example:8080 https://h.io/v1/target`', [http('GET', '/v1/target', 'h.io')]],
+    ['curl retains HEAD in a short bundle before a separate proxy', 'Run `curl -sSIx http://proxy.example:8080 https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
+    ['curl retains HEAD before an attached short proxy', 'Run `curl -Ixhttp://proxy.example:8080 https://h.io/v1/target`', [http('HEAD', '/v1/target', 'h.io')]],
+    ['curl finds an attached long destination after a proxy', 'Run `curl -x http://proxy.example:8080 --url=https://h.io/v1/target`', [http('GET', '/v1/target', 'h.io')]],
   ])('%s', (_name, input, expected) => {
     expect(fromText(input, 'http_endpoint')).toEqual(expected);
   });
@@ -84,6 +88,8 @@ describe('http_endpoint extraction', () => {
     ['curl without url', 'Run `curl --help`'],
     ['curl does not treat a lone referer URL as a target', 'Run `curl -e https://docs.example/v1/origin`'],
     ['curl referer option requires an argument', 'Run `curl https://h.io/v1/target --referer`'],
+    ['curl proxy option requires an argument', 'Run `curl https://h.io/v1/target --proxy`'],
+    ['curl destination option requires an argument', 'Run `curl https://h.io/v1/target --url`'],
     ['curl to a variable host', 'Run `curl $BASE/v1/a`'],
     ['curl with unknown method', 'Run `curl -X PROPFIND https://h.io/v1/a`'],
     ['curl cannot send HEAD with a multipart body', 'Run `curl -I -G -F name=x https://h.io/v1/a`'],
