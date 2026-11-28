@@ -187,6 +187,29 @@ describe('audit-space handler', () => {
     expect(out.scope).toMatchObject({ pagesChecked: 0, pagesNotReached: 5 });
   });
 
+  it('returns a typed failure by the deadline when the space read is still pending', async () => {
+    vi.useFakeTimers();
+    try {
+      const slowRead: SpaceReader = () => new Promise((resolve) => {
+        setTimeout(() => resolve({ ok: true, spaceId: '98', pages, more: false }), 1001);
+      });
+      const getService = vi.fn(svc);
+      const received = vi.fn();
+      const audit = createAuditSpaceHandler({ service: getService, readSpace: slowRead, clock: { now: Date.now, budgetMs: 1000 } });
+      const pending = audit(ctx).then(received);
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(received).toHaveBeenCalledWith({
+        schema: 'pil.agent.error.v1', error: 'space_read_timed_out',
+        message: 'Reading the space took too long. Try again in a minute. No verdict was produced.',
+      });
+      await vi.advanceTimersByTimeAsync(1);
+      await pending;
+      expect(getService).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('flags a page whose claims were cut at the limit, in the audit and in suggest-fix', async () => {
     const cut = (): Report => {
       const report = makeReport([verified()]);

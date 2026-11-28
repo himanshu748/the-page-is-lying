@@ -217,6 +217,8 @@ resolver.define('auditSpace', async ({ context }): Promise<DriftResponse> => {
         return { state: 'rate_limited' };
       case 'forbidden':
         return { state: 'error', message: 'You cannot view the pages of this space.' };
+      case 'space_read_timed_out':
+        return { state: 'error', message: audit.message };
       default:
         return { state: 'error', message: 'The space audit failed. Try again in a minute.' };
     }

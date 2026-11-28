@@ -116,7 +116,9 @@ export async function readAndAudit(
   clock: AuditClock = DEFAULT_CLOCK,
 ): Promise<AuditSpaceResult> {
   const deadline = clock.now() + clock.budgetMs;
-  return auditPages(getService, await readSpace(), source, clock, deadline);
+  const read = await within(readSpace(), clock.budgetMs);
+  if (read === TIMED_OUT) return buildError('space_read_timed_out');
+  return auditPages(getService, read, source, clock, deadline);
 }
 
 const TIMED_OUT = Symbol('timed out');
