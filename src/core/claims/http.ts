@@ -76,7 +76,7 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
         }
         const uploadOption = /^-([fGILsSv]*)T(.*)$/.exec(value);
         const shortBody = /^-([fGILsSv]*)([dF])(.*)$/.exec(value);
-        const shortReferer = /^-([fGILsSv]*)e(.*)$/.exec(value);
+        const shortRoutingOption = /^-([fGILsSv]*)[ex](.*)$/.exec(value);
         if (shortBody) {
           if (shortBody[1]?.includes('I')) head = true;
           if (shortBody[1]?.includes('G')) get = true;
@@ -110,14 +110,21 @@ function curlCandidates(ctx: BlockContext): Candidate[] {
         } else if (/^--form(-string)?(=|$)/.test(value)) {
           hasForm = true;
           if (!value.includes('=')) i++;
-        } else if (shortReferer || value === '--referer') {
-          if (shortReferer?.[1]?.includes('I')) head = true;
-          if (shortReferer?.[1]?.includes('G')) get = true;
-          // A Referer URL is a request header value, not a transfer target.
-          if (!shortReferer?.[2] && tokens[++i] === undefined) {
+        } else if (shortRoutingOption || value === '--referer' || value === '--proxy') {
+          if (shortRoutingOption?.[1]?.includes('I')) head = true;
+          if (shortRoutingOption?.[1]?.includes('G')) get = true;
+          // Referer and proxy addresses can look like the request destination.
+          if (!shortRoutingOption?.[2] && tokens[++i] === undefined) {
             url = undefined;
             break;
           }
+        } else if (value === '--url' || value.startsWith('--url=')) {
+          const target = value === '--url' ? tokens[++i]?.value : value.slice('--url='.length);
+          if (!target) {
+            url = undefined;
+            break;
+          }
+          url ??= target;
         } else if (value === '-H' || value === '--header') {
           i++;
         } else if (value === '--head' || value === '--no-head') {
