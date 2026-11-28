@@ -336,6 +336,8 @@ describe('getPageContacts and auditSpace', () => {
     expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'rate_limited' });
     setInsights(failing('forbidden'));
     expect(await call('auditSpace', {}, driftCtx)).toMatchObject({ state: 'error', message: 'You cannot view the pages of this space.' });
+    setInsights(failing('space_read_timed_out'));
+    expect(await call('auditSpace', {}, driftCtx)).toEqual({ state: 'error', message: 'm' });
     setInsights(insights({ auditSpace: () => Promise.reject(new Error('x')) }));
     expect(await call('auditSpace', {}, driftCtx)).toMatchObject({ state: 'error' });
   });
