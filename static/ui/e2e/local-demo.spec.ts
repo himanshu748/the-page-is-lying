@@ -32,3 +32,27 @@ test('the local demo distinguishes a frontend fallback from a declared API route
   await expect(declared).toContainText('Verified');
   await expect(declared).toContainText('server.js:4');
 });
+
+test('a judge can submit an independent claim and follow its citation', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/local-demo.html');
+  const check = page.getByRole('region', { name: 'Check your own claim' });
+  const claim = check.getByLabel('Claim from a runbook');
+  const submit = check.getByRole('button', { name: 'Check claim' });
+  await expect(submit).toBeDisabled();
+  await claim.fill('GET /health');
+  await claim.press('Enter');
+  await expect(check.getByRole('listitem')).toContainText('Verified');
+  await expect(check.getByRole('link', { name: 'src/routes.ts:84' })).toHaveAttribute('href',
+    'https://github.com/himanshu748/payments-api-demo/blob/44c8112e1bc0f3be63fe45fbcb70bfaf6bfb03a5/src/routes.ts#L84');
+
+  await claim.fill('POST /v1/charge');
+  await submit.click();
+  await expect(check.getByRole('listitem')).toContainText('Contradicted');
+  await expect(check.getByRole('link', { name: 'src/routes.ts:88' })).toBeVisible();
+
+  await claim.fill('Can you tell me a story?');
+  await submit.click();
+  await expect(check).toContainText('No checkable claim found.');
+  await expect(check.getByRole('listitem')).toHaveCount(0);
+});

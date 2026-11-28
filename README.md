@@ -35,6 +35,7 @@ npm ci && npm run demo
 
 The local demo runs the real checker on the bundled payments fixture. Apply the
 sample route correction and check how the verdict and source line change.
+Enter a claim of your own, such as `GET /health`, to see its verdict and source.
 Try the catch-all example to see why a frontend fallback leaves a removed API
 route without evidence.
 For the live Forge and Rovo flow, install with the link above and
