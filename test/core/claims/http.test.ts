@@ -1,1 +1,122 @@
-aW1wb3J0IHsgZGVzY3JpYmUsIGV4cGVjdCwgaXQgfSBmcm9tICd2aXRlc3QnOwppbXBvcnQgeyBub3JtYWxpemVIdHRwUGF0aCB9IGZyb20gJy4uLy4uLy4uL3NyYy9jb3JlL2NsYWltcy9odHRwLmpzJzsKaW1wb3J0IHR5cGUgeyBOb3JtYWxpemVkQ2xhaW0gfSBmcm9tICcuLi8uLi8uLi9zcmMvY29yZS9tb2RlbC5qcyc7CmltcG9ydCB7IGFsbEZyb21UZXh0LCBjb2RlQmxvY2ssIGRvYywgZnJvbUFkZiwgZnJvbVRleHQsIHBhcmEgfSBmcm9tICcuL2hlbHBlcnMuanMnOwoKY29uc3QgaHR0cCA9IChtZXRob2Q6IHN0cmluZywgcGF0aDogc3RyaW5nLCBob3N0Pzogc3RyaW5nKTogTm9ybWFsaXplZENsYWltID0+CiAgaG9zdCA9PT0gdW5kZWZpbmVkCiAgICA/ICh7IHR5cGU6ICdodHRwX2VuZHBvaW50JywgbWV0aG9kLCBwYXRoIH0gYXMgTm9ybWFsaXplZENsYWltKQogICAgOiAoeyB0eXBlOiAnaHR0cF9lbmRwb2ludCcsIG1ldGhvZCwgcGF0aCwgaG9zdCB9IGFzIE5vcm1hbGl6ZWRDbGFpbSk7CgpkZXNjcmliZSgnbm9ybWFsaXplSHR0cFBhdGgnLCAoKSA9PiB7CiAgaXQuZWFjaChbCiAgICBbJy92Mi9wYXltZW50cy97aWR9JywgJy92Mi9wYXltZW50cy86cGFyYW0nXSwKICAgIFsnL3YyL3BheW1lbnRzLzppZCcsICcvdjIvcGF5bWVudHMvOnBhcmFtJ10sCiAgICBbJy92Mi9wYXltZW50cy88aWQ+JywgJy92Mi9wYXltZW50cy86cGFyYW0nXSwKICAgIFsnL3YyL3BheW1lbnRzLzxpbnQ6aWQ+JywgJy92Mi9wYXltZW50cy86cGFyYW0nXSwKICAgIFsnL3YyL3BheW1lbnRzL1tpZF0nLCAnL3YyL3BheW1lbnRzLzpwYXJhbSddLAogICAgWycvdjIvcGF5bWVudHMvJywgJy92Mi9wYXltZW50cyddLAogICAgWycvdjIvcGF5bWVudHM/bGltaXQ9NSN0b3AnLCAnL3YyL3BheW1lbnRzJ10sCiAgICBbJy8vdjIvL3BheW1lbnRzLy4veC8nLCAnL3YyL3BheW1lbnRzL3gnXSwKICAgIFsnLycsICcvJ10sCiAgICBbJycsICcvJ10sCiAgXSkoJyVzIC0+ICVzJywgKGlucHV0LCBleHBlY3RlZCkgPT4gewogICAgZXhwZWN0KG5vcm1hbGl6ZUh0dHBQYXRoKGlucHV0KSkudG9CZShleHBlY3RlZCk7CiAgfSk7Cn0pOwoKZGVzY3JpYmUoJ2h0dHBfZW5kcG9pbnQgZXh0cmFjdGlvbicsICgpID0+IHsKICBpdC5lYWNoPFtzdHJpbmcsIHN0cmluZywgTm9ybWFsaXplZENsYWltW11dPihbCiAgICBbJ21ldGhvZCBpbiBjb2RlIHNwYW4nLCAnQ2FsbCBgUE9TVCAvdjEvY2hhcmdlYCBub3cuJywgW2h0dHAoJ1BPU1QnLCAnL3YxL2NoYXJnZScpXV0sCiAgICBbJ21ldGhvZCBpbiBwcm9zZScsICdDYWxsIFBPU1QgL3YxL2NoYXJnZSBub3cuJywgW2h0dHAoJ1BPU1QnLCAnL3YxL2NoYXJnZScpXV0sCiAgICBbJ3RyYWlsaW5nIHNlbnRlbmNlIGRvdCcsICdVc2UgR0VUIC9oZWFsdGguJywgW2h0dHAoJ0dFVCcsICcvaGVhbHRoJyldXSwKICAgIFsncGFyYW0gc3R5bGVzJywgJ0dFVCAvYS97aWR9LCBQVVQgL2IvOmlkIGFuZCBERUxFVEUgL2MvPGludDppZD4nLCBbaHR0cCgnR0VUJywgJy9hLzpwYXJhbScpLCBodHRwKCdQVVQnLCAnL2IvOnBhcmFtJyksIGh0dHAoJ0RFTEVURScsICcvYy86cGFyYW0nKV1dLAogICAgWydxdWVyeSBhbmQgZnJhZ21lbnQnLCAnVHJ5IGBHRVQgL3YyL3BheW1lbnRzP2xpbWl0PTUjeGAnLCBbaHR0cCgnR0VUJywgJy92Mi9wYXltZW50cycpXV0sCiAgICBbJ3RyYWlsaW5nIHNsYXNoJywgJ1RyeSBgUEFUQ0ggL3YyL3BheW1lbnRzL2AnLCBbaHR0cCgnUEFUQ0gnLCAnL3YyL3BheW1lbnRzJyldXSwKICAgIFsnYmFyZSB2ZXJzaW9uZWQgcGF0aCBpbiBjb2RlJywgJ1RoZSBgL3YxL2NoYXJnZWAgZW5kcG9pbnQgaXMgb2xkLicsIFtodHRwKCdBTlknLCAnL3YxL2NoYXJnZScpXV0sCiAgICBbJ2JhcmUgdmVyc2lvbmVkIHBhdGggd2l0aCBwYXJhbScsICdTZWUgYC92Mi9wYXltZW50cy97aWR9YC4nLCBbaHR0cCgnQU5ZJywgJy92Mi9wYXltZW50cy86cGFyYW0nKV1dLAogICAgWydiYXJlIHJvb3QgdmVyc2lvbicsICdQcmVmaXggaXMgYC92M2AuJywgW2h0dHAoJ0FOWScsICcvdjMnKV1dLAogICAgWydjdXJsIHdpdGggLVggYW5kIFVSTCcsICdSdW4gYGN1cmwgLVggREVMRVRFIGh0dHBzOi8vQVBJLmV4YW1wbGUuY29tL3YyL3BheW1lbnRzLzEyMz94PTFgJywgW2h0dHAoJ0RFTEVURScsICcvdjIvcGF5bWVudHMvMTIzJywgJ2FwaS5leGFtcGxlLmNvbScpXV0sCiAgICBbJ2N1cmwgLS1yZXF1ZXN0JywgJ1J1biBgY3VybCAtLXJlcXVlc3QgUFVUIGh0dHBzOi8vaC5pby92MS9hYCcsIFtodHRwKCdQVVQnLCAnL3YxL2EnLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgLVhQT1NUJywgJ1J1biBgY3VybCAtWFBPU1QgImh0dHBzOi8vaC5pby92MS9hImAnLCBbaHR0cCgnUE9TVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCBkZWZhdWx0IEdFVCcsICdSdW4gYGN1cmwgaHR0cHM6Ly9oLmlvOjg0NDMvdjEvYWAnLCBbaHR0cCgnR0VUJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIHdpdGggZGF0YSBkZWZhdWx0cyB0byBQT1NUJywgJ1J1biBgY3VybCAtZCBAeC5qc29uIGh0dHBzOi8vaC5pby92MS9hYCcsIFtodHRwKCdQT1NUJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIHdpdGggYW4gYXR0YWNoZWQgc2hvcnQgZGF0YSBhcmd1bWVudCBzdGlsbCB1c2VzIFBPU1QnLCAnUnVuIGBjdXJsIC1kQHguanNvbiBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnUE9TVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCBhY2NlcHRzIHNob3J0IGZsYWdzIGJlZm9yZSBhdHRhY2hlZCBkYXRhJywgJ1J1biBgY3VybCAtc1NkIm5hbWU9c2FtcGxlIiBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnUE9TVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCB3aXRoIGFuIGF0dGFjaGVkIGZvcm0gYXJndW1lbnQgc3RpbGwgdXNlcyBQT1NUJywgJ1J1biBgY3VybCAtRm5hbWU9c2FtcGxlIGh0dHBzOi8vaC5pby92MS9hYCcsIFtodHRwKCdQT1NUJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIHVzZXMgR0VUIGZvciBhdHRhY2hlZCBxdWVyeSBkYXRhJywgJ1J1biBgY3VybCAtc0dkbmFtZT1zYW1wbGUgaHR0cHM6Ly9oLmlvL3YxL2FgJywgW2h0dHAoJ0dFVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCAtVCB1cGxvYWRzIHRvIGFuIGV4cGxpY2l0IHBhdGggd2l0aCBQVVQnLCAnUnVuIGBjdXJsIC1UIHJlcG9ydC5qc29uIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyYCcsIFtodHRwKCdQVVQnLCAnL3YxL3JlcG9ydHMvNDInLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgdXBsb2FkIHF1ZXJ5IGVuZGluZyB3aXRoIGEgc2xhc2ggbGVhdmVzIHRoZSBleHBsaWNpdCBwYXRoIGludGFjdCcsICdSdW4gYGN1cmwgLVQgcmVwb3J0Lmpzb24gImh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyP3JlZGlyZWN0PS8iYCcsIFtodHRwKCdQVVQnLCAnL3YxL3JlcG9ydHMvNDInLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgdXBsb2FkIGZyYWdtZW50IGVuZGluZyB3aXRoIGEgc2xhc2ggbGVhdmVzIHRoZSBleHBsaWNpdCBwYXRoIGludGFjdCcsICdSdW4gYGN1cmwgLVQgcmVwb3J0Lmpzb24gImh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyI3JlZGlyZWN0LyJgJywgW2h0dHAoJ1BVVCcsICcvdjEvcmVwb3J0cy80MicsICdoLmlvJyldXSwKICAgIFsnY3VybCAtLXVwbG9hZC1maWxlIGNvbnN1bWVzIGEgZmxhZy1zaGFwZWQgZmlsZW5hbWUnLCAnUnVuIGBjdXJsIC0tdXBsb2FkLWZpbGUgIi1JIiBodHRwczovL2guaW8vdjEvcmVwb3J0cy80MmAnLCBbaHR0cCgnUFVUJywgJy92MS9yZXBvcnRzLzQyJywgJ2guaW8nKV1dLAogICAgWydjdXJsIC0tdXBsb2FkLWZpbGUgZXF1YWxzIHN5bnRheCBpbiBjdXJyZW50IGN1cmwnLCAnUnVuIGBjdXJsIC0tdXBsb2FkLWZpbGU9cmVwb3J0Lmpzb24gaHR0cHM6Ly9oLmlvL3YxL3JlcG9ydHMvNDJgJywgW2h0dHAoJ1BVVCcsICcvdjEvcmVwb3J0cy80MicsICdoLmlvJyldXSwKICAgIFsnY3VybCBhY2NlcHRzIGFuIHVwbG9hZCBmaWxlIGpvaW5lZCB0byBidW5kbGVkIHNob3J0IG9wdGlvbnMnLCAnUnVuIGBjdXJsIC1zU1RyZXBvcnQuanNvbiBodHRwczovL2guaW8vdjEvcmVwb3J0cy80MmAnLCBbaHR0cCgnUFVUJywgJy92MS9yZXBvcnRzLzQyJywgJ2guaW8nKV1dLAogICAgWydjdXJsIC0tZ2V0IGRvZXMgbm90IGNoYW5nZSB1cGxvYWQgbWV0aG9kJywgJ1J1biBgY3VybCAtRyAtVCByZXBvcnQuanNvbiBodHRwczovL2guaW8vdjEvcmVwb3J0cy80MmAnLCBbaHR0cCgnUFVUJywgJy92MS9yZXBvcnRzLzQyJywgJ2guaW8nKV1dLAogICAgWydjdXJsIGV4cGxpY2l0IG1ldGhvZCBvdmVycmlkZXMgdGhlIHVwbG9hZCBkZWZhdWx0JywgJ1J1biBgY3VybCAtWCBQQVRDSCAtLXVwbG9hZC1maWxlIHJlcG9ydC5qc29uIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyYCcsIFtodHRwKCdQQVRDSCcsICcvdjEvcmVwb3J0cy80MicsICdoLmlvJyldXSwKICAgIFsnY3VybCBlbXB0eSB1cGxvYWQgYXJndW1lbnQga2VlcHMgdGhlIHRyYW5zZmVyIGEgZG93bmxvYWQnLCAnUnVuIGBjdXJsIC1UICIiIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyYCcsIFtodHRwKCdHRVQnLCAnL3YxL3JlcG9ydHMvNDInLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgLS1uZXh0IHVwbG9hZCBkb2VzIG5vdCBjaGFuZ2UgdGhlIGZpcnN0IHRyYW5zZmVyJywgJ1J1biBgY3VybCBodHRwczovL2guaW8vdjEvcmVwb3J0cyAtLW5leHQgLVQgcmVwb3J0Lmpzb24gaHR0cHM6Ly9oLmlvL3YxL3JlcG9ydHMvNDJgJywgW2h0dHAoJ0dFVCcsICcvdjEvcmVwb3J0cycsICdoLmlvJyldXSwKICAgIFsnY3VybCAtSSB1c2VzIEhFQUQnLCAnUnVuIGBjdXJsIC1JIGh0dHBzOi8vaC5pby92MS9hYCcsIFtodHRwKCdIRUFEJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIC0taGVhZCB1c2VzIEhFQUQnLCAnUnVuIGBjdXJsIC0taGVhZCBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnSEVBRCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCBncm91cHMgc2hvcnQgbW9kaWZpZXJzIHdpdGggLUknLCAnUnVuIGBjdXJsIC1zU0kgaHR0cHM6Ly9oLmlvL3YxL2FgJywgW2h0dHAoJ0hFQUQnLCAnL3YxL2EnLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgLUcgdHVybnMgZGF0YSBpbnRvIGEgcXVlcnknLCAnUnVuIGBjdXJsIC1HIC0tZGF0YS11cmxlbmNvZGUgInE9eCIgaHR0cHM6Ly9oLmlvL3YxL2FgJywgW2h0dHAoJ0dFVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCAtRyBsZWF2ZXMgbXVsdGlwYXJ0IGFzIFBPU1QnLCAnUnVuIGBjdXJsIC1HIC1GIG5hbWU9eCBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnUE9TVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCAtLWdldCBhZnRlciAtLWZvcm0tc3RyaW5nIGxlYXZlcyBtdWx0aXBhcnQgYXMgUE9TVCcsICdSdW4gYGN1cmwgLS1mb3JtLXN0cmluZyBuYW1lPXggLS1nZXQgaHR0cHM6Ly9oLmlvL3YxL2FgJywgW2h0dHAoJ1BPU1QnLCAnL3YxL2EnLCAnaC5pbycpXV0sCiAgICBbJ2N1cmwgZXhwbGljaXQgcmVxdWVzdCBvdmVycmlkZXMgbXVsdGlwYXJ0IGRlZmF1bHQnLCAnUnVuIGBjdXJsIC1YIFBVVCAtRyAtRiBuYW1lPXggaHR0cHM6Ly9oLmlvL3YxL2FgJywgW2h0dHAoJ1BVVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCAtLWdldCB3aXRoIC0taGVhZCBzdGlsbCBzZW5kcyBIRUFEJywgJ1J1biBgY3VybCAtLWdldCAtLWhlYWQgLWQgcT14IGh0dHBzOi8vaC5pby92MS9hYCcsIFtodHRwKCdIRUFEJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIGV4cGxpY2l0IHJlcXVlc3Qgb3ZlcnJpZGVzIC0taGVhZCcsICdSdW4gYGN1cmwgLS1oZWFkIC1YIEdFVCBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnR0VUJywgJy92MS9hJywgJ2guaW8nKV1dLAogICAgWydjdXJsIGRhdGEgdGhhdCBsb29rcyBsaWtlIGEgbWV0aG9kIGZsYWcgc3RheXMgZGF0YScsICdSdW4gYGN1cmwgLWQgIi1JIiBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnUE9TVCcsICcvdjEvYScsICdoLmlvJyldXSwKICAgIFsnY3VybCB3aXRoIHByb21wdCBhbmQgaGVhZGVycycsICdSdW4gYCQgY3VybCAtcyAtSCAiQWNjZXB0OiB4IiBodHRwczovL2guaW8vdjEvYWAnLCBbaHR0cCgnR0VUJywgJy92MS9hJywgJ2guaW8nKV1dLAogIF0pKCclcycsIChfbmFtZSwgaW5wdXQsIGV4cGVjdGVkKSA9PiB7CiAgICBleHBlY3QoZnJvbVRleHQoaW5wdXQsICdodHRwX2VuZHBvaW50JykpLnRvRXF1YWwoZXhwZWN0ZWQpOwogIH0pOwoKICBpdC5lYWNoPFtzdHJpbmcsIHN0cmluZ10+KFsKICAgIFsnbWV0aG9kIHdpdGhvdXQgcGF0aCcsICdXZSBHRVQgdGhpbmdzIGFuZCBQT1NUIHRoZW0uJ10sCiAgICBbJ2xvd2VyY2FzZSBtZXRob2QnLCAnY2FsbCBwb3N0IC92MS9jaGFyZ2UnXSwKICAgIFsnbWV0aG9kIHdpdGggcm9vdCBvbmx5JywgJ0dFVCAvIGlzIHRoZSBob21lIHBhZ2UnXSwKICAgIFsnYmFyZSBwYXRoIGluIHByb3NlJywgJ1RoZSAvdjEvY2hhcmdlIGVuZHBvaW50IGlzIG9sZC4nXSwKICAgIFsnYmFyZSBub24tdmVyc2lvbmVkIHBhdGggaW4gY29kZScsICdPcGVuIGAvZGFzaGJvYXJkYCddLAogICAgWyd2ZXJzaW9uZWQgc2VnbWVudCBpbnNpZGUgYSBmaWxlIHBhdGgnLCAnRWRpdCBgc3JjL3YxL3JvdXRlcy50c2AnXSwKICAgIFsndXJsIGluc2lkZSBjb2RlIGlzIG5vdCBiYXJlJywgJ09wZW4gYGh0dHBzOi8vZXhhbXBsZS5jb20vdjEveGAnXSwKICAgIFsnY3VybCB3aXRob3V0IHVybCcsICdSdW4gYGN1cmwgLS1oZWxwYCddLAogICAgWydjdXJsIHRvIGEgdmFyaWFibGUgaG9zdCcsICdSdW4gYGN1cmwgJEJBU0UvdjEvYWAnXSwKICAgIFsnY3VybCB3aXRoIHVua25vd24gbWV0aG9kJywgJ1J1biBgY3VybCAtWCBQUk9QRklORCBodHRwczovL2guaW8vdjEvYWAnXSwKICAgIFsnY3VybCBjYW5ub3Qgc2VuZCBIRUFEIHdpdGggYSBtdWx0aXBhcnQgYm9keScsICdSdW4gYGN1cmwgLUkgLUcgLUYgbmFtZT14IGh0dHBzOi8vaC5pby92MS9hYCddLAogICAgWydjdXJsIGNhbm5vdCBzZW5kIEhFQUQgd2l0aCBub24tcXVlcnkgZGF0YScsICdSdW4gYGN1cmwgLUkgLWQgcT14IGh0dHBzOi8vaC5pby92MS9hYCddLAogICAgWydjdXJsIGNhbm5vdCBjb21iaW5lIG11bHRpcGFydCBhbmQgZGF0YSBvcHRpb25zJywgJ1J1biBgY3VybCAtRyAtRiBuYW1lPXggLWQgcT14IGh0dHBzOi8vaC5pby92MS9hYCddLAogICAgWydjdXJsIGNhbm5vdCBjb21iaW5lIGF0dGFjaGVkIHJlcXVlc3QgZGF0YSB3aXRoIEhFQUQnLCAnUnVuIGBjdXJsIC1JZG5hbWU9c2FtcGxlIGh0dHBzOi8vaC5pby92MS9hYCddLAogICAgWydjdXJsIGFwcGVuZHMgdGhlIHVwbG9hZCBmaWxlbmFtZSB0byBhIGRpcmVjdG9yeSB0YXJnZXQnLCAnUnVuIGBjdXJsIC1UIHJlcG9ydC5qc29uIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzL2AnXSwKICAgIFsnY3VybCBjYW4gdXBsb2FkIHRvIGEgZmlsZW5hbWUgYWRkZWQgdG8gdGhlIGhvc3Qgcm9vdCcsICdSdW4gYGN1cmwgLVQgcmVwb3J0Lmpzb24gaHR0cHM6Ly9oLmlvYCddLAogICAgWydjdXJsIGNhbm5vdCBjb21iaW5lIGFuIHVwbG9hZCBhbmQgSEVBRCcsICdSdW4gYGN1cmwgLXNTSVQgcmVwb3J0Lmpzb24gaHR0cHM6Ly9oLmlvL3YxL3JlcG9ydHMvNDJgJ10sCiAgICBbJ2N1cmwgY2Fubm90IGNvbWJpbmUgYW4gdXBsb2FkIGFuZCBkYXRhIG9wdGlvbnMnLCAnUnVuIGBjdXJsIC1HIC1kIHE9eCAtVCByZXBvcnQuanNvbiBodHRwczovL2guaW8vdjEvcmVwb3J0cy80MmAnXSwKICAgIFsnY3VybCB1cGxvYWQgb3B0aW9uIHJlcXVpcmVzIGEgZmlsZW5hbWUgYXJndW1lbnQnLCAnUnVuIGBjdXJsIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyIC1UYCddLAogICAgWydjdXJsIHVwbG9hZCBmb3IgYSBub24tSFRUUCBmaXJzdCBVUkwgaXMgbm90IGF0dHJpYnV0ZWQgdG8gYW5vdGhlciBVUkwnLCAnUnVuIGBjdXJsIC1UIHJlcG9ydC5qc29uIGZ0cDovL2guaW8vZXhwb3J0L3JlcG9ydC5qc29uIGh0dHBzOi8vaC5pby92MS9yZXBvcnRzLzQyYCddLAogICAgWydlbXB0eSBpbnB1dCcsICcnXSwKICBdKSgnbmVnYXRpdmU6ICVzJywgKF9uYW1lLCBpbnB1dCkgPT4gewogICAgZXhwZWN0KGZyb21UZXh0KGlucHV0LCAnaHR0cF9lbmRwb2ludCcpKS50b0VxdWFsKFtdKTsKICB9KTsKCiAgaXQoJ2N1cmwgaW4gYSBjb2RlIGJsb2NrLCBtdWx0aXBsZSBsaW5lcyBhbmQgY29udGludWF0aW9uIHByb21wdHMnLCAoKSA9PiB7CiAgICBjb25zdCBhZGYgPSBkb2MoCiAgICAgIGNvZGVCbG9jaygnJCBjdXJsIC1YIFBPU1QgaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvY2hhcmdlIFxcXG4gIC1IICJBdXRob3JpemF0aW9uOiBCZWFyZXIgJFNUUklQRV9LRVkiXG5jdXJsIGh0dHBzOi8vYXBpLmV4YW1wbGUuY29tL3YyL3BheW1lbnRzLzQyIHwganEgLicpLAogICAgKTsKICAgIGV4cGVjdChmcm9tQWRmKGFkZiwgJ2h0dHBfZW5kcG9pbnQnKSkudG9FcXVhbChbCiAgICAgIGh0dHAoJ1BPU1QnLCAnL3YxL2NoYXJnZScsICdhcGkuZXhhbXBsZS5jb20nKSwKICAgICAgaHR0cCgnR0VUJywgJy92Mi9wYXltZW50cy80MicsICdhcGkuZXhhbXBsZS5jb20nKSwKICAgIF0pOwogIH0pOwoKICBpdCgnY3VybCBpbiBhIGNvZGUgYmxvY2sgc3RpbGwgeWllbGRzIHRoZSBlbnYgdmFyIGNsYWltIGZyb20gaXRzIGhlYWRlcicsICgpID0+IHsKICAgIGNvbnN0IGFkZiA9IGRvYyhjb2RlQmxvY2soJ2N1cmwgLUggIkF1dGhvcml6YXRpb246IEJlYXJlciAkU1RSSVBFX0tFWSIgaHR0cHM6Ly9hcGkuZXhhbXBsZS5jb20vdjEvY2hhcmdlJykpOwogICAgZXhwZWN0KGZyb21BZGYoYWRmKS5tYXAoKGMpID0+IGMudHlwZSkuc29ydCgpKS50b0VxdWFsKFsnZW52X3ZhcicsICdodHRwX2VuZHBvaW50J10pOwogIH0pOwoKICBpdCgnY29uZmlkZW5jZTogaGlnaCBpbiBjb2RlLCBtZWRpdW0gaW4gcHJvc2UnLCAoKSA9PiB7CiAgICBleHBlY3QoYWxsRnJvbVRleHQoJ0NhbGwgYFBPU1QgL3YxL2FgJykubWFwKChjKSA9PiBjLmNvbmZpZGVuY2UpKS50b0VxdWFsKFsnaGlnaCddKTsKICAgIGV4cGVjdChhbGxGcm9tVGV4dCgnQ2FsbCBQT1NUIC92MS9hJykubWFwKChjKSA9PiBjLmNvbmZpZGVuY2UpKS50b0VxdWFsKFsnbWVkaXVtJ10pOwogIH0pOwoKICBpdCgnaGFuZGxlcyBhbiBpbmxpbmUgY29kZSBtYXJrIG9uIHRoZSBwYXRoIG9ubHknLCAoKSA9PiB7CiAgICBleHBlY3QoZnJvbUFkZihkb2MocGFyYSgnQ2FsbCBQT1NUICcsIHsgY29kZTogJy92MS9jaGFyZ2UnIH0sICcgcGxlYXNlJykpLCAnaHR0cF9lbmRwb2ludCcpKS50b0VxdWFsKFtodHRwKCdQT1NUJywgJy92MS9jaGFyZ2UnKV0pOwogIH0pOwp9KTsK
+import { describe, expect, it } from 'vitest';
+import { normalizeHttpPath } from '../../../src/core/claims/http.js';
+import type { NormalizedClaim } from '../../../src/core/model.js';
+import { allFromText, codeBlock, doc, fromAdf, fromText, para } from './helpers.js';
+
+const http = (method: string, path: string, host?: string): NormalizedClaim =>
+  host === undefined
+    ? ({ type: 'http_endpoint', method, path } as NormalizedClaim)
+    : ({ type: 'http_endpoint', method, path, host } as NormalizedClaim);
+
+describe('normalizeHttpPath', () => {
+  it.each([
+    ['/v2/payments/{id}', '/v2/payments/:param'],
+    ['/v2/payments/:id', '/v2/payments/:param'],
+    ['/v2/payments/<id>', '/v2/payments/:param'],
+    ['/v2/payments/<int:id>', '/v2/payments/:param'],
+    ['/v2/payments/[id]', '/v2/payments/:param'],
+    ['/v2/payments/', '/v2/payments'],
+    ['/v2/payments?limit=5#top', '/v2/payments'],
+    ['//v2//payments/./x/', '/v2/payments/x'],
+    ['/', '/'],
+    ['', '/'],
+  ])('%s -> %s', (input, expected) => {
+    expect(normalizeHttpPath(input)).toBe(expected);
+  });
+});
+
+describe('http_endpoint extraction', () => {
+  it.each<[string, string, NormalizedClaim[]]>([
+    ['method in code span', 'Call `POST /v1/charge` now.', [http('POST', '/v1/charge')]],
+    ['method in prose', 'Call POST /v1/charge now.', [http('POST', '/v1/charge')]],
+    ['trailing sentence dot', 'Use GET /health.', [http('GET', '/health')]],
+    ['param styles', 'GET /a/{id}, PUT /b/:id and DELETE /c/<int:id>', [http('GET', '/a/:param'), http('PUT', '/b/:param'), http('DELETE', '/c/:param')]],
+    ['query and fragment', 'Try `GET /v2/payments?limit=5#x`', [http('GET', '/v2/payments')]],
+    ['trailing slash', 'Try `PATCH /v2/payments/`', [http('PATCH', '/v2/payments')]],
+    ['bare versioned path in code', 'The `/v1/charge` endpoint is old.', [http('ANY', '/v1/charge')]],
+    ['bare versioned path with param', 'See `/v2/payments/{id}`.', [http('ANY', '/v2/payments/:param')]],
+    ['bare root version', 'Prefix is `/v3`.', [http('ANY', '/v3')]],
+    ['curl with -X and URL', 'Run `curl -X DELETE https://API.example.com/v2/payments/123?x=1`', [http('DELETE', '/v2/payments/123', 'api.example.com')]],
+    ['curl --request', 'Run `curl --request PUT https://h.io/v1/a`', [http('PUT', '/v1/a', 'h.io')]],
+    ['curl -XPOST', 'Run `curl -XPOST "https://h.io/v1/a"`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl default GET', 'Run `curl https://h.io:8443/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl with data defaults to POST', 'Run `curl -d @x.json https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl with an attached short data argument still uses POST', 'Run `curl -d@x.json https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl accepts short flags before attached data', 'Run `curl -sSd"name=sample" https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl with an attached form argument still uses POST', 'Run `curl -Fname=sample https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl uses GET for attached query data', 'Run `curl -sGdname=sample https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl -T uploads to an explicit path with PUT', 'Run `curl -T report.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl upload query ending with a slash leaves the explicit path intact', 'Run `curl -T report.json "https://h.io/v1/reports/42?redirect=/"`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl upload fragment ending with a slash leaves the explicit path intact', 'Run `curl -T report.json "https://h.io/v1/reports/42#redirect/"`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl --upload-file consumes a flag-shaped filename', 'Run `curl --upload-file "-I" https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl --upload-file equals syntax in current curl', 'Run `curl --upload-file=report.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl accepts an upload file joined to bundled short options', 'Run `curl -sSTreport.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl --get does not change upload method', 'Run `curl -G -T report.json https://h.io/v1/reports/42`', [http('PUT', '/v1/reports/42', 'h.io')]],
+    ['curl explicit method overrides the upload default', 'Run `curl -X PATCH --upload-file report.json https://h.io/v1/reports/42`', [http('PATCH', '/v1/reports/42', 'h.io')]],
+    ['curl empty upload argument keeps the transfer a download', 'Run `curl -T "" https://h.io/v1/reports/42`', [http('GET', '/v1/reports/42', 'h.io')]],
+    ['curl --next upload does not change the first transfer', 'Run `curl https://h.io/v1/reports --next -T report.json https://h.io/v1/reports/42`', [http('GET', '/v1/reports', 'h.io')]],
+    ['curl -I uses HEAD', 'Run `curl -I https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl --head uses HEAD', 'Run `curl --head https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl groups short modifiers with -I', 'Run `curl -sSI https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl -G turns data into a query', 'Run `curl -G --data-urlencode "q=x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl -G leaves multipart as POST', 'Run `curl -G -F name=x https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl --get after --form-string leaves multipart as POST', 'Run `curl --form-string name=x --get https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl explicit request overrides multipart default', 'Run `curl -X PUT -G -F name=x https://h.io/v1/a`', [http('PUT', '/v1/a', 'h.io')]],
+    ['curl --get with --head still sends HEAD', 'Run `curl --get --head -d q=x https://h.io/v1/a`', [http('HEAD', '/v1/a', 'h.io')]],
+    ['curl explicit request overrides --head', 'Run `curl --head -X GET https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+    ['curl data that looks like a method flag stays data', 'Run `curl -d "-I" https://h.io/v1/a`', [http('POST', '/v1/a', 'h.io')]],
+    ['curl with prompt and headers', 'Run `$ curl -s -H "Accept: x" https://h.io/v1/a`', [http('GET', '/v1/a', 'h.io')]],
+  ])('%s', (_name, input, expected) => {
+    expect(fromText(input, 'http_endpoint')).toEqual(expected);
+  });
+
+  it.each<[string, string]>([
+    ['method without path', 'We GET things and POST them.'],
+    ['lowercase method', 'call post /v1/charge'],
+    ['method with root only', 'GET / is the home page'],
+    ['bare path in prose', 'The /v1/charge endpoint is old.'],
+    ['bare non-versioned path in code', 'Open `/dashboard`'],
+    ['versioned segment inside a file path', 'Edit `src/v1/routes.ts`'],
+    ['url inside code is not bare', 'Open `https://example.com/v1/x`'],
+    ['curl without url', 'Run `curl --help`'],
+    ['curl to a variable host', 'Run `curl $BASE/v1/a`'],
+    ['curl with unknown method', 'Run `curl -X PROPFIND https://h.io/v1/a`'],
+    ['curl cannot send HEAD with a multipart body', 'Run `curl -I -G -F name=x https://h.io/v1/a`'],
+    ['curl cannot send HEAD with non-query data', 'Run `curl -I -d q=x https://h.io/v1/a`'],
+    ['curl cannot combine multipart and data options', 'Run `curl -G -F name=x -d q=x https://h.io/v1/a`'],
+    ['curl cannot combine attached request data with HEAD', 'Run `curl -Idname=sample https://h.io/v1/a`'],
+    ['curl appends the upload filename to a directory target', 'Run `curl -T report.json https://h.io/v1/reports/`'],
+    ['curl can upload to a filename added to the host root', 'Run `curl -T report.json https://h.io`'],
+    ['curl cannot combine an upload and HEAD', 'Run `curl -sSIT report.json https://h.io/v1/reports/42`'],
+    ['curl cannot combine an upload and data options', 'Run `curl -G -d q=x -T report.json https://h.io/v1/reports/42`'],
+    ['curl upload option requires a filename argument', 'Run `curl https://h.io/v1/reports/42 -T`'],
+    ['curl upload for a non-HTTP first URL is not attributed to another URL', 'Run `curl -T report.json ftp://h.io/export/report.json https://h.io/v1/reports/42`'],
+    ['empty input', ''],
+  ])('negative: %s', (_name, input) => {
+    expect(fromText(input, 'http_endpoint')).toEqual([]);
+  });
+
+  it('curl in a code block, multiple lines and continuation prompts', () => {
+    const adf = doc(
+      codeBlock('$ curl -X POST https://api.example.com/v1/charge \\\n  -H "Authorization: Bearer $STRIPE_KEY"\ncurl https://api.example.com/v2/payments/42 | jq .'),
+    );
+    expect(fromAdf(adf, 'http_endpoint')).toEqual([
+      http('POST', '/v1/charge', 'api.example.com'),
+      http('GET', '/v2/payments/42', 'api.example.com'),
+    ]);
+  });
+
+  it('curl in a code block still yields the env var claim from its header', () => {
+    const adf = doc(codeBlock('curl -H "Authorization: Bearer $STRIPE_KEY" https://api.example.com/v1/charge'));
+    expect(fromAdf(adf).map((c) => c.type).sort()).toEqual(['env_var', 'http_endpoint']);
+  });
+
+  it('confidence: high in code, medium in prose', () => {
+    expect(allFromText('Call `POST /v1/a`').map((c) => c.confidence)).toEqual(['high']);
+    expect(allFromText('Call POST /v1/a').map((c) => c.confidence)).toEqual(['medium']);
+  });
+
+  it('handles an inline code mark on the path only', () => {
+    expect(fromAdf(doc(para('Call POST ', { code: '/v1/charge' }, ' please')), 'http_endpoint')).toEqual([http('POST', '/v1/charge')]);
+  });
+});
