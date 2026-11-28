@@ -53,7 +53,7 @@ For the live Forge and Rovo flow, install with the link above and
   external calls against their expected results.
   [Open the five-call checklist](docs/agent-eval.md#3-mcp-server-fresh-install-checklist).
 
-[Video](https://www.youtube.com/watch?v=GAsxA1YAr-4) ·
+[Forge and Rovo demo (3 min 53 sec)](https://www.youtube.com/watch?v=GAsxA1YAr-4) ·
 [Devpost](https://devpost.com/software/the-page-is-lying) · [MIT](LICENSE)
 
 [Architecture](docs/architecture.md) · [Setup and MCP](docs/setup.md) ·
