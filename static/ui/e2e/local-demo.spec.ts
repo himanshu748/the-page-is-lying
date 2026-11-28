@@ -3,6 +3,11 @@ import { expect, test } from '@playwright/test';
 test('the local demo checks the bundled code and changes only the corrected route', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/local-demo.html');
+  const resources = page.getByRole('navigation', { name: 'Forge demo resources' });
+  await expect(resources.getByRole('link', { name: 'Set up in Confluence' })).toHaveAttribute('href',
+    'https://github.com/himanshu748/the-page-is-lying/blob/main/docs/setup.md#judge-setup');
+  await expect(resources.getByRole('link', { name: 'Watch the Forge and Rovo demo' })).toHaveAttribute('href',
+    'https://www.youtube.com/watch?v=GAsxA1YAr-4');
   const counts = page.getByRole('list', { name: 'Claims by status' });
   const route = page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'POST /v1/charge' }) });
   await expect(counts.getByRole('listitem')).toHaveText(['2 Verified', '3 Contradicted', '1 No evidence']);
@@ -29,6 +34,8 @@ test('the local demo distinguishes a frontend fallback from a declared API route
   await expect(removed).toContainText('No evidence');
   await expect(removed).toContainText('a catch-all route matches the path');
   await expect(removed).toContainText('server.js:5');
+  await expect(removed.getByRole('link', { name: 'server.js:5' })).toHaveAttribute('href',
+    'https://github.com/himanshu748/the-page-is-lying/blob/49f12f23d6455f6243fac5980db1f034cf502eea/demo/fixtures/catch-all/server.js#L5');
   await expect(declared).toContainText('Verified');
   await expect(declared).toContainText('server.js:4');
 });

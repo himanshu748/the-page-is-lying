@@ -12,6 +12,8 @@ import './styles.css';
 import './local-demo.css';
 
 const fixtureDir = '../../../demo/payments-api/';
+// This commit contains the exact catch-all source bundled below.
+const catchAllSourceUrl = 'https://github.com/himanshu748/the-page-is-lying/blob/49f12f23d6455f6243fac5980db1f034cf502eea/demo/fixtures/catch-all/server.js';
 const fixtureSources = import.meta.glob<string>(
   ['../../../demo/payments-api/src/**/*.ts', '../../../demo/payments-api/package.json', '../../../demo/payments-api/.env.example'],
   { eager: true, import: 'default', query: '?raw' },
@@ -63,7 +65,7 @@ function ClaimResults({ results, catchAll }: { results: readonly ClaimResult[]; 
           {evidence.map(({ id, file, line, snippet, permalink }) => {
             if (file === undefined || line === undefined) return null;
             const source = catchAll
-              ? `https://github.com/himanshu748/the-page-is-lying/blob/main/demo/fixtures/catch-all/server.js#L${line}`
+              ? `${catchAllSourceUrl}#L${line}`
               : permalink;
             return (
               <p className="local-demo-evidence" key={id}>
@@ -90,10 +92,14 @@ function LocalDemo() {
   return (
     <main className="local-demo">
       <header>
-        <p className="local-demo-context">Local demo · Bundled code fixtures</p>
+        <p className="local-demo-context">Browser demo · Bundled code fixtures</p>
         <h1>The Page Is Lying</h1>
         <p>Check a runbook against its code and follow each verdict to its source.</p>
-        <p className="muted">The checker runs in this browser. For the live Forge and Rovo flow, use the Confluence setup.</p>
+        <p className="muted">The checker runs in this browser against the selected fixture.</p>
+        <nav className="local-demo-links" aria-label="Forge demo resources">
+          <a href="https://github.com/himanshu748/the-page-is-lying/blob/main/docs/setup.md#judge-setup">Set up in Confluence</a>
+          <a href="https://www.youtube.com/watch?v=GAsxA1YAr-4">Watch the Forge and Rovo demo</a>
+        </nav>
       </header>
       <section aria-labelledby="local-demo-title">
         <label className="local-demo-context">
