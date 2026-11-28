@@ -1,1 +1,187 @@
-aW1wb3J0IHR5cGUgeyBIdHRwTWV0aG9kIH0gZnJvbSAnLi4vbW9kZWwnOwppbXBvcnQgeyBjYXRjaEFsbE1pbmltdW1TZWdtZW50cyB9IGZyb20gJy4uL3JvdXRlLXBhdGgnOwppbXBvcnQgeyBpbkNvZGUsIG92ZXJsYXBzLCB0eXBlIEJsb2NrQ29udGV4dCwgdHlwZSBDYW5kaWRhdGUgfSBmcm9tICcuL2NvbnRleHQnOwppbXBvcnQgeyBzdHJpcFByZWZpeCwgdG9rZW5pemVTZWdtZW50IH0gZnJvbSAnLi9zaGVsbCc7Cgpjb25zdCBNRVRIT0RTOiBSZWFkb25seVNldDxzdHJpbmc+ID0gbmV3IFNldChbJ0dFVCcsICdQT1NUJywgJ1BVVCcsICdQQVRDSCcsICdERUxFVEUnLCAnSEVBRCcsICdPUFRJT05TJ10pOwpjb25zdCBNQVhfUEFUSF9MRU5HVEggPSAzMDA7CmNvbnN0IE1BWF9TRUdNRU5UUyA9IDI0OwoKLyoqCiAqIE5vcm1hbGl6ZXMgYW4gSFRUUCBwYXRoOiBwYXJhbXMgKHtpZH0sIDppZCwgPGlkPiwgPGludDppZD4sIFtpZF0pIGJlY29tZSAiOnBhcmFtIiwKICogcXVlcnkgYW5kIGZyYWdtZW50IGFyZSBjdXQsIGVtcHR5IGFuZCAiLiIgc2VnbWVudHMgYW5kIHRoZSB0cmFpbGluZyBzbGFzaCBhcmUgZHJvcHBlZC4KICogSWRlbXBvdGVudC4KICovCmV4cG9ydCBmdW5jdGlvbiBub3JtYWxpemVIdHRwUGF0aChpbnB1dDogc3RyaW5nKTogc3RyaW5nIHsKICBsZXQgcGF0aCA9IGlucHV0LnNsaWNlKDAsIE1BWF9QQVRIX0xFTkdUSCk7CiAgY29uc3QgY3V0ID0gcGF0aC5zZWFyY2goL1s/I10vKTsKICBpZiAoY3V0ICE9PSAtMSkgcGF0aCA9IHBhdGguc2xpY2UoMCwgY3V0KTsKICBjb25zdCBzZWdtZW50cyA9IHBhdGgKICAgIC5zcGxpdCgnLycpCiAgICAuZmlsdGVyKChzKSA9PiBzICE9PSAnJyAmJiBzICE9PSAnLicpCiAgICAuc2xpY2UoMCwgTUFYX1NFR01FTlRTKQogICAgLm1hcCgocykgPT4gewogICAgICBpZiAoY2F0Y2hBbGxNaW5pbXVtU2VnbWVudHMocykgIT09IHVuZGVmaW5lZCkgcmV0dXJuIHM7CiAgICAgIHJldHVybiAvXlx7LipcfSQvLnRlc3QocykgfHwgL148Lio+JC8udGVzdChzKSB8fCAvXlxbLipcXSQvLnRlc3QocykgfHwgL146LiskLy50ZXN0KHMpID8gJzpwYXJhbScgOiBzOwogICAgfSk7CiAgcmV0dXJuICcvJyArIHNlZ21lbnRzLmpvaW4oJy8nKTsKfQoKLyoqIFRyaW1zIHNlbnRlbmNlIHB1bmN0dWF0aW9uIHRoYXQgZm9sbG93cyBhIHBhdGggaW4gcHJvc2UuICovCmZ1bmN0aW9uIHRyaW1UcmFpbGluZyh0b2tlbjogc3RyaW5nKTogc3RyaW5nIHsKICBsZXQgZW5kID0gdG9rZW4ubGVuZ3RoOwogIHdoaWxlIChlbmQgPiAwKSB7CiAgICBjb25zdCBjaCA9IHRva2VuLmNoYXJBdChlbmQgLSAxKTsKICAgIGlmIChjaCA9PT0gJy4nIHx8IGNoID09PSAnLCcgfHwgY2ggPT09ICc7JyB8fCBjaCA9PT0gJzonIHx8IGNoID09PSAnIScgfHwgY2ggPT09ICc/JykgZW5kLS07CiAgICBlbHNlIGlmIChjaCA9PT0gJyknICYmICF0b2tlbi5zbGljZSgwLCBlbmQpLmluY2x1ZGVzKCcoJykpIGVuZC0tOwogICAgZWxzZSBicmVhazsKICB9CiAgcmV0dXJuIHRva2VuLnNsaWNlKDAsIGVuZCk7Cn0KCmZ1bmN0aW9uIGlzTWV0aG9kKHZhbHVlOiBzdHJpbmcpOiB2YWx1ZSBpcyBIdHRwTWV0aG9kIHsKICByZXR1cm4gTUVUSE9EUy5oYXModmFsdWUpOwp9CgpmdW5jdGlvbiBwYXJzZVVybCh1cmw6IHN0cmluZyk6IHsgaG9zdDogc3RyaW5nOyBwYXRoOiBzdHJpbmcgfSB8IG51bGwgewogIGNvbnN0IG0gPSAvXmh0dHBzPzpcL1wvKD86W14vPyNAXHNdKkApPyhbXi8/Izpcc10rKSg/OjpcZCspPyhbXj8jXHNdKikvaS5leGVjKHVybCk7CiAgaWYgKCFtKSByZXR1cm4gbnVsbDsKICBjb25zdCBob3N0ID0gKG1bMV0gPz8gJycpLnRvTG93ZXJDYXNlKCk7CiAgaWYgKGhvc3QgPT09ICcnIHx8IC9bJHt9PD5dLy50ZXN0KGhvc3QpKSByZXR1cm4gbnVsbDsKICBjb25zdCBwYXRoID0gbm9ybWFsaXplSHR0cFBhdGgobVsyXSA/PyAnJyk7CiAgaWYgKHBhdGggPT09ICcvJykgcmV0dXJuIG51bGw7CiAgcmV0dXJuIHsgaG9zdCwgcGF0aCB9Owp9CgpmdW5jdGlvbiBjdXJsQ2FuZGlkYXRlcyhjdHg6IEJsb2NrQ29udGV4dCk6IENhbmRpZGF0ZVtdIHsKICBjb25zdCBvdXQ6IENhbmRpZGF0ZVtdID0gW107CiAgZm9yIChjb25zdCBzZWdtZW50IG9mIGN0eC5zZWdtZW50cykgewogICAgZm9yIChjb25zdCBjb21tYW5kIG9mIHRva2VuaXplU2VnbWVudChzZWdtZW50KSkgewogICAgICBjb25zdCB0b2tlbnMgPSBzdHJpcFByZWZpeChjb21tYW5kLnRva2Vucyk7CiAgICAgIGNvbnN0IGZpcnN0ID0gdG9rZW5zWzBdOwogICAgICBpZiAoIWZpcnN0IHx8IGZpcnN0LnZhbHVlICE9PSAnY3VybCcpIGNvbnRpbnVlOwogICAgICBsZXQgbWV0aG9kOiBzdHJpbmcgfCB1bmRlZmluZWQ7CiAgICAgIGxldCBoYXNEYXRhID0gZmFsc2U7CiAgICAgIGxldCBoYXNGb3JtID0gZmFsc2U7CiAgICAgIGxldCB1cGxvYWRGaWxlOiBzdHJpbmcgfCB1bmRlZmluZWQ7CiAgICAgIGxldCBoZWFkID0gZmFsc2U7CiAgICAgIGxldCBnZXQgPSBmYWxzZTsKICAgICAgbGV0IHVybDogc3RyaW5nIHwgdW5kZWZpbmVkOwogICAgICBsZXQgZW5kID0gdG9rZW5zLmxlbmd0aDsKICAgICAgZm9yIChsZXQgaSA9IDE7IGkgPCB0b2tlbnMubGVuZ3RoOyBpKyspIHsKICAgICAgICBjb25zdCB2YWx1ZSA9IHRva2Vuc1tpXT8udmFsdWUgPz8gJyc7CiAgICAgICAgaWYgKHZhbHVlID09PSAnLS1uZXh0JyB8fCB2YWx1ZSA9PT0gJy06JykgewogICAgICAgICAgZW5kID0gaTsgLy8gQW4gaW5kZXBlbmRlbnQgdHJhbnNmZXIgaGFzIGl0cyBvd24gb3B0aW9uIGdyb3VwLgogICAgICAgICAgYnJlYWs7CiAgICAgICAgfQogICAgICAgIGNvbnN0IHVwbG9hZE9wdGlvbiA9IC9eLShbZkdJTHNTdl0qKVQoLiopJC8uZXhlYyh2YWx1ZSk7CiAgICAgICAgY29uc3Qgc2hvcnRCb2R5ID0gL14tKFtmR0lMc1N2XSopKFtkRl0pKC4qKSQvLmV4ZWModmFsdWUpOwogICAgICAgIGlmIChzaG9ydEJvZHkpIHsKICAgICAgICAgIGlmIChzaG9ydEJvZHlbMV0/LmluY2x1ZGVzKCdJJykpIGhlYWQgPSB0cnVlOwogICAgICAgICAgaWYgKHNob3J0Qm9keVsxXT8uaW5jbHVkZXMoJ0cnKSkgZ2V0ID0gdHJ1ZTsKICAgICAgICAgIGlmICghc2hvcnRCb2R5WzNdICYmIHRva2Vuc1srK2ldID09PSB1bmRlZmluZWQpIHsKICAgICAgICAgICAgdXJsID0gdW5kZWZpbmVkOwogICAgICAgICAgICBicmVhazsKICAgICAgICAgIH0KICAgICAgICAgIGlmIChzaG9ydEJvZHlbMl0gPT09ICdkJykgaGFzRGF0YSA9IHRydWU7CiAgICAgICAgICBlbHNlIGhhc0Zvcm0gPSB0cnVlOwogICAgICAgIH0gZWxzZSBpZiAodXBsb2FkT3B0aW9uIHx8IHZhbHVlID09PSAnLS11cGxvYWQtZmlsZScgfHwgdmFsdWUuc3RhcnRzV2l0aCgnLS11cGxvYWQtZmlsZT0nKSkgewogICAgICAgICAgaWYgKHVwbG9hZE9wdGlvbj8uWzFdPy5pbmNsdWRlcygnSScpKSBoZWFkID0gdHJ1ZTsKICAgICAgICAgIGlmICh1cGxvYWRPcHRpb24/LlsxXT8uaW5jbHVkZXMoJ0cnKSkgZ2V0ID0gdHJ1ZTsKICAgICAgICAgIGNvbnN0IGZpbGUgPSB2YWx1ZS5zdGFydHNXaXRoKCctLXVwbG9hZC1maWxlPScpCiAgICAgICAgICAgID8gdmFsdWUuc2xpY2UoJy0tdXBsb2FkLWZpbGU9Jy5sZW5ndGgpCiAgICAgICAgICAgIDogdXBsb2FkT3B0aW9uPy5bMl0gfHwgdG9rZW5zWysraV0/LnZhbHVlOwogICAgICAgICAgaWYgKGZpbGUgPT09IHVuZGVmaW5lZCkgewogICAgICAgICAgICB1cmwgPSB1bmRlZmluZWQ7CiAgICAgICAgICAgIGJyZWFrOwogICAgICAgICAgfQogICAgICAgICAgdXBsb2FkRmlsZSA/Pz0gZmlsZTsKICAgICAgICB9IGVsc2UgaWYgKHZhbHVlID09PSAnLVgnIHx8IHZhbHVlID09PSAnLS1yZXF1ZXN0JykgewogICAgICAgICAgbWV0aG9kID0gdG9rZW5zW2kgKyAxXT8udmFsdWUudG9VcHBlckNhc2UoKTsKICAgICAgICAgIGkrKzsKICAgICAgICB9IGVsc2UgaWYgKC9eLVhbQS1aYS16XSskLy50ZXN0KHZhbHVlKSkgewogICAgICAgICAgbWV0aG9kID0gdmFsdWUuc2xpY2UoMikudG9VcHBlckNhc2UoKTsKICAgICAgICB9IGVsc2UgaWYgKHZhbHVlLnN0YXJ0c1dpdGgoJy0tcmVxdWVzdD0nKSkgewogICAgICAgICAgbWV0aG9kID0gdmFsdWUuc2xpY2UoJy0tcmVxdWVzdD0nLmxlbmd0aCkudG9VcHBlckNhc2UoKTsKICAgICAgICB9IGVsc2UgaWYgKC9eKC0tZGF0YSgtYXNjaWl8LXJhd3wtYmluYXJ5fC11cmxlbmNvZGUpP3wtLWpzb24pKD18JCkvLnRlc3QodmFsdWUpKSB7CiAgICAgICAgICBoYXNEYXRhID0gdHJ1ZTsKICAgICAgICAgIGlmICghdmFsdWUuaW5jbHVkZXMoJz0nKSkgaSsrOwogICAgICAgIH0gZWxzZSBpZiAoL14tLWZvcm0oLXN0cmluZyk/KD18JCkvLnRlc3QodmFsdWUpKSB7CiAgICAgICAgICBoYXNGb3JtID0gdHJ1ZTsKICAgICAgICAgIGlmICghdmFsdWUuaW5jbHVkZXMoJz0nKSkgaSsrOwogICAgICAgIH0gZWxzZSBpZiAodmFsdWUgPT09ICctSCcgfHwgdmFsdWUgPT09ICctLWhlYWRlcicpIHsKICAgICAgICAgIGkrKzsKICAgICAgICB9IGVsc2UgaWYgKHZhbHVlID09PSAnLS1oZWFkJyB8fCB2YWx1ZSA9PT0gJy0tbm8taGVhZCcpIHsKICAgICAgICAgIGhlYWQgPSB2YWx1ZSA9PT0gJy0taGVhZCc7CiAgICAgICAgfSBlbHNlIGlmICh2YWx1ZSA9PT0gJy0tZ2V0JyB8fCB2YWx1ZSA9PT0gJy0tbm8tZ2V0JykgewogICAgICAgICAgZ2V0ID0gdmFsdWUgPT09ICctLWdldCc7CiAgICAgICAgfSBlbHNlIGlmICgvXi1bZkdJTHNTdl0rJC8udGVzdCh2YWx1ZSkpIHsKICAgICAgICAgIC8vIFRoZSBvcHRpb25zIGluIHRoZXNlIGJ1bmRsZXMgZG8gbm90IHRha2UgYXJndW1lbnRzLgogICAgICAgICAgaWYgKHZhbHVlLmluY2x1ZGVzKCdJJykpIGhlYWQgPSB0cnVlOwogICAgICAgICAgaWYgKHZhbHVlLmluY2x1ZGVzKCdHJykpIGdldCA9IHRydWU7CiAgICAgICAgfSBlbHNlIGlmICgvXlthLXpdW2EtelxkKy4tXSo6XC9cLy9pLnRlc3QodmFsdWUpICYmIHVybCA9PT0gdW5kZWZpbmVkKSB7CiAgICAgICAgICB1cmwgPSB2YWx1ZTsKICAgICAgICB9CiAgICAgIH0KICAgICAgaWYgKHVybCA9PT0gdW5kZWZpbmVkKSBjb250aW51ZTsKICAgICAgY29uc3QgcGFyc2VkID0gcGFyc2VVcmwodXJsKTsKICAgICAgaWYgKCFwYXJzZWQpIGNvbnRpbnVlOwogICAgICAvLyBDdXJsIHJlamVjdHMgbXVsdGlwYXJ0IHdpdGggSEVBRCBvciByYXcgZGF0YSwgYW5kIEhFQUQgd2l0aCBhIGJvZHkuCiAgICAgIGlmICgoaGFzRm9ybSAmJiAoaGVhZCB8fCBoYXNEYXRhKSkgfHwgKGhlYWQgJiYgaGFzRGF0YSAmJiAhZ2V0KSkgY29udGludWU7CiAgICAgIC8vIEN1cmwgY2FuIGFwcGVuZCB0aGUgbG9jYWwgZmlsZW5hbWUgdG8gYW4gdXBsb2FkIGRpcmVjdG9yeSB0YXJnZXQuCiAgICAgIGNvbnN0IGhhc1VwbG9hZCA9IHVwbG9hZEZpbGUgIT09IHVuZGVmaW5lZCAmJiB1cGxvYWRGaWxlICE9PSAnJzsKICAgICAgaWYgKGhhc1VwbG9hZCAmJiAoaGVhZCB8fCBoYXNGb3JtIHx8IGhhc0RhdGEgfHwgdXJsLnNwbGl0KC9bPyNdLywgMSlbMF0/LmVuZHNXaXRoKCcvJykpKSBjb250aW51ZTsKICAgICAgY29uc3QgcG9zdHMgPSBoYXNGb3JtIHx8IChoYXNEYXRhICYmICFnZXQpOwogICAgICBjb25zdCByZXNvbHZlZCA9IG1ldGhvZCA/PyAoaGFzVXBsb2FkID8gJ1BVVCcgOiBoZWFkID8gJ0hFQUQnIDogcG9zdHMgPyAnUE9TVCcgOiAnR0VUJyk7CiAgICAgIGlmICghaXNNZXRob2QocmVzb2x2ZWQpKSBjb250aW51ZTsKICAgICAgY29uc3QgbGFzdCA9IHRva2Vuc1tlbmQgLSAxXSA/PyBmaXJzdDsKICAgICAgb3V0LnB1c2goewogICAgICAgIHN0YXJ0OiBmaXJzdC5zdGFydCwKICAgICAgICBlbmQ6IGxhc3QuZW5kLAogICAgICAgIGhpZ2g6IHRydWUsCiAgICAgICAgbm9ybWFsaXplZDogeyB0eXBlOiAnaHR0cF9lbmRwb2ludCcsIG1ldGhvZDogcmVzb2x2ZWQsIHBhdGg6IHBhcnNlZC5wYXRoLCBob3N0OiBwYXJzZWQuaG9zdCB9LAogICAgICB9KTsKICAgIH0KICB9CiAgcmV0dXJuIG91dDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGV4dHJhY3RIdHRwKGN0eDogQmxvY2tDb250ZXh0KTogQ2FuZGlkYXRlW10gewogIGNvbnN0IG91dDogQ2FuZGlkYXRlW10gPSBbXTsKICBjb25zdCB0ZXh0ID0gY3R4LnRleHQ7CgogIGNvbnN0IG1ldGhvZFJlID0gLyg/PCFbQS1aYS16MC05X10pKEdFVHxQT1NUfFBVVHxQQVRDSHxERUxFVEV8SEVBRHxPUFRJT05TKVsgXHRdKyhcL1teXHNgIid8XXswLDMwMH0pL2c7CiAgZm9yIChsZXQgbSA9IG1ldGhvZFJlLmV4ZWModGV4dCk7IG0gIT09IG51bGw7IG0gPSBtZXRob2RSZS5leGVjKHRleHQpKSB7CiAgICBjb25zdCBtZXRob2QgPSBtWzFdID8/ICcnOwogICAgY29uc3QgdG9rZW4gPSB0cmltVHJhaWxpbmcobVsyXSA/PyAnJyk7CiAgICBjb25zdCBwYXRoID0gbm9ybWFsaXplSHR0cFBhdGgodG9rZW4pOwogICAgaWYgKCFpc01ldGhvZChtZXRob2QpIHx8IHBhdGggPT09ICcvJykgY29udGludWU7CiAgICBjb25zdCBwYXRoU3RhcnQgPSBtLmluZGV4ICsgbVswXS5sZW5ndGggLSAobVsyXSA/PyAnJykubGVuZ3RoOwogICAgY29uc3QgZW5kID0gcGF0aFN0YXJ0ICsgdG9rZW4ubGVuZ3RoOwogICAgb3V0LnB1c2goewogICAgICBzdGFydDogbS5pbmRleCwKICAgICAgZW5kLAogICAgICBoaWdoOiBpbkNvZGUoY3R4LCBwYXRoU3RhcnQsIGVuZCksCiAgICAgIG5vcm1hbGl6ZWQ6IHsgdHlwZTogJ2h0dHBfZW5kcG9pbnQnLCBtZXRob2QsIHBhdGggfSwKICAgIH0pOwogIH0KCiAgY29uc3QgY3VybCA9IGN1cmxDYW5kaWRhdGVzKGN0eCk7CgogIGZvciAoY29uc3Qgc2VnbWVudCBvZiBjdHguc2VnbWVudHMpIHsKICAgIGNvbnN0IGJhcmVSZSA9IC8oPzwhW1x3LzouQH4tXSlcL3ZcZCsoPzpcL1teXHNgIid8XSopPy9nOwogICAgZm9yIChsZXQgbSA9IGJhcmVSZS5leGVjKHNlZ21lbnQudGV4dCk7IG0gIT09IG51bGw7IG0gPSBiYXJlUmUuZXhlYyhzZWdtZW50LnRleHQpKSB7CiAgICAgIGNvbnN0IHRva2VuID0gdHJpbVRyYWlsaW5nKG1bMF0pOwogICAgICBjb25zdCBzdGFydCA9IHNlZ21lbnQuc3RhcnQgKyBtLmluZGV4OwogICAgICBjb25zdCByYW5nZSA9IHsgc3RhcnQsIGVuZDogc3RhcnQgKyB0b2tlbi5sZW5ndGggfTsKICAgICAgaWYgKG91dC5zb21lKChjKSA9PiBvdmVybGFwcyhjLCByYW5nZSkpIHx8IGN1cmwuc29tZSgoYykgPT4gb3ZlcmxhcHMoYywgcmFuZ2UpKSkgY29udGludWU7CiAgICAgIG91dC5wdXNoKHsKICAgICAgICAuLi5yYW5nZSwKICAgICAgICBoaWdoOiB0cnVlLAogICAgICAgIG5vcm1hbGl6ZWQ6IHsgdHlwZTogJ2h0dHBfZW5kcG9pbnQnLCBtZXRob2Q6ICdBTlknLCBwYXRoOiBub3JtYWxpemVIdHRwUGF0aCh0b2tlbikgfSwKICAgICAgfSk7CiAgICB9CiAgfQoKICByZXR1cm4gWy4uLm91dCwgLi4uY3VybF07Cn0K
+import type { HttpMethod } from '../model';
+import { catchAllMinimumSegments } from '../route-path';
+import { inCode, overlaps, type BlockContext, type Candidate } from './context';
+import { stripPrefix, tokenizeSegment } from './shell';
+
+const METHODS: ReadonlySet<string> = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']);
+const MAX_PATH_LENGTH = 300;
+const MAX_SEGMENTS = 24;
+
+/**
+ * Normalizes an HTTP path: params ({id}, :id, <id>, <int:id>, [id]) become ":param",
+ * query and fragment are cut, empty and "." segments and the trailing slash are dropped.
+ * Idempotent.
+ */
+export function normalizeHttpPath(input: string): string {
+  let path = input.slice(0, MAX_PATH_LENGTH);
+  const cut = path.search(/[?#]/);
+  if (cut !== -1) path = path.slice(0, cut);
+  const segments = path
+    .split('/')
+    .filter((s) => s !== '' && s !== '.')
+    .slice(0, MAX_SEGMENTS)
+    .map((s) => {
+      if (catchAllMinimumSegments(s) !== undefined) return s;
+      return /^\{.*\}$/.test(s) || /^<.*>$/.test(s) || /^\[.*\]$/.test(s) || /^:.+$/.test(s) ? ':param' : s;
+    });
+  return '/' + segments.join('/');
+}
+
+/** Trims sentence punctuation that follows a path in prose. */
+function trimTrailing(token: string): string {
+  let end = token.length;
+  while (end > 0) {
+    const ch = token.charAt(end - 1);
+    if (ch === '.' || ch === ',' || ch === ';' || ch === ':' || ch === '!' || ch === '?') end--;
+    else if (ch === ')' && !token.slice(0, end).includes('(')) end--;
+    else break;
+  }
+  return token.slice(0, end);
+}
+
+function isMethod(value: string): value is HttpMethod {
+  return METHODS.has(value);
+}
+
+function parseUrl(url: string): { host: string; path: string } | null {
+  const m = /^https?:\/\/(?:[^/?#@\s]*@)?([^/?#:\s]+)(?::\d+)?([^?#\s]*)/i.exec(url);
+  if (!m) return null;
+  const host = (m[1] ?? '').toLowerCase();
+  if (host === '' || /[${}<>]/.test(host)) return null;
+  const path = normalizeHttpPath(m[2] ?? '');
+  if (path === '/') return null;
+  return { host, path };
+}
+
+function curlCandidates(ctx: BlockContext): Candidate[] {
+  const out: Candidate[] = [];
+  for (const segment of ctx.segments) {
+    for (const command of tokenizeSegment(segment)) {
+      const tokens = stripPrefix(command.tokens);
+      const first = tokens[0];
+      if (!first || first.value !== 'curl') continue;
+      let method: string | undefined;
+      let hasData = false;
+      let hasForm = false;
+      let uploadFile: string | undefined;
+      let head = false;
+      let get = false;
+      let url: string | undefined;
+      let end = tokens.length;
+      for (let i = 1; i < tokens.length; i++) {
+        const value = tokens[i]?.value ?? '';
+        if (value === '--next' || value === '-:') {
+          end = i; // An independent transfer has its own option group.
+          break;
+        }
+        const uploadOption = /^-([fGILsSv]*)T(.*)$/.exec(value);
+        const shortBody = /^-([fGILsSv]*)([dF])(.*)$/.exec(value);
+        if (shortBody) {
+          if (shortBody[1]?.includes('I')) head = true;
+          if (shortBody[1]?.includes('G')) get = true;
+          if (!shortBody[3] && tokens[++i] === undefined) {
+            url = undefined;
+            break;
+          }
+          if (shortBody[2] === 'd') hasData = true;
+          else hasForm = true;
+        } else if (uploadOption || value === '--upload-file' || value.startsWith('--upload-file=')) {
+          if (uploadOption?.[1]?.includes('I')) head = true;
+          if (uploadOption?.[1]?.includes('G')) get = true;
+          const file = value.startsWith('--upload-file=')
+            ? value.slice('--upload-file='.length)
+            : uploadOption?.[2] || tokens[++i]?.value;
+          if (file === undefined) {
+            url = undefined;
+            break;
+          }
+          uploadFile ??= file;
+        } else if (value === '-X' || value === '--request') {
+          method = tokens[i + 1]?.value.toUpperCase();
+          i++;
+        } else if (/^-X[A-Za-z]+$/.test(value)) {
+          method = value.slice(2).toUpperCase();
+        } else if (value.startsWith('--request=')) {
+          method = value.slice('--request='.length).toUpperCase();
+        } else if (/^(--data(-ascii|-raw|-binary|-urlencode)?|--json)(=|$)/.test(value)) {
+          hasData = true;
+          if (!value.includes('=')) i++;
+        } else if (/^--form(-string)?(=|$)/.test(value)) {
+          hasForm = true;
+          if (!value.includes('=')) i++;
+        } else if (value === '-H' || value === '--header') {
+          i++;
+        } else if (value === '--head' || value === '--no-head') {
+          head = value === '--head';
+        } else if (value === '--get' || value === '--no-get') {
+          get = value === '--get';
+        } else if (/^-[fGILsSv]+$/.test(value)) {
+          // The options in these bundles do not take arguments.
+          if (value.includes('I')) head = true;
+          if (value.includes('G')) get = true;
+        } else if (/^[a-z][a-z\d+.-]*:\/\//i.test(value) && url === undefined) {
+          url = value;
+        }
+      }
+      if (url === undefined) continue;
+      const parsed = parseUrl(url);
+      if (!parsed) continue;
+      // Curl rejects multipart with HEAD or raw data, and HEAD with a body.
+      if ((hasForm && (head || hasData)) || (head && hasData && !get)) continue;
+      // Curl can append the local filename to an upload directory target.
+      const hasUpload = uploadFile !== undefined && uploadFile !== '';
+      if (hasUpload && (head || hasForm || hasData || url.split(/[?#]/, 1)[0]?.endsWith('/'))) continue;
+      const posts = hasForm || (hasData && !get);
+      const resolved = method ?? (hasUpload ? 'PUT' : head ? 'HEAD' : posts ? 'POST' : 'GET');
+      if (!isMethod(resolved)) continue;
+      const last = tokens[end - 1] ?? first;
+      out.push({
+        start: first.start,
+        end: last.end,
+        high: true,
+        normalized: { type: 'http_endpoint', method: resolved, path: parsed.path, host: parsed.host },
+      });
+    }
+  }
+  return out;
+}
+
+export function extractHttp(ctx: BlockContext): Candidate[] {
+  const out: Candidate[] = [];
+  const text = ctx.text;
+
+  const methodRe = /(?<![A-Za-z0-9_])(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)[ \t]+(\/[^\s`"'|]{0,300})/g;
+  for (let m = methodRe.exec(text); m !== null; m = methodRe.exec(text)) {
+    const method = m[1] ?? '';
+    const token = trimTrailing(m[2] ?? '');
+    const path = normalizeHttpPath(token);
+    if (!isMethod(method) || path === '/') continue;
+    const pathStart = m.index + m[0].length - (m[2] ?? '').length;
+    const end = pathStart + token.length;
+    out.push({
+      start: m.index,
+      end,
+      high: inCode(ctx, pathStart, end),
+      normalized: { type: 'http_endpoint', method, path },
+    });
+  }
+
+  const curl = curlCandidates(ctx);
+
+  for (const segment of ctx.segments) {
+    const bareRe = /(?<![\w/:.@~-])\/v\d+(?:\/[^\s`"'|]*)?/g;
+    for (let m = bareRe.exec(segment.text); m !== null; m = bareRe.exec(segment.text)) {
+      const token = trimTrailing(m[0]);
+      const start = segment.start + m.index;
+      const range = { start, end: start + token.length };
+      if (out.some((c) => overlaps(c, range)) || curl.some((c) => overlaps(c, range))) continue;
+      out.push({
+        ...range,
+        high: true,
+        normalized: { type: 'http_endpoint', method: 'ANY', path: normalizeHttpPath(token) },
+      });
+    }
+  }
+
+  return [...out, ...curl];
+}
